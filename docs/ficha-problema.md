@@ -3,7 +3,7 @@
 **Proyecto:** MAPSUTB: Mapa Interactivo de Ubicación con Realidad Aumentada
 **Curso:** AS_202620_MAPSUTB — Organización ISCOUTB
 **Integrantes:** Carlos Galvis zuluaga, Carlos Manrique Fals, Nerlis Otero Perez, Isabel Paez Matallana
-**Repositorio:** AS_202620_PROYECTO
+**Repositorio:** AS_202620_MAPSUTB
 
 ## Problema
 

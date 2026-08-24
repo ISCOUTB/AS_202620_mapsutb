@@ -1,8 +1,8 @@
 # MAPSUTB: Mapa Interactivo de Ubicación con Realidad Aumentada
 
-# 4. Estrategia de solución
+#  Estrategia de solución
 
-## 4.1 Resumen de decisiones clave
+## 1. Resumen de decisiones clave
 
 - **Patrón arquitectural:** monolito — una sola app Flutter, sin backend propio por ahora.
 - **Tecnología:** Flutter (un solo código base para Android/iOS).
@@ -12,7 +12,7 @@
 - **Patrones de diseño internos:** Adapter, Repository, Strategy, Observer (detalle en [ADR 0001](./adr/0001-patrones-de-diseno.md)).
 - **Proceso:** ADRs para decisiones estructurales; uso de IA generativa documentado en [`ia.md`](./ia.md); equipo de 4 estudiantes, un semestre académico.
 
-## 4.2 Decisiones tecnológicas
+## 2. Decisiones tecnológicas
 
 | Decisión | Elección | Motivación |
 |---|---|---|
@@ -21,7 +21,7 @@
 | Origen del mapa del campus | Activos locales del proyecto | Elimina la dependencia de Maps SDK, Places, Directions, Geocoding y Street View |
 | Anclaje de realidad aumentada | ARCore Geospatial API | Única forma viable de anclar RA a coordenadas reales sin infraestructura propia (beacons, SLAM) — ver `restricciones.md` |
 
-## 4.3 Decisión de descomposición de alto nivel
+## 3. Decisión de descomposición de alto nivel
 
 El patrón arquitectural (monolito) ya está resuelto y no se compara aquí
 contra alternativas (ver corte anterior de este documento). Lo que se
@@ -45,7 +45,7 @@ patrones en el código fuente (`adapters/`, `repositories/`,
 `strategies/`, `services/`, `features/`) se detallará como vista de
 bloques de construcción en la sección 5.
 
-## 4.4 Enfoque de solución por objetivo de calidad
+## 4. Enfoque de solución por objetivo de calidad
 
 | Objetivo de calidad | Escenario | Enfoque de solución | Enlace al detalle |
 |---|---|---|---|
@@ -65,13 +65,13 @@ bloques de construcción en la sección 5.
 > siguiente corte para que el contexto del sistema (sección 3) sea
 > consistente con esta estrategia de solución.
 
-## 4.5 Decisiones organizacionales
+## 5. Decisiones organizacionales
 
 - El equipo (4 estudiantes) trabaja bajo el calendario de un semestre académico — ver [`ficha-problema.md`](./ficha-problema.md) y [`restricciones.md`](./restricciones.md).
 - Las decisiones estructurales se registran como ADR en `docs/adr/`, empezando por [0001](./adr/0001-patrones-de-diseno.md).
 - El uso de IA generativa como herramienta de apoyo se registra de forma trazable en [`ia.md`](./ia.md): qué se pidió, qué se aceptó y qué se rechazó.
 
-## 4.6 Esqueleto ejecutable
+## 6. Esqueleto ejecutable
 
 Como resultado de esta estrategia, el repositorio incluye:
 

@@ -20,7 +20,7 @@ aproximado dentro del mapa local) y **Observer** (ubicación en tiempo
 real vía `Stream`). El razonamiento completo, la matriz comparativa por
 problema y las consecuencias de cada decisión están en:
 
-- [`docs/arc42.md`](./docs/arc42.md) — sección 4, "Estrategia de solución"
+- [`docs/Estrategias_Solucion.md`](./docs/Estrategias_Solucion.md)
 - [`docs/adr/0001-patrones-de-diseno.md`](./docs/adr/0001-patrones-de-diseno.md)
 
 ## Estructura del proyecto

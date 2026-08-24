@@ -38,3 +38,4 @@ A partir del árbol de utilidad elaborado para el proyecto, se priorizaron los s
 | Organización ISCOUTB (GitHub) | Repositorio / comunidad técnica | Buenas prácticas y documentación clara para dar continuidad al proyecto. |
 | Futuros mantenedores (próximos semestres) | Interesados indirectos | Código y arquitectura entendibles para continuar el desarrollo. |
 | APIs públicas de Google (terceros) | Proveedor de servicios | Disponibilidad y estabilidad de los servicios consumidos por la app. |
+

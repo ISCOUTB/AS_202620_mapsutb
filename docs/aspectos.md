@@ -11,8 +11,8 @@ Un aspecto es un corte vertical del sistema: aspecto → requisito → elementos
 - **Fuente del estímulo:** un estudiante nuevo o visitante con la aplicación abierta en el campus.
 - **Estímulo:** el usuario selecciona un punto de interés como destino (ej. "Bienestar Universitario").
 - **Artefacto:** el módulo de guiado AR de la aplicación móvil.
-- **Ambiente:** operación normal, en exteriores del campus, con señal GPS disponible.
-- **Respuesta:** el sistema calcula la ruta y superpone indicaciones visuales de dirección sobre la cámara del dispositivo.
+- **Ambiente:** operación normal, en exteriores e interiores del campus, con señal GPS disponible.
+- **Respuesta:** el sistema muestra la ubicacion del punto referenciado y superpone visuales de dirección sobre la cámara del dispositivo que muestre hacia donde tiene que ir el usuario.
 - **Medida de respuesta:** la indicación visual aparece en un tiempo menor o igual a 3 segundos desde la selección del destino, con un margen de error de localización no mayor a 5 metros.
 
 ## Notas

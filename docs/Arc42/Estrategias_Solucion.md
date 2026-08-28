@@ -10,7 +10,7 @@
 - **Ruteo:** aproximado, no exacto (sin cálculo *turn-by-turn* sobre red vial real).
 - **Dependencia externa:** una sola — ARCore Geospatial API, para el anclaje de RA a coordenadas GPS reales.
 - **Patrones de diseño internos:** Adapter, Repository, Strategy, Observer (detalle en [ADR 0001](./adr/0001-patrones-de-diseno.md)).
-- **Proceso:** ADRs para decisiones estructurales; uso de IA generativa documentado en [`ia.md`](./ia.md); equipo de 4 estudiantes, un semestre académico.
+- **Proceso:** ADRs para decisiones estructurales; uso de IA generativa documentado en [`ia.md`](../ia.md); equipo de 4 estudiantes, un semestre académico.
 
 ## 4.2 Decisiones tecnológicas
 

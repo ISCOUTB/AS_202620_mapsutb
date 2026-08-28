@@ -8,4 +8,4 @@
 | 4 | Un usuario nuevo abre la app por primera vez, sin instrucciones, e intenta moverse de un punto a otro del campus. | Lo logra en menos de 2 minutos, sin ayuda externa. |
 | 5 | Se revisa un punto capturado (panorámica) contra el espacio real correspondiente durante la validación de contenido. | Mínimo 90% de los puntos aprobados sin necesidad de recaptura. |
 
-> Estos escenarios operacionalizan el [árbol de utilidad](./02_arbol_utilidad.md) definido para el proyecto.
+> Estos escenarios operacionalizan el [árbol de utilidad](docs/arbol_utilidad.md) definido para el proyecto.

@@ -22,7 +22,7 @@ Desarrollar una aplicación móvil que combine mapas digitales y realidad aument
 
 ## Alcance
 
-El proyecto cubre navegación en exteriores mediante geolocalización y realidad aumentada. La navegación en interiores queda fuera del alcance inicial y se documenta como limitación.
+El proyecto cubre navegación en exteriores mediante geolocalización y realidad aumentada. La navegación en interiores queda limitada en su alcance, pero sigue siendo funcional.
 
 ## APIs de Google consideradas
 
@@ -31,4 +31,4 @@ Maps SDK, ARCore Geospatial API, Places API, Directions API y Geocoding API, sie
 ## Arquitectura propuesta
 
 **Frontend:** Flutter.
-**Backend:** Node.js 
+**Backend:** Ninguno. 

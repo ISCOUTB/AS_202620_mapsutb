@@ -9,7 +9,7 @@
 - **Mapa del campus:** alojado de forma local (activos propios del proyecto), no un SDK externo de mapas.
 - **Ruteo:** aproximado, no exacto (sin cálculo *turn-by-turn* sobre red vial real).
 - **Dependencia externa:** una sola — ARCore Geospatial API, para el anclaje de RA a coordenadas GPS reales.
-- **Patrones de diseño internos:** Adapter, Repository, Strategy, Observer (detalle en [ADR 0001](./adr/0001-patrones-de-diseno.md)).
+- **Patrones de diseño internos:** Adapter, Repository, Strategy, Observer (detalle en [ADR 0001](../adr/0001-patrones-de-diseno.md)).
 - **Proceso:** ADRs para decisiones estructurales; uso de IA generativa documentado en [`ia.md`](../ia.md); equipo de 4 estudiantes, un semestre académico.
 
 ## 4.2 Decisiones tecnológicas
@@ -39,7 +39,7 @@ uno resolviendo un problema puntual del proyecto:
 
 El detalle de cada decisión, las alternativas descartadas y sus
 consecuencias están en
-[`docs/adr/0001-patrones-de-diseno.md`](./adr/0001-patrones-de-diseno.md)
+[`docs/adr/0001-patrones-de-diseno.md`](../adr/0001-patrones-de-diseno.md)
 (sección 9 de arc42, *Decisiones de arquitectura*). La ubicación de estos
 patrones en el código fuente (`adapters/`, `repositories/`,
 `strategies/`, `services/`, `features/`) se detallará como vista de
@@ -67,7 +67,7 @@ bloques de construcción en la sección 5.
 
 ## 4.5 Decisiones organizacionales
 
-- El equipo (4 estudiantes) trabaja bajo el calendario de un semestre académico — ver [`ficha-problema.md`](../ficha-problema.md) y [`restricciones.md`](../../restricciones.md).
+- El equipo (4 estudiantes) trabaja bajo el calendario de un semestre académico — ver [`ficha-problema.md`](../ficha-problema.md) y [`restricciones.md`](../arc42/restricciones.md).
 - Las decisiones estructurales se registran como ADR en `docs/adr/`, empezando por [0001](../adr/0001-patrones-de-diseno.md).
 - El uso de IA generativa como herramienta de apoyo se registra de forma trazable en [`ia.md`](../ia.md): qué se pidió, qué se aceptó y qué se rechazó.
 

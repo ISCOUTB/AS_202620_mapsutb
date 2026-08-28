@@ -183,8 +183,8 @@ sí, así que se documentan por separado.
 
 ## Referencias
 
-- [`restricciones.md`](../../restricciones.md)
+- [`restricciones.md`](../Arc42/restricciones.md)
 - [`arbol_utilidad.md`](../arbol_utilidad.md)
 - [`escenarios_calidad.md`](../escenarios_calidad.md)
 - [`aspectos.md`](../aspectos.md) — escenario de calidad A-01
-- [`arc42.md`](../../Estrategias_Solucion.md), sección 4 (Estrategia de solución)
+- [`arc42.md`](../Arc42/Estrategias_Solucion.md), sección 4 (Estrategia de solución)

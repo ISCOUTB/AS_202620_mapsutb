@@ -15,7 +15,7 @@ El sistema de MAPSUTB interactúa con tres tipos de actores humanos y con seis s
 
 ## Contexto técnico
 
-Técnicamente, la aplicación (cliente Flutter para Android/iOS) se comunica de forma directa con la API de Google mencionadas mediante HTTPS/REST y los SDK nativos correspondientes (ARCore). No existe backend propio: toda la lógica de mapas, geolocalización, ruteo y realidad aumentada se resuelve consumiendo servicios de terceros, lo que reduce la complejidad de infraestructura a cargo del equipo pero introduce una dependencia fuerte de la disponibilidad de este servicio (ver [restricciones](./restricciones.md)).
+Técnicamente, la aplicación (cliente Flutter para Android/iOS) se comunica de forma directa con la API de Google mencionadas mediante HTTPS/REST y los SDK nativos correspondientes (ARCore). No existe backend propio: toda la lógica de mapas, geolocalización, ruteo y realidad aumentada se resuelve consumiendo servicios de terceros, lo que reduce la complejidad de infraestructura a cargo del equipo pero introduce una dependencia fuerte de la disponibilidad de este servicio (ver [restricciones](../Arc42/restricciones.md)).
 
 El contenido panorámico (capturado vía smartphone) se gestiona como asset propio del proyecto, independiente de las APIs externas, y se muestra mediante el motor de renderizado 360° que el equipo defina dentro de Flutter (pendiente de selección al momento de este documento).
 

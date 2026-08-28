@@ -7,8 +7,7 @@ Aceptado — 2026-08-23 (revisado: mapa local + ruteo no exacto)
 ## Contexto
 
 El patrón arquitectural del proyecto ya está decidido: **monolito** (una
-app Flutter, sin backend propio por ahora — ver
-[`c4_contexto.md`](../../c4_contexto.md)). Este ADR **no** compara
+app Flutter, sin backend propio por ahora. Este ADR **no** compara
 alternativas arquitecturales; compara **patrones de diseño** (GoF y
 patrones idiomáticos de Dart) para resolver problemas concretos del
 proyecto.

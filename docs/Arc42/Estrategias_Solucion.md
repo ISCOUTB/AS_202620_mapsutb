@@ -59,7 +59,7 @@ bloques de construcción en la sección 5.
 | Portabilidad | — | Cubierta por la decisión tecnológica de usar Flutter (ver 4.2) | — |
 
 > **Nota de consistencia:** el cambio hacia mapa local y ruteo aproximado
-> deja desalineados `c4_contexto.md`, `restricciones.md` y
+> deja desalineados `restricciones.md` y
 > `ficha-problema.md`, que todavía listan Maps SDK, Directions, Geocoding
 > y Places como dependencias activas. Se recomienda actualizarlos en el
 > siguiente corte para que el contexto del sistema (sección 3) sea
@@ -67,7 +67,7 @@ bloques de construcción en la sección 5.
 
 ## 4.5 Decisiones organizacionales
 
-- El equipo (4 estudiantes) trabaja bajo el calendario de un semestre académico — ver [`ficha-problema.md`](../ficha-problema.md) y [`restricciones.md`](../arc42/restricciones.md).
+- El equipo (4 estudiantes) trabaja bajo el calendario de un semestre académico — ver [`ficha-problema.md`](../ficha-problema.md) y [`restricciones.md`](../Arc42/restricciones.md).
 - Las decisiones estructurales se registran como ADR en `docs/adr/`, empezando por [0001](../adr/0001-patrones-de-diseno.md).
 - El uso de IA generativa como herramienta de apoyo se registra de forma trazable en [`ia.md`](../ia.md): qué se pidió, qué se aceptó y qué se rechazó.
 

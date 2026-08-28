@@ -67,9 +67,9 @@ bloques de construcción en la sección 5.
 
 ## 4.5 Decisiones organizacionales
 
-- El equipo (4 estudiantes) trabaja bajo el calendario de un semestre académico — ver [`ficha-problema.md`](./ficha-problema.md) y [`restricciones.md`](./restricciones.md).
+- El equipo (4 estudiantes) trabaja bajo el calendario de un semestre académico — ver [`ficha-problema.md`](docs/ficha-problema.md) y [`restricciones.md`](./restricciones.md).
 - Las decisiones estructurales se registran como ADR en `docs/adr/`, empezando por [0001](./adr/0001-patrones-de-diseno.md).
-- El uso de IA generativa como herramienta de apoyo se registra de forma trazable en [`ia.md`](./ia.md): qué se pidió, qué se aceptó y qué se rechazó.
+- El uso de IA generativa como herramienta de apoyo se registra de forma trazable en [`ia.md`](docs/ia.md): qué se pidió, qué se aceptó y qué se rechazó.
 
 ## 4.6 Esqueleto ejecutable
 

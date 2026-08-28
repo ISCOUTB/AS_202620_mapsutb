@@ -183,7 +183,6 @@ sí, así que se documentan por separado.
 
 ## Referencias
 
-- [`c4_contexto.md`](../../c4_contexto.md)
 - [`restricciones.md`](../../restricciones.md)
 - [`arbol_utilidad.md`](../../arbol_utilidad.md)
 - [`escenarios_calidad.md`](../../escenarios_calidad.md)

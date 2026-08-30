@@ -1,6 +1,6 @@
 # Ficha del Problema
 
-**Proyecto:** MAPSUTB: Mapa Interactivo de Ubicación con Realidad Aumentada
+**Proyecto:** MAPSUTB: Mapa Interactivo de Ubicación con Recorrido panorámico 360°
 **Curso:** AS_202620_MAPSUTB — Organización ISCOUTB
 **Integrantes:** Carlos Galvis zuluaga, Carlos Manrique Fals, Nerlis Otero Perez, Isabel Paez Matallana
 **Repositorio:** AS_202620_MAPSUTB
@@ -32,3 +32,19 @@ Maps SDK, ARCore Geospatial API, Places API, Directions API y Geocoding API, sie
 
 **Frontend:** Flutter.
 **Backend:** Ninguno. 
+
+## Tensiones de calidad
+
+**1. Precisión del ruteo vs. Simplicidad arquitectónica**
+Un backend propio con motor de ruteo exacto mejoraría la precisión de las
+rutas, pero incrementaría la complejidad de desarrollo y el tiempo de
+entrega. Se prioriza la simplicidad: arquitectura monolito sin backend,
+ruteo aproximado sobre el mapa local del campus.
+
+**2. Actualización de ubicación en tiempo real vs. Eficiencia energética**
+Mantener el GPS activo con actualizaciones frecuentes ofrece una guía más
+precisa y fluida al usuario (posición actualizada al instante mientras
+camina), pero consume batería y datos móviles más rápido. Se prioriza la
+actualización en tiempo real, porque es indispensable para que el
+usuario sepa dónde está y hacia dónde ir mientras se mueve por el
+campus, aceptando el mayor consumo como costo del atributo priorizado.

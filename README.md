@@ -76,4 +76,4 @@ flutter pub get && flutter test
 - Arranca con un solo comando.
 - Una prueba automatizada en verde (`test/app_smoke_test.dart`).
 - Paquetes vacíos según el estilo del ADR 0001.
-- Sin lógica de negocio todavía — a propósito, queda para la semana 4.
+- Sin lógica de negocio todavía

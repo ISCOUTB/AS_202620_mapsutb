@@ -1,6 +1,6 @@
 # MAPSUTB — esqueleto de arquitectura
 
-Mapa Interactivo de Ubicación con Realidad Aumentada — UTB.
+Mapa Interactivo de Ubicación con Recorrido panorámico 360° — UTB.
 Este repositorio contiene el **esqueleto ejecutable** de la arquitectura
 decidida para el proyecto. No incluye lógica de negocio: su objetivo es
 que el equipo pueda empezar la semana 4 construyendo sobre una

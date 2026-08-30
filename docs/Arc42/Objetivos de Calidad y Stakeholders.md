@@ -3,7 +3,7 @@
 
 # Introducción y objetivos
 
-## Descripción generalXD
+## Descripción general
 
 **MAPSUTB** es una aplicación móvil desarrollada en Flutter que permite a distintos tipos de usuarios explorar el campus de la *Universidad Tecnológica de Bolívar* (UTB) mediante objetos de realidad aumentada anclados a ubicaciones reales del campus. El proyecto se desarrolla dentro de la organización de GitHub ISCOUTB, como parte del curso académico de *Arquitectura de Software*.
 

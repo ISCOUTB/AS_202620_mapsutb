@@ -1,6 +1,6 @@
 name: mapsutb
 description: >
-  Mapa Interactivo de Ubicación con Realidad Aumentada — UTB.
+  Mapa Interactivo de Ubicación con Recorrido 360°
   Esqueleto ejecutable de arquitectura (sin lógica de negocio).
 publish_to: 'none'
 version: 0.0.1

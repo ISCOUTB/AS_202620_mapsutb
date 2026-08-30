@@ -4,7 +4,7 @@
 
 | Restricción | Justificación |
 |---|---|
-| Dependencia de APIS (ARCore SDK base y ARCore Geospatial API) | Al mantener la informacion de ubicacion y mapas de manera local, el sistema de realidad aumentada depende de las apis para que este funcione, no afecta la funcionalidad de la app. |
+| Dependencia de APIS (ARCore SDK base) | Al mantener la informacion de ubicacion y mapas de manera local, el sistema de realidad aumentada depende de las apis para que este funcione, no afecta la funcionalidad de la app. |
 | ARCore Geospatial API como componente clave del sistema | Es la única forma viable de anclar contenido de realidad aumentada a coordenadas geográficas reales sin infraestructura propia (p. ej. beacons BLE o mapeo SLAM personalizado). |
 | ARCore Geospatial API y el ruteo solo funcionan en exteriores del campus | Consecuencia directa de la API elegida: no existe cobertura geoespacial confiable en interiores, y, aunque la navegación en interiores del campus no queda fuera de alcance, esta necesita de ser creada manualmente. |
 | La RA Requiere dispositivos compatibles con ARCore / ARKit (vía Geospatial API) | No todos los dispositivos de gama baja soportan realidad aumentada; limita el público que puede usar ese feature específico, aunque el resto de la app sí es compatible. |

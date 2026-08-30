@@ -60,84 +60,174 @@ otras. En el mejor de los casos bastará con ejemplos o la firma de los mismos.
 ****
 endif::arc42help[]
 
-_**<Diagrama general>**_
+[plantuml, 05_building_block_view_level1, png]
+----
+@startuml
+!include <C4/C4_Container>
+
+Person(usuario, "Usuario del campus", "Aspirante, estudiante actual, estudiante de intercambio o invitado")
+
+System_Boundary(mapsutb, "MAPSUTB") {
+    Container(app, "App móvil", "Flutter / Dart", "Interfaz, ruteo interno, tour panorámico y mapa base. Único artefacto desplegable")
+    ContainerDb(plano, "Plano del campus", "Archivos empaquetados", "Grafo peatonal y geometría propia del campus, superpuesta sobre Maps SDK")
+    ContainerDb(panoramas, "Contenido panorámico 360°", "Imágenes equirectangulares", "Capturas esféricas vía smartphone para el tour virtual")
+    ContainerDb(datos, "Datos de zonas y puntos de interés", "JSON local", "Clasificación manual de zonas y coordenadas de puntos de interés")
+}
+
+System_Ext(mapsSdk, "Google Maps SDK", "Renderiza el mapa base sobre el que se superpone el plano propio")
+System_Ext(geocoding, "Google Geocoding API", "Convierte coordenadas y direcciones")
+
+Rel(usuario, app, "Explora, se ubica y traza rutas", "Pantalla táctil")
+Rel(app, plano, "Lee el grafo peatonal y la geometría del campus")
+Rel(app, panoramas, "Lee el contenido del tour")
+Rel(app, datos, "Consulta zonas y puntos de interés")
+Rel(app, mapsSdk, "Renderiza el mapa base", "HTTPS")
+Rel(app, geocoding, "Solicita geocodificación", "HTTPS")
+
+@enduml
+----
 
 Motivación::
 
-_<Explicación en texto>_
-
+MAPSUTB se separa en un único artefacto desplegable (la app móvil Flutter) y tres almacenes de datos empaquetados
+localmente (plano del campus, contenido panorámico y datos de zonas/puntos de interés). No existe backend propio:
+toda la información vive dentro del paquete de la app o se resuelve consultando directamente los servicios de Google
+(Maps SDK y Geocoding API), lo que reduce la infraestructura a cargo del equipo pero introduce una dependencia fuerte
+de la disponibilidad de estos servicios externos (ver <<section-design-decisions,decisiones de diseño>> y
+restricciones técnicas).
 
 Bloques de construcción contenidos::
-_<Desripción de los bloques de construcción contenidos (Cajas negras)>_
-
-Interfases importantes::
-_<Descripción de las interfases importantes>_
-
-ifdef::arc42help[]
-[role="arc42help"]
-****
-Inserte las explicaciones de las cajas negras del nivel 1:
-
-Si usa la forma tabular solo describa las cajas negras con nombre y responsabilidad acorde al
-siguiente esquema:
 
 [cols="1,2" options="header"]
 |===
 | **Nombre** | **Responsabilidad**
-| _<caja negra 1>_ | _<Texto>_
-| _<caja negra 2>_ | _<Texto>_
+| App móvil | Único artefacto desplegable. Contiene toda la lógica de interfaz, ubicación, ruteo interno, mapa base y tour panorámico.
+| Plano del campus | Empaqueta el grafo peatonal y la geometría propia del campus, usados para el ruteo interno y para superponerse sobre Maps SDK.
+| Contenido panorámico 360° | Empaqueta las imágenes equirectangulares capturadas vía smartphone para el módulo de tour virtual.
+| Datos de zonas y puntos de interés | Empaqueta el JSON con la clasificación manual de zonas (salones, laboratorios, oficinas) y sus coordenadas.
 |===
 
-Si utiliza una lista de descripciones de cajas negras entonces llene una plantilla de caja negra por cada bloque de construcción
-importante. El título es el nombre de la caja negra.
-****
-endif::arc42help[]
+Interfases importantes::
 
-==== <Caja Negra 1>
+* *Google Maps SDK* (HTTPS): usada por la App móvil para renderizar el mapa base sobre el cual se dibuja el plano propio del campus.
+* *Google Geocoding API* (HTTPS): usada por la App móvil para convertir coordenadas GPS en direcciones legibles y viceversa.
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-Aqui se describe la <caja negra 1> acorde a la siguiente plantilla:
+==== App móvil
 
-* Propósito/Responsabilidad
-* Interfases, cuando no son extraídas como párrafos separados. Estas interfases pueden incluir características de calidad y rendimiento.
-* (Opcional) Características de Calidad / Rendimiento de la caja negra, por ejemplo, disponibilidad, comportamiento en ejecución, ...
-* (Opcional) Ubicación archivo/directorio
-* (Opcional) Requerimientos satisfechos (si se necesita contar con la trazabilidad a los requerimientos).
-* (Opcional) Incidentes/problemas/riesgos abiertos
-****
-endif::arc42help[]
+_Propósito/Responsabilidad_
 
-_<Propósito/Responsabilidad>_
+Único artefacto desplegable del sistema. Provee la interfaz de usuario (pantallas de tour, mapas/ruteo y zonas),
+gestiona la ubicación en tiempo real del usuario, calcula rutas dentro del campus sobre el grafo peatonal propio,
+renderiza el mapa base (Maps SDK) con el plano propio superpuesto, y muestra el tour panorámico 360°.
 
-_<Interfase(s)>_
+_Interfase(s)_
 
-_<(Opcional) Características de Calidad/Performance>_
+* Consume el sensor de ubicación del dispositivo.
+* Consume Google Maps SDK (HTTPS) para el mapa base.
+* Consume Google Geocoding API (HTTPS) para geocodificación.
+* Lee los tres contenedores de datos empaquetados localmente (plano, panoramas, datos de zonas).
 
-_<(Opcional) Ubicación Archivo/Directorio>_
+_(Opcional) Características de Calidad/Performance_
 
-_<(Opcional) Requerimientos Satisfechos>_
+Requiere conexión a internet permanente; no funciona offline. No está restringida a la red wifi institucional ni al
+perímetro del campus.
 
-_<(Opcional) Riesgos/Problemas/Incidentes Abiertos>_
+_(Opcional) Ubicación Archivo/Directorio_
 
+Repositorio: `github.com/ISCOUTB/AS_202620_mapsutb`
 
+_(Opcional) Requerimientos Satisfechos_
 
+Geolocalización en tiempo real, trazado de rutas dentro del campus, clasificación de zonas, tour panorámico, interfaz
+en inglés para estudiantes de intercambio.
 
-==== <Caja Negra 2>
+_(Opcional) Riesgos/Problemas/Incidentes Abiertos_
 
-_<plantilla de caja negra>_
-
-==== <Caja Negra N>
-
-_<Plantilla de caja negra>_
+Aún no se ha definido el motor/librería para mostrar panorámicas 360° en Flutter. La navegación en interiores queda
+fuera del alcance inicial.
 
 
-==== <Interfase 1>
+==== Plano del campus
 
-...
+_Propósito/Responsabilidad_
 
-==== <Interfase m>
+Almacena, empaquetado dentro de la app, el grafo peatonal (nodos y conexiones entre entradas, plazoletas y bloques)
+y la geometría propia del campus, usados para el ruteo interno y para superponerse visualmente sobre el mapa base
+de Maps SDK.
+
+_Interfase(s)_
+
+Expuesto a la App móvil a través de un repositorio (`MapaRepository`) que oculta el formato interno del archivo.
+
+_(Opcional) Riesgos/Problemas/Incidentes Abiertos_
+
+El levantamiento del grafo peatonal es manual y depende de que el equipo lo mantenga actualizado ante cambios físicos
+del campus.
+
+
+==== Contenido panorámico 360°
+
+_Propósito/Responsabilidad_
+
+Almacena las imágenes equirectangulares (capturas esféricas vía smartphone, tipo Google Street View App) usadas por
+el módulo de tour virtual.
+
+_Interfase(s)_
+
+Expuesto a la App móvil a través de un repositorio (`TourRepository`).
+
+_(Opcional) Riesgos/Problemas/Incidentes Abiertos_
+
+El equipo no cuenta con cámaras 360° dedicadas; la calidad de la captura depende del smartphone usado. Aún no se ha
+definido el motor/librería de renderizado 360° en Flutter.
+
+
+==== Datos de zonas y puntos de interés
+
+_Propósito/Responsabilidad_
+
+Almacena la clasificación manual de zonas del campus (salones, laboratorios, oficinas, etc.) y las coordenadas de
+sus puntos de interés.
+
+_Interfase(s)_
+
+Expuesto a la App móvil a través de un repositorio (`ZonaRepository` / `PuntoInteresRepository`).
+
+_(Opcional) Riesgos/Problemas/Incidentes Abiertos_
+
+La clasificación es cargada manualmente por el equipo; no se actualiza dinámicamente ni la mantiene la universidad.
+
+
+==== Google Maps SDK
+
+_Propósito/Responsabilidad_
+
+Servicio externo de Google que renderiza el mapa base (con coordenadas GPS reales) sobre el cual la App móvil
+superpone el plano propio del campus.
+
+_Interfase(s)_
+
+HTTPS / SDK nativo de Google Maps.
+
+_(Opcional) Riesgos/Problemas/Incidentes Abiertos_
+
+Dependencia fuerte de la disponibilidad del servicio de Google; sujeto a límites de cuota/costo según uso.
+
+
+==== Google Geocoding API
+
+_Propósito/Responsabilidad_
+
+Servicio externo de Google que convierte coordenadas GPS en direcciones legibles y viceversa.
+
+_Interfase(s)_
+
+HTTPS / REST.
+
+_(Opcional) Riesgos/Problemas/Incidentes Abiertos_
+
+Dependencia fuerte de la disponibilidad del servicio de Google; sujeto a límites de cuota/costo según uso.
+
 
 === Nivel 2
 
@@ -152,7 +242,7 @@ sorprendentes, riesgosos, complejos o volátiles. Deje fuera las partes normales
 ****
 endif::arc42help[]
 
-==== Caja Blanca _<bloque de construcción 1>_
+==== Caja Blanca App móvil
 
 ifdef::arc42help[]
 [role="arc42help"]
@@ -161,21 +251,73 @@ ifdef::arc42help[]
 ****
 endif::arc42help[]
 
-_<plantilla de caja blanca>_
+Se detalla la App móvil por ser el único artefacto desplegable del sistema y el que concentra toda la lógica de
+negocio. Los demás bloques del Nivel 1 (plano del campus, contenido panorámico, datos de zonas) son simples
+almacenes de datos empaquetados sin lógica propia, por lo que no se detallan en un nivel adicional.
 
-==== Caja Blanca _<bloque de construcción 2>_
+[plantuml, 05_building_block_view_level2, png]
+----
+@startuml
+!include <C4/C4_Component>
 
+Person(usuario, "Usuario del campus", "Explora, se ubica y traza rutas dentro del campus")
 
-_<plantilla de caja blanca>_
+Container_Boundary(app, "App móvil (Flutter)") {
+    Component(ui, "Pantallas de features", "Widgets Flutter", "tour, mapas_ruteo, zonas")
+    Component(ubicacion, "Servicio de ubicación", "Observer - Stream<Ubicacion>", "Emite la posición en tiempo real a quien se suscriba")
+    Component(widget, "MapaWidget", "Adapter", "Renderiza Maps SDK como mapa base y superpone el plano propio y las rutas")
+    Component(ruteo, "Servicio de ruteo", "Dijkstra sobre grafo propio", "Calcula la ruta más corta dentro del campus")
+    Component(mapaRepo, "MapaRepository", "Repository", "Sirve el grafo peatonal y la geometría del plano propio sin exponer su formato")
+    Component(zonaRepo, "ZonaRepository / PuntoInteresRepository", "Repository", "Clasificación manual de zonas y puntos de interés")
+    Component(tourRepo, "TourRepository", "Repository", "Sirve el contenido panorámico 360° del tour")
+    Component(geocodingAdap, "GeocodingAdapter", "Adapter", "Implementa el puerto de geocodificación; aísla la API de Google")
+}
 
-...
+ContainerDb(datos, "Datos de zonas y puntos de interés", "JSON local", "Clasificación manual")
+ContainerDb(plano, "Plano del campus", "Archivos empaquetados", "Grafo peatonal y geometría propia")
+ContainerDb(panoramas, "Contenido panorámico 360°", "Imágenes equirectangulares", "Capturas esféricas propias")
+System_Ext(mapssdk, "Google Maps SDK", "Mapa base")
+System_Ext(geocoding, "Google Geocoding API", "Coordenadas y direcciones")
+System_Ext(sensor, "Sensor de ubicación del dispositivo", "Capacidad de la plataforma")
 
-==== Caja Blanca _<bloque de construcción m>_
+Rel(usuario, ui, "Interactúa")
 
+Rel(ui, ubicacion, "Se suscribe al stream")
+Rel(ui, ruteo, "Solicita una ruta dentro del campus")
+Rel(ui, zonaRepo, "Consulta zonas y puntos de interés")
+Rel(ui, widget, "Muestra el mapa base con capas propias")
+Rel(ui, geocodingAdap, "Solicita geocodificación")
+Rel(ui, tourRepo, "Solicita panorámicas del tour")
 
-_<plantilla de caja blanca>_
+Rel(ubicacion, sensor, "Escucha cambios de posición")
 
+Rel(ruteo, mapaRepo, "Lee el grafo peatonal")
+Rel(widget, mapaRepo, "Lee la geometría del plano propio")
+Rel(widget, mapssdk, "Renderiza el mapa base", "HTTPS")
+Rel(geocodingAdap, geocoding, "Solicita geocodificación", "HTTPS")
 
+Rel(mapaRepo, plano, "Lee")
+Rel(zonaRepo, datos, "Lee")
+Rel(tourRepo, panoramas, "Lee")
+
+@enduml
+----
+
+* *Pantallas de features* (Widgets Flutter): agrupa las pantallas de tour, mapas/ruteo y zonas; es el único punto de
+entrada de la interacción del usuario.
+* *Servicio de ubicación* (patrón Observer, `Stream<Ubicacion>`): escucha el sensor de ubicación del dispositivo y
+emite la posición en tiempo real a quien se suscriba.
+* *MapaWidget* (patrón Adapter): renderiza Google Maps SDK como mapa base y superpone sobre él el plano propio del
+campus y las rutas calculadas.
+* *Servicio de ruteo* (Dijkstra sobre grafo propio): calcula la ruta más corta dentro del campus a partir del grafo
+peatonal; no depende de ningún servicio externo.
+* *MapaRepository* (patrón Repository): sirve el grafo peatonal y la geometría del plano propio sin exponer su
+formato de archivo.
+* *ZonaRepository / PuntoInteresRepository* (patrón Repository): sirve la clasificación manual de zonas y puntos de
+interés desde el JSON local.
+* *TourRepository* (patrón Repository): sirve el contenido panorámico 360° al módulo de tour.
+* *GeocodingAdapter* (patrón Adapter): implementa el puerto de geocodificación y aísla al resto de la app del SDK de
+Google Geocoding.
 
 === Nivel 3
 
@@ -188,24 +330,6 @@ Cuando la arquitectura requiera más niveles detallados copiar esta sección par
 ****
 endif::arc42help[]
 
-==== Caja Blanca <_bloque de construcción x.1_>
-
-ifdef::arc42help[]
-[role="arc42help"]
-****
-Especifica la estructura interna de _bloque de construcción x.1_.
-****
-endif::arc42help[]
-
-_<plantilla de caja blanca>_
-
-
-==== Caja Blanca <_bloque de construcción x.2_>
-
-_<plantilla de caja blanca>_
-
-
-
-==== Caja Blanca <_bloque de construcción y.1_>
-
-_<plantilla de caja blanca>_
+No se documenta un Nivel 3. Los componentes descritos en el Nivel 2 (pantallas, servicios, repositorios y adaptadores)
+son lo suficientemente simples y de bajo riesgo como para no justificar una descomposición interna adicional; su
+implementación se resuelve a nivel de clases dentro de cada componente sin complejidad arquitectónica relevante.

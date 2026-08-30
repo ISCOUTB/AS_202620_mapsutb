@@ -3,96 +3,59 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-introduction-and-goals]]
 == Introducción y Metas
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-Describe los requerimientos relevantes y las directrices que los arquitectos de software y el equipo de desarrollo
-deben considerar. Entre estas se incluyen:
-
-* Objetivos empresariales subyacentes, características esenciales y requerimientos funcionales para el sistema
-* Metas de calidad para la arquitectura
-* Las partes interesadas pertinentes y sus expectativas
-****
-endif::arc42help[]
-
 === Vista de Requerimientos
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contenido
-Descripción corta de los requerimientos funcionales, motivaciones, extracto (o resumen) de los 
-requerimientos. Ligar a los documentos de requerimientos determinados (Con número de versión e
-información de donde encontrarla). 
+**MAPSUTB** es una aplicación móvil desarrollada en Flutter que permite a
+distintos tipos de usuarios explorar el campus de la *Universidad
+Tecnológica de Bolívar* (UTB) mediante recorridos panorámicos 360°
+anclados a ubicaciones reales del campus. El proyecto se desarrolla
+dentro de la organización de GitHub ISCOUTB, como parte del curso
+académico de *Arquitectura de Software*.
 
-.Motivación
-Desde el punto de vista de los usuarios finales un sistema es creado o modificado para
-mejorar el soporte a una actividad de negocio o incrementar su calidad
+El sistema utiliza un sistema de recorridos en 360° y un mapa de la
+universidad para mostrar la ubicación de los puntos de interés de la
+misma, permitiéndole al usuario no perderse a la hora de llegar a la
+universidad y poder encontrar el lugar que busca.
 
-.Forma
-Descripción corta textual, probablemente en un formato de caso de uso tabular.
-Si existen documentos de requerimientos esta vista debe referir a dichos requerimientos
+Objetivos específicos del sistema:
 
-Mantenga estos extractos tan cortos como sea posible. Encuentre el balance entre la legibilidad y 
-la redundancia de este documento respecto a los documentos de requerimientos que se encuentren 
-relacionados.
-****
-endif::arc42help[]
+* Ubicar al usuario en tiempo real dentro del campus.
+* Mostrar rutas hacia un destino específico.
+* Ofrecer un recorrido panorámico 360° navegable de los puntos de interés.
+* Registrar puntos de interés del campus.
 
 === Metas de Calidad
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contenido
-Las tres metas de calidad principales (o hasta cinco) cuyo cumplimiento sea de la mayor importancia para las principales partes interesadas. 
-Nos referimos a las metas de calidad para la arquitectura. 
-No confundir con las metas del proyecto. 
-No necesariamente son idénticas.
+[options="header",cols="2,4"]
+|===
+|Atributo de calidad|Motivación / prioridad
+|Rendimiento|La experiencia de tour panorámico depende de cargas rápidas y de mantener FPS estables en dispositivos de gama media.
+|Precisión de geolocalización y ruteo|Es el diferenciador central del producto (posición del usuario en tiempo real vía GPS); errores de precisión degradan directamente el valor de la app.
+|Disponibilidad / confiabilidad|La app no depende exclusivamente de tener conexión a internet; mientras tenga acceso a la ubicación, debería funcionar.
+|Usabilidad|El público incluye aspirantes que usan la app por primera vez e invitados a la universidad, sin guía previa.
+|Fidelidad de contenido|El tour debe representar fielmente los espacios reales, dado su uso institucional potencial.
+|Mantenibilidad|La clasificación de zonas es manual; debe ser sencilla de actualizar por el equipo.
+|Portabilidad|Debe funcionar en distintas versiones y tamaños de pantalla de Android/iOS.
+|===
 
-Considere esta visión general de las categorías de requerimientos de calidad según ISO 25010.
-
-image::01_2_iso-25010-topics-EN-2023.drawio.png["Categorías de Requerimientos de Calidad"]
-
-.Motivación
-Debe conocer las metas de calidad de las partes interesadas más importantes, ya que ellos influenciarán
-las decisiones arquitectónicas principales. Asegúrese de ser muy concreto con las descripciones, evitando buzzwords.
-Si como arquitecto no conoce la calidad de su trabajo, será juzgado...
-
-.Forma
-Una tabla con metas de calidad y escenarios concretos, ordenados por prioridades
-****
-endif::arc42help[]
+NOTE: El detalle del árbol de utilidad se encuentra en
+link:../Arc42/arbol_utilidad.md[arbol_utilidad.md] y los escenarios de
+calidad medibles en
+link:../Arc42/escenarios_calidad.md[escenarios_calidad.md].
 
 === Partes interesadas (Stakeholders)
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contenido
-Vista detallada de las partes intersadas del sistema, es decir, toda persona, rol u organización que:
-
-* Debe conocer la arquitectura
-* Debe estar convencida de la arquitectura
-* Tiene que trabajar con la arquitectura o con el código
-* Necesitan la documentación de la arquitectura para su trabajo
-* Intervienen en las decisiones acerca del sistema o su desarrollo 
-
-.Motivación
-Debe conocer a todas las partes involucradas en el desarrollo del sistema o que son afectadas
-por el sistema. De otro modo, se topará con sorpresas desagradables durante el proceso de desarrollo.
-Estas partes relacionadas o stakeholders determinarán la extensión y el nivel de detalle del trabajo
-y sus resultados
-
-.Forma
-Tabla con nombres de los roles, personas, y sus expectativas con respecto a la arquitectura y su 
-documentación
-****
-endif::arc42help[]
-
-[options="header",cols="1,2,2"]
+[options="header",cols="2,2,3"]
 |===
-|Rol/Nombre|Contacto|Expectativas
-| _<Role-1>_ | _<Contact-1>_ | _<Expectation-1>_
-| _<Role-2>_ | _<Contact-2>_ | _<Expectation-2>_
+|Interesado|Rol|Interés / expectativa principal
+|Aspirantes / futuros estudiantes|Usuario final primario|Conocer las ubicaciones importantes del campus antes de matricularse; experiencia fluida.
+|Invitados|Usuario final secundario|Poder explorar el campus y ubicarse.
+|Estudiantes actuales|Usuario final secundario|Ubicarse y trazar rutas dentro del campus.
+|Estudiantes de intercambio extranjeros|Usuario final secundario|Interfaz en inglés; orientarse en un campus desconocido sin barrera de idioma.
+|UTB (Admisiones / Bienestar Universitario)|Cliente institucional|Representación fiel del campus; herramienta de inclusión de estudiantes.
+|Docente(s) del curso|Evaluador académico|Cumplimiento de la metodología arc42/C4 y de los entregables definidos.
+|Equipo de desarrollo|Desarrolladores|Arquitectura mantenible; cumplir los plazos del semestre.
+|Organización ISCOUTB (GitHub)|Repositorio / comunidad técnica|Buenas prácticas y documentación clara para dar continuidad al proyecto.
+|Futuros mantenedores (próximos semestres)|Interesados indirectos|Código y arquitectura entendibles para continuar el desarrollo.
+|APIs públicas de Google (terceros)|Proveedor de servicios|Disponibilidad y estabilidad de los servicios consumidos por la app.
 |===

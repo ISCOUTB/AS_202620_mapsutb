@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'features/zonas/zonas_screen.dart';
-import 'repositories/punto_interes_repository.dart';
+import 'repositories/zona_repository.dart';
 
 void main() => runApp(const MapsUtbApp());
 
@@ -11,7 +11,7 @@ class MapsUtbApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'MAPSUTB',
-      home: ZonasScreen(repository: PuntoInteresRepositoryLocal()),
+      home: ZonasScreen(repository: ZonaRepositoryLocal()),
     );
   }
 }

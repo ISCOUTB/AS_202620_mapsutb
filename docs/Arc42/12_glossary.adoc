@@ -27,9 +27,55 @@ endif::arc42help[]
 |===
 |Término |Definición
 
-|<Término-1>
-|<definicion-1>
+|MAPSUTB
+|Nombre del sistema: app móvil Flutter que permite explorar el campus de la Universidad Tecnológica de Bolívar (UTB) mediante un mapa propio superpuesto sobre Google Maps SDK, con ruteo peatonal interno y un tour panorámico 360°.
 
-|<Término-2>
-|<definicion-2>
+|Google Maps SDK
+|Servicio externo de Google usado como mapa base (con coordenadas GPS reales), sobre el cual la app superpone el plano propio del campus.
+
+|Google Geocoding API
+|Servicio externo de Google usado para convertir coordenadas GPS en direcciones legibles y viceversa.
+
+|Plano del campus
+|Representación propia (no de Google) de la geometría y el grafo peatonal del campus, empaquetada dentro de la app.
+
+|Grafo peatonal
+|Estructura de nodos (entradas, plazoletas, bloques) y conexiones entre ellos, definida manualmente por el equipo, usada para calcular rutas dentro del campus.
+
+|Ruteo
+|Cálculo de la ruta más corta entre dos puntos dentro del campus, resuelto internamente sobre el grafo peatonal propio mediante el algoritmo de Dijkstra, sin depender de ninguna API externa.
+
+|Tour panorámico
+|Módulo de la app que muestra imágenes equirectangulares (panorámicas 360°) capturadas vía smartphone, que permiten al usuario explorar visualmente espacios del campus.
+
+|Panorámica 360° / captura esférica
+|Imagen equirectangular que cubre una vista completa de 360° alrededor de un punto, capturada con la cámara de un smartphone (sin necesidad de una cámara 360° dedicada).
+
+|Zona
+|Clasificación manual de un espacio del campus (por ejemplo, salón, laboratorio u oficina), cargada por el equipo en un archivo JSON local.
+
+|Punto de interés (POI)
+|Ubicación específica dentro de una zona del campus, con coordenadas propias, cargada manualmente por el equipo.
+
+|Aspirante nuevo
+|Actor humano del sistema: persona que quiere conocer el campus antes de matricularse.
+
+|Estudiante actual
+|Actor humano del sistema: estudiante de la UTB que usa la app para ubicarse y trazar rutas dentro del campus.
+
+|Estudiante de intercambio
+|Actor humano del sistema: estudiante extranjero que usa la app en su interfaz en inglés para orientarse en un campus desconocido.
+
+|Invitado
+|Actor humano del sistema: visitante que usa la app para ubicarse y desplazarse dentro del campus.
+
+|Repository (patrón)
+|Patrón de diseño que expone los datos de un almacén (plano, zonas, panorámicas) a través de una interfaz simple, sin exponer su formato interno de almacenamiento. Usado en `MapaRepository`, `ZonaRepository`/`PuntoInteresRepository` y `TourRepository`.
+
+|Adapter (patrón)
+|Patrón de diseño que aísla al resto de la app de un servicio o SDK externo, traduciendo entre la interfaz que la app espera y la del servicio real. Usado en `MapaWidget` (Google Maps SDK) y `GeocodingAdapter` (Geocoding API).
+
+|Observer (patrón)
+|Patrón de diseño en el que un componente emite eventos a quienes se suscriban a él. Usado en el `Servicio de ubicación`, que emite la posición del usuario en tiempo real (`Stream<Ubicacion>`).
+
 |===

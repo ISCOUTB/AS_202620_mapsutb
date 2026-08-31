@@ -22,3 +22,69 @@ Lista de riesgos y/o deuda técnica, que podría incluir una medidas sugeridas p
 o reducir la deuda técnica.
 ****
 endif::arc42help[]
+
+[cols="1,3,1,3" options="header"]
+|===
+| ID | Riesgo / Deuda técnica | Prioridad | Medida sugerida
+
+| RT-01
+| Dependencia fuerte de servicios externos de Google (Maps SDK y Geocoding API). El sistema no tiene backend propio,
+por lo que la disponibilidad de la app depende directamente de la disponibilidad, cuotas y condiciones de uso de
+estos servicios de terceros.
+| Alta
+| Aislar el consumo de cada API detrás de un adaptador propio (`GeocodingAdapter`, `MapaWidget`), como ya está
+contemplado en el diseño, para poder reaccionar a cambios de la API sin modificar el resto de la app. Definir un
+mensaje claro al usuario cuando el servicio no responda.
+
+| RT-02
+| Motor/librería para renderizar panorámicas 360° en Flutter aún no definido. El equipo no ha decidido con qué
+herramienta se mostrará el tour panorámico.
+| Alta
+| Priorizar un spike técnico corto para evaluar y decidir la librería antes de construir el módulo de tour, ya que
+esta decisión condiciona el formato de captura y el `TourRepository`.
+
+| RT-03
+| El equipo no cuenta con cámaras 360° dedicadas; el contenido panorámico se captura vía smartphone (captura
+esférica manual, tipo Google Street View App). Esto puede afectar la fidelidad y consistencia del contenido frente
+a la meta de calidad de "Fidelidad de contenido" (ver <<esc-fidelidad>>).
+| Media
+| Definir un protocolo de captura (altura, condiciones de luz, puntos fijos) para minimizar inconsistencias entre
+capturas hechas por distintos integrantes del equipo.
+
+| RT-04
+| La clasificación de zonas y puntos de interés es 100% manual, cargada por el equipo y no actualizable
+dinámicamente por la universidad. Ante cambios físicos del campus, la información puede desactualizarse.
+| Media
+| Documentar el proceso de actualización del JSON de zonas para que cualquier integrante del equipo pueda
+mantenerlo, y considerar una futura interfaz de administración si el proyecto escala.
+
+| RT-05
+| El grafo peatonal propio (usado para el ruteo dentro del campus) también es de mantenimiento manual. Cambios
+físicos en el campus (obras, cierres temporales) pueden dejarlo desactualizado y afectar la precisión de las rutas
+calculadas (ver <<esc-precision>>).
+| Media
+| Igual que RT-04: documentar el proceso de edición del grafo y asignar responsable de mantenerlo actualizado.
+
+| RT-06
+| La app requiere conexión a internet en todo momento (no funciona offline), ya que tanto el mapa base como la
+geocodificación dependen de servicios externos de Google.
+| Media
+| Comunicar esta limitación claramente en la app (por ejemplo, un aviso si se detecta pérdida de conexión) para
+evitar que el usuario interprete un fallo de red como un error de la app.
+
+| RT-07
+| La navegación en interiores queda fuera del alcance inicial del proyecto (limitación ya declarada).
+| Baja
+| Documentar explícitamente esta limitación en el alcance del producto para gestionar expectativas de usuarios y
+evaluadores del proyecto.
+|===
+
+ifdef::arc42help[]
+[role="arc42help"]
+****
+Esta lista cubre los riesgos y deuda técnica que ya se han identificado explícitamente a lo largo de las decisiones
+de arquitectura del proyecto (ver vista de bloques y requerimientos de calidad). Si el equipo identifica riesgos
+adicionales — por ejemplo, precisión del GPS dentro de edificios, experiencia previa del equipo con Flutter/patrones
+usados, o riesgos de cronograma — deben agregarse aquí con el mismo formato.
+****
+endif::arc42help[]

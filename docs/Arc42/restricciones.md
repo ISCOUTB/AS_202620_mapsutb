@@ -4,14 +4,13 @@
 
 | Restricción | Justificación |
 |---|---|
-| Dependencia de APIS (ARCore SDK base) | Al mantener la informacion de ubicacion y mapas de manera local, el sistema de realidad aumentada depende de las apis para que este funcione, no afecta la funcionalidad de la app. |
-| ARCore Geospatial API como componente clave del sistema | Es la única forma viable de anclar contenido de realidad aumentada a coordenadas geográficas reales sin infraestructura propia (p. ej. beacons BLE o mapeo SLAM personalizado). |
-| ARCore Geospatial API y el ruteo solo funcionan en exteriores del campus | Consecuencia directa de la API elegida: no existe cobertura geoespacial confiable en interiores, y, aunque la navegación en interiores del campus no queda fuera de alcance, esta necesita de ser creada manualmente. |
-| La RA Requiere dispositivos compatibles con ARCore / ARKit (vía Geospatial API) | No todos los dispositivos de gama baja soportan realidad aumentada; limita el público que puede usar ese feature específico, aunque el resto de la app sí es compatible. |
+| Dependencia del paquete `geolocator` (Flutter) para geolocalización | Es la vía estándar para obtener la posición GPS del usuario en tiempo real sin depender de infraestructura propia (beacons BLE, etc.). |
+| La geolocalización solo es confiable en exteriores del campus | Limitación propia del GPS estándar: no hay cobertura confiable en interiores; la navegación en interiores no queda fuera de alcance, pero necesita ser creada manualmente. |
 | No hay cámara 360° dedicada; captura vía panorámica de smartphone | Limitación de presupuesto y recursos del equipo; se complementa utilizando la camara panoramica de smartphone para dar la posibilidad de uso. |
-| La realidad aumentada requiere conexión a internet constante | La API de Google que se utilizara se consume en línea. |
+| El ruteo y algunas funciones dependen de conexión a internet si se usan APIs externas (Directions, Geocoding) | El mapa base y la posición GPS funcionan sin conexión; solo las funciones que consulten APIs de Google en línea la requieren. |
 | Framework: Flutter | Permite un solo código base multiplataforma (Android/iOS), reduciendo el esfuerzo de desarrollo dado el tamaño del equipo. |
 | Clasificación de zonas del campus manual (no dinámica) | Fuera de alcance un panel administrativo institucional; se prioriza tener un producto funcional dentro del tiempo del semestre. |
+
 
 ## Restricciones organizacionales
 
@@ -26,4 +25,5 @@
 |---|---|
 | El contenido debe representar fielmente los espacios reales de la UTB | Es una herramienta con potencial uso institucional (admisiones); errores de representación afectan la imagen de la universidad. |
 | Debe incluir interfaz en inglés | El público objetivo incluye estudiantes de intercambio extranjeros, identificados como interesados del proyecto. |
-| La navegación en interiores del campus queda limitada en su alcance de forma explícita | Limitación técnica de ARCore Geospatial API; se documenta como decisión consciente, no como omisión. |
+| La navegación en interiores del campus queda limitada en su alcance de forma explícita | Limitación técnica del GPS estándar en interiores; se documenta como decisión consciente, no como omisión. |
+

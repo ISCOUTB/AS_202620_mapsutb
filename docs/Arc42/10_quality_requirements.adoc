@@ -43,6 +43,18 @@ En cualquier caso incluya ligas a los escenarios de las siguientes secciones.
 ****
 endif::arc42help[]
 
+Las siete ramas principales corresponden a los atributos de calidad definidos en la sección 1.2 (Metas de Calidad).
+Cada rama enlaza a sus escenarios concretos en la sección siguiente.
+
+* *Calidad de MAPSUTB*
+** Rendimiento → <<esc-rendimiento>>
+** Precisión de geolocalización y ruteo → <<esc-precision>>
+** Disponibilidad / confiabilidad → <<esc-disponibilidad>>
+** Usabilidad → <<esc-usabilidad>>
+** Fidelidad de contenido → <<esc-fidelidad>>
+** Mantenibilidad → <<esc-mantenibilidad>>
+** Portabilidad → <<esc-portabilidad>>
+
 === Escenarios de calidad
 
 ifdef::arc42help[]
@@ -72,3 +84,82 @@ Cuando se requiere evaluar la arquitectura utilizando métodos como ATAM se nece
 Texto en forma libre o tabular.
 ****
 endif::arc42help[]
+
+[[esc-rendimiento]]
+==== Rendimiento
+
+[cols="1,1,4" options="header"]
+|===
+| ID | Tipo | Escenario
+| RE-01 | Uso | Al abrir la pantalla del tour panorámico en un dispositivo de gama media, la primera imagen carga en menos de 2 segundos y la navegación se mantiene fluida (sin caídas perceptibles de FPS).
+| RE-02 | Uso | Al solicitar una ruta dentro del campus, el `Servicio de ruteo` calcula el camino más corto sobre el grafo peatonal propio (Dijkstra) y lo muestra en menos de 500 ms.
+|===
+
+[[esc-precision]]
+==== Precisión de geolocalización y ruteo
+
+[cols="1,1,4" options="header"]
+|===
+| ID | Tipo | Escenario
+| PR-01 | Uso | El `Servicio de ubicación` refleja en el mapa la posición real del usuario con un margen de error acorde a la precisión típica del GPS del dispositivo, actualizándose en tiempo real conforme el usuario se mueve.
+| PR-02 | Uso | La ruta calculada por el grafo peatonal propio conduce efectivamente al punto de interés solicitado, sin atravesar zonas no transitables (edificios, obstáculos) del campus.
+|===
+
+[[esc-disponibilidad]]
+==== Disponibilidad / confiabilidad
+
+[cols="1,1,4" options="header"]
+|===
+| ID | Tipo | Escenario
+| DI-01 | Uso | Si Google Maps SDK o Google Geocoding API no responden (caída del servicio o sin señal de red), la app se lo informa al usuario de forma clara en vez de bloquearse o fallar silenciosamente.
+| DI-02 | Cambio | Si Google modifica límites de cuota o condiciones de uso de la Geocoding API, el equipo puede ajustar el `GeocodingAdapter` sin modificar el resto de la app, gracias al patrón Adapter.
+|===
+
+ifdef::arc42help[]
+[role="arc42help"]
+****
+Nota: la app depende de conexión a internet en todo momento, ya que tanto el mapa base (Maps SDK) como la
+geocodificación (Geocoding API) son servicios externos de Google. La "disponibilidad" del sistema, por tanto, se
+mide en función de la disponibilidad de estos servicios externos y no como operación offline.
+****
+endif::arc42help[]
+
+[[esc-usabilidad]]
+==== Usabilidad
+
+[cols="1,1,4" options="header"]
+|===
+| ID | Tipo | Escenario
+| US-01 | Uso | Un aspirante que abre la app por primera vez, sin ninguna guía previa, logra ubicar y trazar una ruta hacia un punto de interés del campus sin ayuda externa.
+| US-02 | Uso | Un estudiante de intercambio cambia el idioma de la interfaz a inglés y completa el flujo de exploración del campus sin necesitar traducción adicional.
+|===
+
+[[esc-fidelidad]]
+==== Fidelidad de contenido
+
+[cols="1,1,4" options="header"]
+|===
+| ID | Tipo | Escenario
+| FI-01 | Uso | La panorámica mostrada en el tour para un punto del mapa corresponde exactamente al espacio físico real de esa ubicación en el campus.
+| FI-02 | Cambio | Cuando un espacio físico del campus se remodela, el equipo reemplaza la captura panorámica correspondiente en el `TourRepository` sin afectar el resto del contenido.
+|===
+
+[[esc-mantenibilidad]]
+==== Mantenibilidad
+
+[cols="1,1,4" options="header"]
+|===
+| ID | Tipo | Escenario
+| MA-01 | Cambio | Un integrante del equipo agrega o corrige una zona/punto de interés editando el JSON local, sin tocar código de la app ni requerir una nueva publicación en las tiendas.
+| MA-02 | Cambio | Un integrante del equipo actualiza el grafo peatonal (por ejemplo, tras una obra en el campus) modificando solo el archivo del plano, sin afectar el `Servicio de ruteo` ni el `MapaWidget`.
+|===
+
+[[esc-portabilidad]]
+==== Portabilidad
+
+[cols="1,1,4" options="header"]
+|===
+| ID | Tipo | Escenario
+| PO-01 | Uso | La app se instala y funciona correctamente tanto en un dispositivo Android de gama media como en un iPhone reciente, adaptando su interfaz a distintos tamaños de pantalla.
+| PO-02 | Cambio | Si el equipo agrega soporte para un nuevo tamaño de dispositivo (p. ej. tablet), la interfaz se adapta sin requerir reescritura de la lógica de negocio, gracias a que la app está construida en Flutter.
+|===

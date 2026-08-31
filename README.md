@@ -9,20 +9,24 @@ arquitectura ya montada, en lugar de perder tiempo armando el proyecto.
 ## Arquitectura y diseño
 
 El patrón arquitectural es **monolito** (una sola app Flutter, sin
-backend propio por ahora). El mapa del campus se aloja **de forma
-local** (activos propios del proyecto) y el ruteo **no busca ser
-exacto**; por eso la única dependencia externa que queda es **ARCore
-Geospatial API** (para anclar la RA a coordenadas GPS reales). Dentro de
-ese monolito se adoptan cuatro patrones de diseño, cada uno para un
-problema puntual: **Adapter** (aislar ARCore), **Repository** (servir el
-mapa local y los datos de zonas/puntos de interés), **Strategy** (ruteo
-aproximado dentro del mapa local) y **Observer** (ubicación en tiempo
-real vía `Stream`). El razonamiento completo, la matriz comparativa por
-problema y las consecuencias de cada decisión están en:
+backend propio por ahora). El mapa del campus se resuelve superponiendo
+un plano propio (grafo peatonal y geometría del campus, empaquetados
+localmente) sobre **Google Maps SDK**, que renderiza el mapa base; el
+ruteo interno se calcula con **Dijkstra sobre el grafo peatonal propio**,
+sin depender de un servicio externo de ruteo. Por eso las dependencias
+externas del sistema son dos APIs de Google: **Maps SDK** (mapa base) y
+**Geocoding API** (conversión de coordenadas a direcciones y viceversa),
+ambas consumidas vía HTTPS — la app requiere conexión a internet para
+funcionar. Dentro de ese monolito se adoptan tres patrones de diseño,
+cada uno para un problema puntual: **Repository** (servir el plano del
+campus, los datos de zonas/puntos de interés y el contenido panorámico
+local), **Adapter** (aislar Google Maps SDK y Google Geocoding API) y
+**Observer** (ubicación en tiempo real vía `Stream`). El razonamiento
+completo, la matriz comparativa por problema y las consecuencias de cada
+decisión están en:
 
-- [`docs/arc42.md`](./docs/arc42.md) — sección 4, "Estrategia de solución"
+- [`docs/arc42.md`](./docs/Arc42/04_solution_strategy.adoc) — sección 4, "Estrategia de solución"
 - [`docs/adr/0001-patrones-de-diseno.md`](./docs/adr/0001-patrones-de-diseno.md)
-
 ## Estructura del proyecto
 
 ```

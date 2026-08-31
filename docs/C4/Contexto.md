@@ -22,6 +22,5 @@ El contenido panorámico (capturado vía smartphone) se gestiona como asset prop
 ## Pendiente para completar el modelo C4
 
 Para tener el modelo C4 completo del proyecto, aún haría falta documentar:
-- **Contenedores:** app móvil Flutter, y si aplica, algún contenedor de almacenamiento de assets panorámicos.
 - **Componentes:** módulos internos de la app (p. ej. módulo de tour panorámico, módulo de mapas/ruteo, módulo de clasificación de zonas).
 - **Código:** solo si se requiere para partes críticas (opcional en arc42).

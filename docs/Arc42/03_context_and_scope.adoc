@@ -8,16 +8,22 @@ ifndef::imagesdir[:imagesdir: ../images]
 [options="header",cols="2,2,3"]
 |===
 |Socio de comunicación|Entradas al sistema|Salidas del sistema
-|Aspirante / futuro estudiante|Interacción táctil (navegación en el mapa, selección de puntos de interés)|Recorrido panorámico 360°, ubicación en el mapa, ruta aproximada hacia el destino
-|Estudiante actual|Interacción táctil|Ubicación en tiempo real, ruta hacia un punto de interés del campus
+|Aspirante / futuro estudiante|Interacción táctil (navegación en el mapa, selección de puntos de interés)|Recorrido panorámico 360°, ubicación en el mapa, ruta más corta hacia el destino
+|Estudiante actual|Interacción táctil|Ubicación en tiempo real, ruta más corta hacia un punto de interés del campus
 |Estudiante de intercambio extranjero|Interacción táctil, selección de idioma (inglés)|Interfaz en inglés, ubicación y recorrido panorámico
-|Invitado a eventos|Interacción táctil|Ubicación en el mapa, recorrido panorámico de zonas del campus
+|Invitado |Interacción táctil|Ubicación en el mapa, recorrido panorámico de zonas del campus
+|Google Maps SDK|Solicitud de renderizado del mapa base|Mapa base con coordenadas GPS reales, sobre el cual la app superpone el plano propio del campus
+|Google Geocoding API|Coordenadas GPS o direcciones a convertir|Dirección legible o coordenadas correspondientes
 |===
 
-MAPSUTB no intercambia datos específicos de dominio con ningún sistema
-externo: no consume APIs de terceros en tiempo de ejecución. El único
-socio de comunicación es el usuario final, que interactúa directamente
-con la app.
+MAPSUTB no intercambia datos específicos de dominio de la universidad
+(zonas, puntos de interés, grafo peatonal, panorámicas) con ningún
+sistema externo: esos datos se resuelven completamente con activos
+locales empaquetados en la app. Sin embargo, el sistema sí depende en
+tiempo de ejecución de dos servicios externos de Google —Maps SDK y
+Geocoding API— para renderizar el mapa base y resolver geocodificación,
+consumidos directamente por la app vía HTTPS (ver <<section-solution-strategy>>
+y <<section-architecture-constraints>>).
 
 === Contexto Técnico
 
@@ -25,12 +31,18 @@ con la app.
 |===
 |Canal técnico|Entrada/salida que transporta
 |GPS del dispositivo (a través de servicios de localización del sistema operativo)|Posición del usuario en tiempo real (latitud/longitud), consumida vía el paquete `geolocator`
-|Almacenamiento local del dispositivo (activos empaquetados con la app)|Mapa del campus, imágenes panorámicas 360° (capturadas por el equipo), datos de zonas y puntos de interés
+|Almacenamiento local del dispositivo (activos empaquetados con la app)|Plano del campus (grafo peatonal y geometría propia), imágenes panorámicas 360° (capturadas por el equipo), datos de zonas y puntos de interés
+|Google Maps SDK (HTTPS)|Solicitud de mapa base ↔ mapa renderizado con coordenadas GPS reales, sobre el que se superpone el plano propio del campus
+|Google Geocoding API (HTTPS)|Coordenadas GPS ↔ dirección legible
 |===
 
-MAPSUTB no requiere conexión a internet para su funcionamiento
-principal: el mapa, las imágenes panorámicas 360° y los datos de puntos
-de interés se distribuyen como activos locales dentro de la app, y la
-ubicación del usuario se obtiene directamente del hardware GPS del
+El mapa base, la geocodificación y, por lo tanto, buena parte de la
+experiencia de ubicación y ruteo de MAPSUTB **requieren conexión a
+internet**: la app consulta directamente Google Maps SDK y Google
+Geocoding API en tiempo de ejecución. Lo que sí se resuelve sin red son
+el ruteo interno (calculado sobre el grafo peatonal propio, empaquetado
+localmente) y el contenido del tour panorámico y de zonas/puntos de
+interés, que se distribuyen como activos locales dentro de la app. La
+posición del usuario se obtiene directamente del hardware GPS del
 dispositivo a través de los servicios de localización del sistema
-operativo (sin pasar por ninguna API de red).
+operativo, sin pasar por ninguna API de red.

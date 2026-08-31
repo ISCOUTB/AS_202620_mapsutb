@@ -7,10 +7,10 @@ ifndef::imagesdir[:imagesdir: ../images]
 
 * *Patrón arquitectural:* monolito — una sola app Flutter, sin backend propio por ahora.
 * *Tecnología:* Flutter (un solo código base para Android/iOS).
-* *Mapa del campus:* alojado de forma local (activos propios del proyecto), no un SDK externo de mapas.
-* *Ruteo:* aproximado, no exacto (sin cálculo _turn-by-turn_ sobre red vial real).
-* *Dependencia externa:* ninguna API de Google en la nube; la única fuente externa al código propio es el GPS del dispositivo, vía el paquete `geolocator`.
-* *Patrones de diseño internos:* Repository, Strategy, Observer (detalle en link:../adr/0001-patrones-de-diseno.md[ADR 0001]).
+* *Mapa del campus:* plano propio (grafo peatonal y geometría del campus) alojado localmente, superpuesto sobre el mapa base de **Google Maps SDK**.
+* *Ruteo:* cálculo de la ruta más corta dentro del campus mediante **Dijkstra** sobre el grafo peatonal propio; no depende de un servicio externo de ruteo.
+* *Dependencias externas:* dos APIs de Google en la nube — **Maps SDK** (mapa base) y **Geocoding API** (conversión de coordenadas y direcciones), ambas vía HTTPS. El GPS del dispositivo (vía el paquete `geolocator`) es la única fuente de datos que no pasa por una API de red.
+* *Patrones de diseño internos:* Repository, Adapter, Observer (detalle en link:../adr/0001-patrones-de-diseno.md[ADR 0001]).
 * *Proceso:* ADRs para decisiones estructurales; uso de IA generativa documentado en link:../ia.md[ia.md]; equipo de 4 estudiantes, un semestre académico.
 
 === Decisiones tecnológicas
@@ -20,8 +20,10 @@ ifndef::imagesdir[:imagesdir: ../images]
 |Decisión|Elección|Motivación
 |Framework de la app|Flutter|Un solo código base multiplataforma, dado el tamaño del equipo (ver 02_architecture_constraints)
 |Backend|Ninguno por ahora|El alcance actual no lo requiere; toda la lógica corre en el cliente
-|Origen del mapa del campus|Activos locales del proyecto|Elimina la dependencia de cualquier API de mapas en la nube
-|Obtención de ubicación del usuario|`geolocator` (paquete de Flutter)|GPS estándar del dispositivo; expone un `Stream` de posición en tiempo real, sin requerir cámara ni conexión a internet
+|Mapa base|Google Maps SDK|Evita construir un motor de renderizado de mapas propio; el plano del campus se superpone sobre él como capa adicional
+|Origen del plano del campus|Activos locales del proyecto (grafo peatonal + geometría)|El ruteo interno y la superposición visual no dependen de que Google exponga esos datos
+|Geocodificación|Google Geocoding API|Evita implementar conversión de coordenadas↔direcciones propia
+|Obtención de ubicación del usuario|`geolocator` (paquete de Flutter)|GPS estándar del dispositivo; expone un `Stream` de posición en tiempo real, sin requerir cámara ni una API de red adicional
 |===
 
 === Decisión de descomposición de alto nivel
@@ -35,16 +37,20 @@ proyecto:
 [options="header",cols="3,1"]
 |===
 |Problema de diseño|Patrón elegido
-|Servir el mapa del campus alojado localmente|Repository
-|Acceso a datos de zonas y puntos de interés|Repository
-|Ruteo aproximado dentro del mapa local|Strategy
+|Servir el plano del campus, los datos de zonas/puntos de interés y el contenido panorámico local|Repository
+|Aislar al resto de la app de Google Maps SDK y Google Geocoding API|Adapter
 |Ubicación en tiempo real hacia UI y tour panorámico|Observer (`Stream` de Dart, vía `geolocator`)
 |===
+
+El ruteo interno (Dijkstra sobre el grafo peatonal propio) no se resuelve
+con un patrón de diseño adicional: es un servicio propio que consume el
+`MapaRepository` directamente, según se detalla en la vista de bloques
+(sección 5).
 
 El detalle de cada decisión, las alternativas descartadas y sus
 consecuencias están en link:../adr/0001-patrones-de-diseno.md[ADR 0001]
 (sección 9 de arc42, _Decisiones de arquitectura_). La ubicación de
-estos patrones en el código fuente (`repositories/`, `strategies/`,
+estos patrones en el código fuente (`repositories/`, `adapters/`,
 `services/`, `features/`) se detalla como vista de bloques de
 construcción en la sección 5.
 
@@ -53,11 +59,11 @@ construcción en la sección 5.
 [options="header",cols="2,3,3"]
 |===
 |Meta de calidad|Enfoque de solución|Detalle
-|Precisión de geolocalización y ruteo|Patrón *Strategy* para el cálculo de ruta aproximada sobre el mapa local, sin depender de un servicio externo de ruteo (link:../Arc42/escenarios_calidad.md[Escenario 2])|ADR 0001 (Strategy)
+|Precisión de geolocalización y ruteo|Ruteo con **Dijkstra** sobre el grafo peatonal propio, sin depender de un servicio externo de ruteo (link:../Arc42/escenarios_calidad.md[Escenario 2])|—
 |Precisión de geolocalización y ruteo|Patrón *Observer* para propagar la ubicación en tiempo real (`geolocator`) sin _polling_ (link:../Arc42/escenarios_calidad.md[Escenario 2])|ADR 0001 (Observer)
-|Disponibilidad / confiabilidad|El mapa y las rutas no dependen de red (activos locales); si el GPS pierde señal, la app maneja el error de forma controlada (link:../Arc42/escenarios_calidad.md[Escenario 3])|—
+|Disponibilidad / confiabilidad|El plano del campus, el ruteo interno y el contenido del tour no dependen de red (activos locales); el **mapa base y la geocodificación sí dependen de Google Maps SDK/Geocoding API**, por lo que la app requiere conexión a internet para su experiencia completa (link:../Arc42/escenarios_calidad.md[Escenario 3]); si el GPS pierde señal, la app maneja el error de forma controlada|Riesgo: dependencia de disponibilidad de servicios externos de Google (ver 11_technical_risks)
 |Mantenibilidad|Patrón *Repository* (`ZonaRepository`) centraliza el punto de cambio para la clasificación de zonas|ADR 0001 (Repository)
-|Fidelidad de contenido|Patrón *Repository* (`MapaRepository`, `PuntoInteresRepository`) aísla el formato de los activos del mapa de quien los consume (link:../Arc42/escenarios_calidad.md[Escenario 5])|ADR 0001 (Repository)
+|Fidelidad de contenido|Patrón *Repository* (`MapaRepository`, `PuntoInteresRepository`, `TourRepository`) aísla el formato de los activos locales de quien los consume (link:../Arc42/escenarios_calidad.md[Escenario 5])|ADR 0001 (Repository)
 |Rendimiento|Carga de escena panorámica local en menos de 3 s (link:../Arc42/escenarios_calidad.md[Escenario 1]); pendiente de resolver con una decisión de diseño concreta|Por definir
 |Usabilidad|Usuario nuevo se ubica en menos de 2 minutos sin ayuda (link:../Arc42/escenarios_calidad.md[Escenario 4]); pendiente de resolver con una decisión de diseño de interacción|Por definir
 |Portabilidad|Cubierta por la decisión tecnológica de usar Flutter|—
@@ -65,19 +71,6 @@ construcción en la sección 5.
 
 Ver también link:../Arc42/arbol_utilidad.md[arbol_utilidad.md] para el
 árbol de utilidad completo del que derivan estos escenarios.
-
-[options="header",cols="2,3,3"]
-|===
-|Meta de calidad|Enfoque de solución|Detalle
-|Precisión de geolocalización y ruteo|Patrón *Strategy* para el cálculo de ruta aproximada sobre el mapa local, sin depender de un servicio externo de ruteo|ADR 0001 (Strategy)
-|Precisión de geolocalización y ruteo|Patrón *Observer* para propagar la ubicación en tiempo real (`geolocator`) sin _polling_|ADR 0001 (Observer)
-|Disponibilidad / confiabilidad|El mapa y las rutas no dependen de red (activos locales); la geolocalización vía GPS funciona sin conexión a internet|—
-|Mantenibilidad|Patrón *Repository* (`ZonaRepository`) centraliza el punto de cambio para la clasificación de zonas|ADR 0001 (Repository)
-|Fidelidad de contenido|Patrón *Repository* (`MapaRepository`, `PuntoInteresRepository`) aísla el formato de los activos del mapa de quien los consume|ADR 0001 (Repository)
-|Rendimiento|Pendiente — no se resuelve con un patrón de diseño de este ADR; queda para la vista de conceptos transversales (sección 8)|Por definir
-|Usabilidad|Pendiente — decisión de diseño de interacción, fuera del alcance de este ADR|Por definir
-|Portabilidad|Cubierta por la decisión tecnológica de usar Flutter|—
-|===
 
 === Decisiones organizacionales
 

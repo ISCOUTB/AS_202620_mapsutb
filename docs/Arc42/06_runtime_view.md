@@ -1,0 +1,163 @@
+<a id="section-runtime-view"></a>
+
+# Vista de Ejecución
+
+Se documentan cuatro escenarios de ejecución, elegidos por su relevancia
+arquitectónica: cubren el flujo principal de ruteo (que atraviesa la
+mayoría de los componentes de la sección 5), el uso de cada uno de los
+dos adaptadores hacia servicios externos de Google (`MapaWidget` para
+Maps SDK, `GeocodingAdapter` para Geocoding API), el escenario de error
+más crítico del sistema (pérdida de disponibilidad de esos servicios
+externos, ver [Pérdida de disponibilidad](#esc-disponibilidad) y RT-01/RT-06 en
+`11_technical_risks.adoc`), y un flujo que se resuelve completamente sin
+red (tour panorámico), para contrastar con los que sí dependen de
+internet.
+
+## Trazar una ruta hacia un punto de interés
+
+Flujo principal del sistema: el usuario selecciona un punto de interés y
+la app calcula y muestra la ruta más corta desde su posición actual,
+combinando el `Servicio de ubicación` (Observer), el `Servicio de
+ruteo` (Dijkstra sobre el grafo propio) y `MapaWidget` (Adapter sobre
+Google Maps SDK).
+
+[mermaid, 06_runtime_view_esc1, png]
+----
+sequenceDiagram
+    actor Usuario
+    participant UI as Pantallas de features
+    participant ZonaRepo as ZonaRepository/PuntoInteresRepository
+    participant Ubicacion as Servicio de ubicación
+    participant Sensor as Sensor de ubicación
+    participant Ruteo as Servicio de ruteo
+    participant MapaRepo as MapaRepository
+    participant Widget as MapaWidget
+    participant MapsSDK as Google Maps SDK
+
+    Usuario->>UI: Selecciona punto de interés como destino
+    UI->>ZonaRepo: Consulta coordenadas del punto seleccionado
+    ZonaRepo-->>UI: Coordenadas del destino
+    UI->>Ubicacion: Lee posición actual (suscripción al Stream)
+    Ubicacion->>Sensor: Escucha cambios de posición
+    Sensor-->>Ubicacion: Posición GPS actual
+    Ubicacion-->>UI: Ubicacion (posición actual)
+    UI->>Ruteo: Solicita ruta (origen, destino)
+    Ruteo->>MapaRepo: Lee el grafo peatonal
+    MapaRepo-->>Ruteo: Grafo peatonal del campus
+    Ruteo->>Ruteo: Calcula ruta más corta (Dijkstra)
+    Ruteo-->>UI: Ruta calculada
+    UI->>Widget: Muestra ruta sobre el mapa base
+    Widget->>MapaRepo: Lee geometría del plano propio
+    MapaRepo-->>Widget: Plano propio del campus
+    Widget->>MapsSDK: Renderiza mapa base (HTTPS)
+    MapsSDK-->>Widget: Mapa base renderizado
+    Widget-->>UI: Mapa con plano propio y ruta superpuestos
+    UI-->>Usuario: Muestra la ruta trazada en pantalla
+----
+
+
+1. El usuario selecciona un punto de interés como destino en la pantalla de mapas/ruteo.
+2. La UI consulta `ZonaRepository`/`PuntoInteresRepository` para obtener las coordenadas del punto seleccionado.
+3. La UI lee la posición actual del usuario suscribiéndose al `Stream<Ubicacion>` que expone el `Servicio de ubicación`, el cual a su vez escucha el sensor de ubicación del dispositivo.
+4. La UI solicita al `Servicio de ruteo` una ruta entre la posición actual y el destino.
+5. El `Servicio de ruteo` lee el grafo peatonal propio desde `MapaRepository` y calcula la ruta más corta con Dijkstra.
+6. La UI pide a `MapaWidget` que muestre la ruta calculada sobre el mapa base.
+7. `MapaWidget` lee la geometría del plano propio desde `MapaRepository`, renderiza el mapa base consultando Google Maps SDK (HTTPS) y superpone el plano propio junto con la ruta.
+8. El usuario ve la ruta trazada en pantalla.
+
+## Geocodificar una ubicación
+
+Uso del segundo adaptador del sistema (`GeocodingAdapter`), que aísla al
+resto de la app de Google Geocoding API.
+
+[mermaid, 06_runtime_view_esc2, png]
+----
+sequenceDiagram
+    actor Usuario
+    participant UI as Pantallas de features
+    participant GeoAdap as GeocodingAdapter
+    participant Geocoding as Google Geocoding API
+
+    Usuario->>UI: Solicita la dirección legible de un punto del mapa
+    UI->>GeoAdap: Solicita geocodificación (coordenadas)
+    GeoAdap->>Geocoding: Solicita geocodificación (HTTPS)
+    Geocoding-->>GeoAdap: Dirección legible
+    GeoAdap-->>UI: Dirección (modelo propio del dominio)
+    UI-->>Usuario: Muestra la dirección legible
+----
+
+1. El usuario solicita ver la dirección legible correspondiente a un punto del mapa (o, en el caso inverso, ingresa una dirección para ubicarla).
+2. La UI delega la solicitud en `GeocodingAdapter`, sin conocer el SDK de Google directamente.
+3. `GeocodingAdapter` traduce la solicitud al formato que espera Google Geocoding API y la invoca vía HTTPS.
+4. Geocoding API responde con la dirección (o coordenadas) correspondiente.
+5. `GeocodingAdapter` traduce la respuesta al modelo propio del dominio antes de devolverla a la UI.
+6. La UI muestra el resultado al usuario.
+
+## Pérdida de disponibilidad de Maps SDK o Geocoding API
+
+<a id="esc-disponibilidad"></a>
+
+Escenario de error correspondiente a DI-01: el
+sistema debe informar al usuario de forma clara en vez de bloquearse o
+fallar silenciosamente cuando los servicios externos de Google no
+responden. Este es el riesgo de mayor prioridad del proyecto (RT-01 y
+RT-06 en `11_technical_risks.adoc`), porque el sistema no tiene backend
+propio que pueda mitigar la caída.
+
+[mermaid, 06_runtime_view_esc3, png]
+----
+sequenceDiagram
+    actor Usuario
+    participant UI as Pantallas de features
+    participant Widget as MapaWidget
+    participant MapsSDK as Google Maps SDK
+    participant GeoAdap as GeocodingAdapter
+    participant Geocoding as Google Geocoding API
+
+    Usuario->>UI: Abre la pantalla de mapas sin conexión a internet
+    UI->>Widget: Solicita renderizar el mapa base
+    Widget->>MapsSDK: Renderiza mapa base (HTTPS)
+    MapsSDK--xWidget: Sin respuesta / error de red
+    Widget-->>UI: Reporta error de renderizado
+    UI-->>Usuario: Muestra mensaje de error controlado (mapa base no disponible)
+
+    Usuario->>UI: Solicita geocodificación de un punto
+    UI->>GeoAdap: Solicita geocodificación
+    GeoAdap->>Geocoding: Solicita geocodificación (HTTPS)
+    Geocoding--xGeoAdap: Sin respuesta / error de red
+    GeoAdap-->>UI: Reporta error de geocodificación
+    UI-->>Usuario: Muestra mensaje de error controlado (geocodificación no disponible)
+
+    Note over UI,Usuario: El ruteo interno, el tour panorámico y la consulta de zonas siguen<br/>disponibles porque son activos locales y no dependen de red.
+----
+
+1. El usuario abre la app sin conexión a internet (o con conexión degradada) e intenta usar el mapa.
+2. La UI solicita a `MapaWidget` que renderice el mapa base; `MapaWidget` intenta consultar Google Maps SDK vía HTTPS y la solicitud falla o expira.
+3. `MapaWidget` captura el error y lo reporta a la UI en vez de dejar la pantalla en blanco o bloqueada.
+4. La UI muestra al usuario un mensaje de error claro indicando que el mapa base no está disponible.
+5. De forma análoga, si el usuario solicita geocodificación, `GeocodingAdapter` captura el fallo de red hacia Google Geocoding API y lo reporta a la UI, que muestra su propio mensaje de error controlado.
+6. A pesar de ambos fallos, el ruteo interno (Dijkstra sobre el grafo propio), el tour panorámico y la consulta de zonas/puntos de interés siguen funcionando, porque se resuelven contra activos locales y no dependen de ninguno de los dos servicios externos.
+
+## Ver una panorámica del tour
+
+Flujo que se resuelve completamente sin red, para contrastar con los
+tres anteriores: el contenido panorámico es un activo local servido por
+`TourRepository`.
+
+[mermaid, 06_runtime_view_esc4, png]
+----
+sequenceDiagram
+    actor Usuario
+    participant UI as Pantallas de features
+    participant TourRepo as TourRepository
+
+    Usuario->>UI: Selecciona un punto del recorrido panorámico
+    UI->>TourRepo: Solicita la panorámica correspondiente al punto
+    TourRepo-->>UI: Imagen equirectangular (activo local)
+    UI-->>Usuario: Renderiza la escena 360° navegable
+----
+
+1. El usuario abre el módulo de tour y selecciona un punto del recorrido panorámico.
+2. La UI solicita a `TourRepository` la imagen equirectangular correspondiente a ese punto.
+3. `TourRepository` la sirve directamente desde los activos panorámicos empaquetados localmente, sin ninguna llamada de red.
+4. La UI renderiza la escena 360° para que el usuario la navegue (el motor/librería de renderizado específico está pendiente de definir — ver RT-02 en `11_technical_risks.adoc`).

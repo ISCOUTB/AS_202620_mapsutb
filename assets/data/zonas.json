@@ -1,0 +1,35 @@
+[
+    {
+      "id": "A1",
+      "nombre": "Edificio A1",
+      "tipo": "edificio",
+      "lat": 0,
+      "lng": -0,
+      "pisos": [
+        {"id": "a1-p1", "nombre": "Piso 1"},
+        {"id": "a1-p2", "nombre": "Piso 2"},
+        {"id": "a1-p3", "nombre": "Piso 3"},
+        {"id": "a1-p4", "nombre": "Piso 4"}
+      ],
+      "espacios": [
+        {
+          "id": "lab-psicología",
+          "nombre": "Laboratorios de Psicología",
+          "tipo": "laboratorio",
+          "pisos": ["a1-p2"],
+          "salones": [
+            {"id": "lab-sistemas-204", "nombre": "204"}
+          ]
+        },
+        {
+          "id": "oficinas_chum",
+          "nombre": "Oficinas Faculad de Humanidades",
+          "tipo": "oficinas",
+          "pisos": ["a1-p2", "a1-p3"],
+          "salones": []
+        }
+      ]
+    }
+]
+
+ 

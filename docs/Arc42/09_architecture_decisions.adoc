@@ -29,3 +29,22 @@ Varias opciones:
 * Registro de Decisiones de Arquitectura (ADR por sus siglas en inglés) para cada decisión importante.
 ****
 endif::arc42help[]
+
+Las decisiones de diseño del proyecto se documentan como Registros de Decisiones de Arquitectura (ADR) en
+`docs/adr/`, para evitar duplicar aquí el razonamiento y las alternativas descartadas ya capturadas en cada uno.
+
+[cols="1,3,1,3" options="header"]
+|===
+| ID | Título | Estado | Resumen
+
+| ADR-0001
+| link:../adr/0001-patrones-de-diseno.md[Patrones de diseño para el monolito MAPSUTB]
+| Aceptado (2026-08-23)
+| Define los patrones de diseño (GoF e idiomáticos de Dart) para las dos dependencias externas que quedan
+  (Google Maps SDK y Google Geocoding API, ambas aisladas con **Adapter**), el plano propio del campus, las
+  zonas/puntos de interés y el tour panorámico (todos con **Repository**), el ruteo interno dentro del campus
+  (servicio único con Dijkstra, sin Strategy) y la ubicación en tiempo real (**Observer** vía `Stream` de Dart).
+|===
+
+Nuevas decisiones de diseño relevantes que surjan durante el desarrollo deben agregarse como un nuevo ADR
+(`0002-...`, `0003-...`) y sumarse a esta tabla, en vez de editar retroactivamente el ADR-0001.

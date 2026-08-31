@@ -2,51 +2,43 @@
 
 ## Estado
 
-- **Estado**: Aceptado
-- **Fecha**: 2026-08-23
-- **Decisores**: Equipo MAPSUTB
+Aceptado — 2026-08-23 (revisado: mapa local + ruteo no exacto)
 
 ## Contexto
 
 El patrón arquitectural del proyecto ya está decidido: **monolito** (una
-app Flutter, sin backend propio por ahora). Este ADR **no** compara
+app Flutter, sin backend propio por ahora. Este ADR **no** compara
 alternativas arquitecturales; compara **patrones de diseño** (GoF y
 patrones idiomáticos de Dart) para resolver problemas concretos del
 proyecto.
 
 **Cambio de alcance respecto a la versión anterior de este ADR:** se
-decidió que la app **no** usará realidad aumentada con cámara en vivo
-(se descarta ARCore Geospatial API por completo). En su lugar, el mapa
-del campus combina dos fuentes: un **plano propio** (activos del
-proyecto — grafo peatonal y geometría del campus) que se **superpone**
-sobre un **mapa base renderizado con Google Maps SDK**. El ruteo se
-resuelve enteramente sobre el grafo peatonal propio, acotado a rutas
-**dentro del campus** (no se usa Directions API), mediante un único
-servicio de ruteo con **Dijkstra** — ver la nota al final del problema 4
-sobre por qué no se adoptó el patrón Strategy para esto.
+decidió que el mapa del campus se aloja **de forma local** (activos
+propios del proyecto — imagen, vector o grafo de nodos, sin depender de
+un SDK de mapas externo) y que el ruteo **no busca ser exacto** (no hay
+un cálculo tipo "turn-by-turn" sobre una red vial real, como haría una
+API de direcciones).
 
 Esto tiene una consecuencia directa sobre las dependencias externas: de
-las 6 APIs de Google consideradas originalmente (Maps SDK, ARCore
-Geospatial API, Places, Directions, Geocoding, Street View), **dejan de
-ser necesarias ARCore Geospatial API, Directions, Places y Street
-View**. Se mantienen **Maps SDK** (mapa base) y **Geocoding API**
-(conversión de coordenadas y direcciones).
+las 6 APIs de Google consideradas originalmente en `restricciones.md`
+(Maps SDK, ARCore Geospatial API, Places, Directions, Geocoding, Street
+View), **dejan de ser necesarias Maps SDK, Directions, Geocoding, Places
+y Street View**. La única que se mantiene es **ARCore Geospatial API**,
+porque anclar objetos de realidad aumentada a coordenadas GPS reales del
+campus sigue siendo un problema que no se puede resolver con datos
+locales — es, además, el diferenciador central del producto.
 
-Con ese alcance, los problemas de diseño que este ADR resuelve son:
+Con ese alcance reducido, los problemas de diseño que este ADR resuelve
+son:
 
-1. Aislar las dos dependencias externas que quedan: Google Maps SDK y
-   Google Geocoding API.
-2. Servir el plano propio del campus (grafo peatonal y geometría) desde
-   activos locales del proyecto.
+1. Aislar la única dependencia externa que queda: ARCore Geospatial API.
+2. Servir el mapa del campus desde activos locales del proyecto.
 3. Mantener actualizable la clasificación manual de zonas y los puntos de
    interés (objetivo de mantenibilidad, ver `arbol_utilidad.md`).
-4. Servir el contenido panorámico 360° del tour desde activos locales del
-   proyecto.
-5. Calcular una ruta dentro del campus sobre el plano local, sin
-   depender de un servicio externo de ruteo.
-6. Reflejar en tiempo real la ubicación del usuario en la UI (escenario
-   de calidad de precisión de geolocalización, ver
-   `escenarios_calidad.md`).
+4. Calcular una ruta aproximada dentro de ese mapa local, sin depender de
+   un servicio externo de ruteo.
+5. Reflejar en tiempo real la ubicación del usuario en la UI y en la RA
+   (escenario de calidad A-01 en `aspectos.md`: respuesta ≤ 3 s).
 
 Cada uno se resuelve con un patrón distinto; no son alternativas entre
 sí, así que se documentan por separado.
@@ -55,80 +47,64 @@ sí, así que se documentan por separado.
 
 | # | Problema | Patrón adoptado |
 |---|---|---|
-| 1a | Aislar Google Maps SDK (mapa base) | **Adapter** |
-| 1b | Aislar Google Geocoding API | **Adapter** |
-| 2 | Servir el plano propio del campus (local) | **Repository** |
+| 1 | Aislar ARCore Geospatial API | **Adapter** |
+| 2 | Servir el mapa del campus alojado localmente | **Repository** |
 | 3 | Acceso a datos de zonas y puntos de interés | **Repository** |
-| 4 | Servir el contenido panorámico 360° del tour | **Repository** |
-| 5 | Ruteo dentro del campus sobre el plano local | **Ninguno** (servicio único, sin interfaz de Strategy — ver nota) |
-| 6 | Ubicación en tiempo real hacia la UI | **Observer** (`Stream` de Dart) |
+| 4 | Ruteo aproximado dentro del mapa local | **Strategy** |
+| 5 | Ubicación en tiempo real hacia UI y RA | **Observer** (`Stream` de Dart) |
 
 ## Alternativas consideradas, por problema
 
-### 1a. Aislar Google Maps SDK
+### 1. Aislar ARCore Geospatial API
 
-- **Adapter (elegido):** una clase `MapaWidget` que envuelve el SDK de
-  Google Maps y expone al resto de la app un widget propio, sobre el
-  cual se dibujan el plano propio del campus y las rutas calculadas.
-  - *A favor:* el resto de la app nunca importa el SDK de Maps
-    directamente; si el equipo necesita ajustar cómo se dibuja el plano
-    propio encima del mapa, el cambio queda contenido en un solo lugar.
-  - *En contra:* una capa de indirección adicional para un SDK que ya
-    tiene su propia API de alto nivel.
-- **Alternativa descartada — invocar el SDK de Maps directamente desde
-  cada pantalla que lo necesite:** cada pantalla (mapas/ruteo, zonas)
-  instancia y configura el widget de Maps por su cuenta.
-  - *Consecuencia de no elegirla:* la lógica de superponer el plano
-    propio (grafo, zonas, rutas) sobre el mapa base habría quedado
-    repetida en cada pantalla, con riesgo de quedar desalineada.
-
-### 1b. Aislar Google Geocoding API
-
-- **Adapter (elegido):** una clase `GeocodingAdapter` que implementa una
-  interfaz propia del dominio. El resto del código nunca importa el SDK
-  de Geocoding directamente.
-  - *A favor:* se puede simular en pruebas sin depender de la
-    disponibilidad real del servicio; si más adelante cambia el
-    proveedor de geocodificación, solo cambia el adaptador.
+- **Adapter (elegido):** una única clase `ArCoreAdapter` que implementa
+  una interfaz propia del dominio (p. ej. `AnclajeArPort`). El resto del
+  código nunca importa el SDK de ARCore directamente.
+  - *A favor:* se puede simular en pruebas sin necesitar un dispositivo
+    compatible con ARCore; si más adelante cambia de SDK (ARCore → ARKit
+    en iOS, por ejemplo) solo cambia el adaptador.
   - *En contra:* una interfaz y una clase para un solo proveedor externo
-    — ceremonia que se acepta porque, junto con Maps SDK, sigue siendo
-    una fuente de riesgo externo del proyecto (disponibilidad, cuotas).
-- **Alternativa descartada — invocar el SDK de Geocoding directamente:**
-  usarlo sin abstracción en los módulos que lo necesiten.
-  - *Consecuencia de no elegirla:* cualquier prueba que dependa de
-    geocodificación habría requerido conexión real al servicio de
-    Google, y un cambio de proveedor habría implicado tocar varios
-    módulos.
+    — ceremonia que antes se justificaba por 6 APIs y ahora es por 1.
+    Se acepta igual porque sigue siendo la mayor fuente de riesgo externo
+    del proyecto (disponibilidad, compatibilidad de dispositivo).
+- **Alternativa descartada — invocar el SDK de ARCore directamente:**
+  usar `ArCoreController` (o equivalente) directamente en el módulo de
+  realidad aumentada.
+  - *Consecuencia de no elegirla:* menos código al inicio, pero cualquier
+    prueba del flujo de RA habría requerido un dispositivo compatible con
+    ARCore corriendo la app; el módulo de RA habría quedado imposible de
+    probar de forma aislada.
 
-### 2. Servir el plano propio del campus (local)
+### 2. Servir el mapa del campus alojado localmente
 
 - **Repository (elegido):** una interfaz `MapaRepository` que expone el
-  grafo peatonal y la geometría propia del campus (activos propios:
-  imagen, vector o grafo de nodos) independientemente de cómo esté
-  empaquetado internamente.
-  - *A favor:* tanto `MapaWidget` (para dibujar el plano sobre Maps SDK)
-    como el `Servicio de ruteo` consumen el plano a través de la misma
-    interfaz, sin saber si es una imagen estática, un SVG o un grafo de
-    nodos; si el equipo cambia el formato a mitad de semestre, el cambio
-    queda contenido ahí.
+  mapa del campus (activos propios: imagen, vector o grafo de nodos)
+  independientemente de cómo esté empaquetado internamente.
+  - *A favor:* la UI y el módulo de ruteo no necesitan saber si el mapa
+    es una imagen estática, un SVG o un grafo de nodos — solo consumen lo
+    que expone el repositorio; si el equipo cambia el formato del mapa a
+    mitad de semestre (p. ej. de imagen a grafo, para soportar mejor el
+    ruteo aproximado del problema 4), el cambio queda contenido ahí.
   - *En contra:* una capa de indirección para un activo que, en la
-    versión más simple, podría ser solo un archivo cargado directamente.
-- **Alternativa descartada — cargar los activos del plano directamente en
-  cada pantalla que lo necesite:** el módulo de mapas/ruteo y el de zonas
-  cargan y parsean el archivo del plano cada uno por su cuenta.
-  - *Consecuencia de no elegirla:* varios puntos leyendo el mismo
-    archivo, con riesgo de interpretaciones distintas del formato o de
-    quedar desalineados si el archivo cambia.
+    versión más simple, podría ser solo un archivo de imagen cargado
+    directamente.
+- **Alternativa descartada — cargar los activos del mapa directamente en
+  cada pantalla que lo necesite:** el módulo de tour, el de mapas/ruteo y
+  el de RA cargan y parsean el archivo del mapa cada uno por su cuenta.
+  - *Consecuencia de no elegirla:* tres puntos distintos leyendo el mismo
+    archivo, con riesgo de que cada uno interprete el formato del mapa de
+    forma distinta o quede desalineado si el archivo cambia.
 
 ### 3. Acceso a datos de zonas y puntos de interés
 
 - **Repository (elegido):** interfaces `ZonaRepository` y
-  `PuntoInteresRepository`, con una primera implementación simple (JSON
-  local).
+  `PuntoInteresRepository`, con una primera implementación simple (en
+  memoria o JSON local).
   - *A favor:* la clasificación manual de zonas queda concentrada en un
     solo punto de cambio en vez de repetirse en cada pantalla que la
-    necesite. Esta decisión no depende de Places API — los puntos de
-    interés son datos propios del proyecto desde el inicio.
+    necesite. A diferencia de la versión anterior de este ADR, esta
+    decisión ya no depende de Places API — los puntos de interés son
+    datos propios del proyecto desde el inicio.
   - *En contra:* una capa de indirección más para un dato que, al inicio
     del proyecto, es pequeño.
 - **Alternativa descartada — acceso a datos disperso:** cada módulo lee y
@@ -137,102 +113,78 @@ sí, así que se documentan por separado.
     zona habría implicado revisar varios módulos, contradiciendo el
     objetivo de mantenibilidad ya priorizado.
 
-### 4. Servir el contenido panorámico 360° del tour
+### 4. Ruteo aproximado dentro del mapa local
 
-- **Repository (elegido):** una interfaz `TourRepository` que expone las
-  imágenes equirectangulares empaquetadas localmente, sin exponer al
-  módulo de tour el formato de archivo ni la organización interna de las
-  capturas.
-  - *A favor:* si el motor de renderizado 360° elegido más adelante
-    (ver riesgo RT-02 en `11_technical_risks.adoc`) exige reorganizar o
-    convertir las capturas, el cambio queda contenido en el repositorio,
-    sin tocar el módulo de tour ni las pantallas que lo consumen.
-  - *En contra:* una capa de indirección más para activos que, al
-    inicio del proyecto, son simplemente archivos de imagen.
-- **Alternativa descartada — cargar las panorámicas directamente en el
-  módulo de tour:** el módulo de tour lee el directorio de imágenes por
-  su cuenta.
-  - *Consecuencia de no elegirla:* un cambio de motor de renderizado o
-    de convención de nombres de archivo habría implicado modificar
-    directamente la lógica de UI del tour.
+- **Strategy (elegido):** una interfaz `RuteoAproximadoStrategy` con
+  implementaciones intercambiables — por ejemplo, una que traza una línea
+  recta hacia el destino y otra que recorre un grafo simple de rutas
+  peatonales del campus (usando el mapa que expone `MapaRepository`).
+  Ninguna alternativa llama a un servicio externo de ruteo.
+  - *A favor:* el equipo puede empezar con el algoritmo más simple
+    (línea recta) y, si el tiempo del semestre lo permite, añadir uno más
+    elaborado (grafo de nodos) sin tocar el código que ya funciona ni el
+    resto de la app; cada estrategia se prueba de forma aislada.
+  - *En contra:* si al final el equipo solo implementa una estrategia
+    durante todo el semestre, la interfaz se siente como una capa
+    adicional innecesaria — costo pequeño que se acepta a cambio de
+    dejar la puerta abierta sin comprometerse a un algoritmo desde ya.
+- **Alternativa descartada — un único algoritmo embebido en el caso de
+  uso:** calcular la ruta aproximada directamente dentro del caso de uso
+  de "trazar ruta", sin una interfaz que lo abstraiga.
+  - *Consecuencia de no elegirla:* habría sido más rápido de escribir al
+    inicio, pero mezclar la lógica de "qué es una ruta aceptable en este
+    proyecto" (dado que no se exige exactitud) con el caso de uso que la
+    usa habría dificultado ajustarla o compararla con otro enfoque más
+    adelante.
 
-### 5. Ruteo dentro del campus sobre el plano local
-
-- **Servicio único con Dijkstra (elegido):** sin interfaz de Strategy, un
-  solo `Servicio de ruteo` calcula la ruta más corta dentro del campus
-  sobre el grafo peatonal propio (vía `MapaRepository`), sin llamar a
-  ningún servicio externo de ruteo.
-  - *A favor:* más simple de escribir y mantener; el equipo no tiene
-    previsto evaluar algoritmos alternativos dentro del semestre, así
-    que la interfaz adicional de Strategy no aporta valor inmediato.
-  - *En contra:* si más adelante el equipo quisiera comparar Dijkstra
-    contra otro algoritmo (p. ej. A* para rutas más largas), el cambio
-    implicaría modificar el servicio existente en vez de añadir una
-    implementación nueva.
-- **Alternativa descartada — Strategy con implementaciones
-  intercambiables (`RuteoStrategy`):** una interfaz con varias
-  implementaciones de ruteo, todas calculadas sobre el plano local.
-  - *Consecuencia de no elegirla:* se descartó porque el equipo
-    confirmó que solo implementará Dijkstra durante todo el semestre
-    (ver `README.md` y sección 4 de arc42, "Estrategia de solución");
-    mantener la interfaz de Strategy sin una segunda implementación real
-    se habría sentido como una capa adicional innecesaria.
-
-### 6. Ubicación en tiempo real hacia la UI
+### 5. Ubicación en tiempo real hacia UI y RA
 
 - **Observer vía `Stream` de Dart (elegido):** un servicio de ubicación
-  expone un `Stream<Ubicacion>`; la pantalla de mapa se suscribe a ese
-  stream para reflejar la posición del usuario en tiempo real.
-  - *A favor:* mecanismo idiomático de Dart/Flutter; distintas partes de
-    la app pueden reaccionar al mismo cambio de ubicación sin acoplarse
-    entre sí.
+  expone un `Stream<Ubicacion>`; tanto la pantalla de mapa como el módulo
+  de RA se suscriben a ese stream.
+  - *A favor:* mecanismo idiomático de Dart/Flutter; múltiples partes de
+    la app reaccionan al mismo cambio de ubicación sin acoplarse entre
+    sí, ayudando a cumplir la medida de respuesta ≤ 3 s del escenario
+    A-01.
   - *En contra:* exige manejar correctamente la cancelación de
     suscripciones (`dispose`).
 - **Alternativa descartada — *polling* manual:** consultar la ubicación
   actual cada cierto intervalo con un `Timer`.
   - *Consecuencia de no elegirla:* desperdicia batería y CPU en
-    dispositivos de gama media, y añade latencia impredecible.
+    dispositivos de gama media, y añade latencia impredecible frente al
+    límite de 3 segundos del escenario de calidad.
 
 ## Consecuencias de la decisión
 
 **Positivas**
 
-- La superficie de dependencias externas se reduce de 6 APIs
-  originalmente consideradas a **2** (Maps SDK y Geocoding API), lo que
-  baja el riesgo señalado en `02_architecture_constraints.adoc` (cuotas,
-  cambios de API, disponibilidad de terceros) frente a la línea base de
-  6.
-- El plano propio, las zonas, el tour y el ruteo quedan detrás de
-  interfaces (`MapaRepository`, `ZonaRepository`/`PuntoInteresRepository`,
-  `TourRepository`, `MapaWidget`, `Servicio de ruteo`) que se pueden
-  probar sin depender de un dispositivo con capacidades especiales (ya
-  no se requiere hardware compatible con ARCore).
-- El equipo puede avanzar el módulo de mapas/ruteo sin esperar
-  decisiones de cuotas o disponibilidad de más de dos servicios externos.
-- Al descartar el patrón Strategy para el ruteo, el equipo evita
-  mantener una abstracción sin una segunda implementación real durante
-  el semestre.
+- La superficie de dependencias externas se reduce de 6 APIs a 1
+  (ARCore), lo que baja directamente el riesgo señalado en
+  `restricciones.md` (cuotas, cambios de API, disponibilidad de terceros).
+- El mapa local y el ruteo aproximado quedan detrás de interfaces
+  (`MapaRepository`, `RuteoAproximadoStrategy`) que se pueden probar sin
+  red y sin dispositivo AR.
+- El equipo puede avanzar el módulo de mapas/ruteo sin esperar decisiones
+  de cuotas o disponibilidad de servicios externos de Google.
 
 **Negativas / riesgos aceptados**
 
-- Los adaptadores para Maps SDK y Geocoding mantienen ceremonia
-  (interfaz + implementación) para dos proveedores externos; se acepta
-  porque siguen siendo la mayor fuente de riesgo externo del proyecto
-  (disponibilidad, cuotas — ver riesgo RT-01 en `11_technical_risks.adoc`).
-- La calidad del ruteo depende enteramente del plano local (grafo
-  peatonal); si este no representa bien la conectividad real del campus,
-  ningún algoritmo lo compensará — este riesgo se traslada a la
-  fidelidad de contenido del plano, no al patrón de diseño (ver RT-05 en
-  `11_technical_risks.adoc`).
-- Al no usar Strategy para el ruteo, cambiar de algoritmo más adelante
-  (por ejemplo, si el grafo crece y Dijkstra deja de ser suficientemente
-  rápido) requerirá modificar el `Servicio de ruteo` existente en vez de
-  añadir una implementación nueva.
+- El adaptador para ARCore mantiene ceremonia (interfaz + implementación)
+  para un solo proveedor; se acepta porque sigue siendo la pieza más
+  riesgosa del sistema.
+- La calidad del ruteo aproximado depende enteramente de las estrategias
+  que el equipo implemente; si el mapa local (grafo o imagen) no
+  representa bien la conectividad real del campus, ninguna estrategia lo
+  compensará — este riesgo se traslada a la fidelidad de contenido del
+  mapa, no al patrón de diseño.
+- Este cambio de alcance deja desalineados `c4_contexto.md`,
+  `restricciones.md` y `ficha-problema.md`, que aún listan las 5 APIs que
+  ya no se usan; se recomienda actualizarlos en el próximo corte.
 
 ## Referencias
 
-- [`arbol_utilidad.md`](../Arc42/arbol_utilidad.md)
-- [`escenarios_calidad.md`](../Arc42/10_quality_requirements.adoc)
-- [`restricciones.md`](../Arc42/02_architecture_constraints.adoc)
-- [`arc42.md`](../Arc42/04_solution_strategy.adoc)
-- [`Contexto.md`](../C4/Contexto.md)
+- [`restricciones.md`](../Arc42/restricciones.md)
+- [`arbol_utilidad.md`](../arbol_utilidad.md)
+- [`escenarios_calidad.md`](../escenarios_calidad.md)
+- [`aspectos.md`](../aspectos.md) — escenario de calidad A-01
+- [`arc42.md`](../Arc42/Estrategias_Solucion.md), sección 4 (Estrategia de solución)

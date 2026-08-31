@@ -21,7 +21,7 @@ combinando el `Servicio de ubicación` (Observer), el `Servicio de
 ruteo` (Dijkstra sobre el grafo propio) y `MapaWidget` (Adapter sobre
 Google Maps SDK).
 
-[mermaid, 06_runtime_view_esc1, png]
+```mermaid
 ----
 sequenceDiagram
     actor Usuario
@@ -54,7 +54,7 @@ sequenceDiagram
     Widget-->>UI: Mapa con plano propio y ruta superpuestos
     UI-->>Usuario: Muestra la ruta trazada en pantalla
 ----
-
+```
 
 1. El usuario selecciona un punto de interés como destino en la pantalla de mapas/ruteo.
 2. La UI consulta `ZonaRepository`/`PuntoInteresRepository` para obtener las coordenadas del punto seleccionado.
@@ -70,7 +70,7 @@ sequenceDiagram
 Uso del segundo adaptador del sistema (`GeocodingAdapter`), que aísla al
 resto de la app de Google Geocoding API.
 
-[mermaid, 06_runtime_view_esc2, png]
+```mermaid
 ----
 sequenceDiagram
     actor Usuario
@@ -85,6 +85,7 @@ sequenceDiagram
     GeoAdap-->>UI: Dirección (modelo propio del dominio)
     UI-->>Usuario: Muestra la dirección legible
 ----
+```
 
 1. El usuario solicita ver la dirección legible correspondiente a un punto del mapa (o, en el caso inverso, ingresa una dirección para ubicarla).
 2. La UI delega la solicitud en `GeocodingAdapter`, sin conocer el SDK de Google directamente.
@@ -104,7 +105,7 @@ responden. Este es el riesgo de mayor prioridad del proyecto (RT-01 y
 RT-06 en `11_technical_risks.adoc`), porque el sistema no tiene backend
 propio que pueda mitigar la caída.
 
-[mermaid, 06_runtime_view_esc3, png]
+```mermaid
 ----
 sequenceDiagram
     actor Usuario
@@ -130,6 +131,7 @@ sequenceDiagram
 
     Note over UI,Usuario: El ruteo interno, el tour panorámico y la consulta de zonas siguen<br/>disponibles porque son activos locales y no dependen de red.
 ----
+```
 
 1. El usuario abre la app sin conexión a internet (o con conexión degradada) e intenta usar el mapa.
 2. La UI solicita a `MapaWidget` que renderice el mapa base; `MapaWidget` intenta consultar Google Maps SDK vía HTTPS y la solicitud falla o expira.
@@ -144,7 +146,7 @@ Flujo que se resuelve completamente sin red, para contrastar con los
 tres anteriores: el contenido panorámico es un activo local servido por
 `TourRepository`.
 
-[mermaid, 06_runtime_view_esc4, png]
+```mermaid, 06_runtime_view_esc4, png
 ----
 sequenceDiagram
     actor Usuario
@@ -156,6 +158,7 @@ sequenceDiagram
     TourRepo-->>UI: Imagen equirectangular (activo local)
     UI-->>Usuario: Renderiza la escena 360° navegable
 ----
+```
 
 1. El usuario abre el módulo de tour y selecciona un punto del recorrido panorámico.
 2. La UI solicita a `TourRepository` la imagen equirectangular correspondiente a ese punto.

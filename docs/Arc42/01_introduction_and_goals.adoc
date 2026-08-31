@@ -41,7 +41,7 @@ Objetivos específicos del sistema:
 NOTE: El detalle del árbol de utilidad se encuentra en
 link:../Arc42/arbol_utilidad.md[arbol_utilidad.md] y los escenarios de
 calidad medibles en
-link:../Arc42/escenarios_calidad.md[escenarios_calidad.md].
+link:../Arc42/10_quality_requirements.adoc[10_quality_requirements.adoc].
 
 === Partes interesadas (Stakeholders)
 

@@ -11,9 +11,10 @@ ifndef::imagesdir[:imagesdir: ../images]
 |Dependencia del paquete `geolocator` (Flutter) para geolocalización|Es la vía estándar para obtener la posición GPS del usuario en tiempo real sin depender de infraestructura propia (beacons BLE, etc.).
 |La geolocalización solo es confiable en exteriores del campus|Limitación propia del GPS estándar: no hay cobertura confiable en interiores; la navegación en interiores no queda fuera de alcance, pero necesita ser creada manualmente.
 |No hay cámara 360° dedicada; captura vía panorámica de smartphone|Limitación de presupuesto y recursos del equipo; se complementa utilizando la cámara panorámica de smartphone para dar la posibilidad de uso.
-|El ruteo y algunas funciones dependen de conexión a internet si se usan APIs externas (Directions, Geocoding)|El mapa base y la posición GPS funcionan sin conexión; solo las funciones que consulten APIs de Google en línea la requieren.
+|El mapa base y la geocodificación dependen de conexión a internet, ya que se resuelven mediante Google Maps SDK y Google Geocoding API|El ruteo interno (Dijkstra sobre el grafo peatonal propio), el tour panorámico y la clasificación de zonas son activos locales y funcionan sin conexión; solo el mapa base y la geocodificación requieren que la app esté en línea.
 |Framework: Flutter|Permite un solo código base multiplataforma (Android/iOS), reduciendo el esfuerzo de desarrollo dado el tamaño del equipo.
 |Clasificación de zonas del campus manual (no dinámica)|Fuera de alcance un panel administrativo institucional; se prioriza tener un producto funcional dentro del tiempo del semestre.
+|Se descartaron ARCore Geospatial API, Google Directions API, Google Places API y Google Street View de las dependencias externas del sistema|Decisión registrada en link:../adr/0001-patrones-de-diseno.md[ADR 0001]: el ruteo se resuelve internamente sobre el grafo peatonal propio (sin Directions), los puntos de interés son datos propios del proyecto (sin Places), y no se usa realidad aumentada (sin ARCore ni Street View).
 |===
 
 === Restricciones organizacionales

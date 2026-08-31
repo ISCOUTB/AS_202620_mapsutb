@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mapsutb/repositories/zona_repository.dart';
-import '../../models/zona.dart';
-import '../../repositories/zona_repository.dart';
+import '../../../../../models/zona.dart';
 
 class ZonasScreen extends StatelessWidget {
   final ZonaRepository repository;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'features/zonas/zonas_screen.dart';
+import 'features/zonas/presentation/screens/zonas_screen.dart';
 import 'repositories/zona_repository.dart';
 
 void main() => runApp(const MapsUtbApp());

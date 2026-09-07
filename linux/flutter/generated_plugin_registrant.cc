@@ -8,4 +8,6 @@
 
 
 void fl_register_plugins(FlPluginRegistry* registry) {
+  
+  // comment explaining why the method is empty
 }

@@ -1,0 +1,24 @@
+name: Sincronizar hallazgos de Sonar a GitHub Issues
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"  # cada 6 horas
+  workflow_dispatch: {}
+
+permissions:
+  issues: write
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Sincronizar issues de SonarCloud
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python scripts/sonar_to_github_issues.py

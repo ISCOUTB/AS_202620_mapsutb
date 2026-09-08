@@ -1,5 +1,5 @@
 #include "win32_window.h"
-
+#include <bit>
 #include <dwmapi.h>
 #include <flutter_windows.h>
 
@@ -233,7 +233,7 @@ void Win32Window::Destroy() final{
 }
 
 Win32Window* Win32Window::GetThisFromHandle(HWND const window) noexcept {
-  return reinterpret_cast<Win32Window*>(
+  return bit_cast<Win32Window*>(
       GetWindowLongPtr(window, GWLP_USERDATA));
 }
 

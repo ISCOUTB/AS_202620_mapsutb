@@ -116,7 +116,7 @@ Win32Window::Win32Window() {
 
 Win32Window::~Win32Window() {
   --g_active_window_count;
-  Destroy();
+  g_active_window_count::Destroy();
 }
 
 bool Win32Window::Create(const std::wstring& title,

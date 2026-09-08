@@ -7,5 +7,4 @@ import Foundation
 
 
 func RegisterGeneratedPlugins(registry: FlutterPluginRegistry) {
-  // No plugins registered yet.
 }

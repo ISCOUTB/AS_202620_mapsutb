@@ -62,7 +62,7 @@ class WindowClassRegistrar {
   // Returns the singleton registrar instance.
   WindowClassRegistrar* GetInstance() {
     if (!instance_) {
-      instance_ = new WindowClassRegistrar();
+      instance_ = make_unique<WindowClassRegistrar>();
     }
     return instance_;
   }

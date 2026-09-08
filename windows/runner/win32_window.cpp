@@ -220,7 +220,7 @@ Win32Window::MessageHandler(HWND hwnd,
   return DefWindowProc(window_handle_, message, wparam, lparam);
 }
 
-void Win32Window::Destroy() {
+void Win32Window::Destroy() final{
   OnDestroy();
 
   if (window_handle_) {

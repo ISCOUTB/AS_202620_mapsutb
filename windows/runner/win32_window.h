@@ -69,7 +69,7 @@ class Win32Window {
   virtual bool OnCreate();
 
   // Called when Destroy is called.
-  virtual void OnDestroy();
+  virtual void OnDestroy() final;
 
  private:
   friend class WindowClassRegistrar;

@@ -129,8 +129,8 @@ static void my_application_class_init(MyApplicationClass* klass) {
   G_OBJECT_CLASS(klass)->dispose = my_application_dispose;
 }
 
-static void my_application_init(MyApplication* self) {
-  // No initialization needed
+static void my_application_init([[maybe_unused]] MyApplication* self) {
+  // No initialization needed.
 }
 
 MyApplication* my_application_new() {

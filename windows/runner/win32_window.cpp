@@ -45,7 +45,7 @@ void EnableFullDpiSupportIfAvailable(HWND hwnd) {
     return;
   }
   if (auto enable_non_client_dpi_scaling =
-      reinterpret_cast<EnableNonClientDpiScaling*>(
+      bit_cast<EnableNonClientDpiScaling*>(
           GetProcAddress(user32_module, "EnableNonClientDpiScaling")); enable_non_client_dpi_scaling != nullptr) {
     enable_non_client_dpi_scaling(hwnd);
   }

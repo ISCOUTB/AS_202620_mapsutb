@@ -27,7 +27,7 @@ El isotipo de Maps UTB representa las iniciales "UTB" construidas como pliegues 
 
 | Sobre azul institucional | Versión navy, sobre blanco |
 |:---:|:---:|
-| ![Logo sobre azul](assets/icons/mapsutb_logo_WHITEONBLUE.png) | ![Logo navy sobre blanco](assets/icons/mapsutb_logo_NAVY.png) |
+| ![Logo sobre azul](./assets/icons/mapsutb_logo_WHITEONBLUE.png) | ![Logo navy sobre blanco](./assets/icons/mapsutb_logo_NAVY.png) |
 
 ### Área de resguardo
 Deja siempre un margen libre alrededor del logo equivalente a la altura de la "U" del isotipo. Ningún texto, ícono o borde de pantalla debe invadir ese espacio.
@@ -110,7 +110,7 @@ Cada escuela cuenta con un ícono propio, en su color de identificación, para u
 
 | Transf. Digital | Negocios, Leyes y Soc. | Ingeniería y Arq. |
 |:---:|:---:|:---:|
-| ![Transformación Digital](assets/icons/transf_dig_COLOR2.png) | ![Negocios, Leyes y Sociedad](assets/icons/negocios_COLOR2.png) | ![Ingeniería y Arquitectura](assets/icons/ing_arq_COLOR.png) |
+| ![Transformación Digital](./assets/icons/transf_dig_COLOR2.png) | ![Negocios, Leyes y Sociedad](./assets/icons/negocios_COLOR2.png) | ![Ingeniería y Arquitectura](./assets/icons/ing_arq_COLOR.png) |
 
 ### Uso en el mapa
 - **Pin de ubicación:** ícono de la escuela dentro de una gota de color, usando el color primario de esa escuela.

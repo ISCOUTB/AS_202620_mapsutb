@@ -59,17 +59,17 @@ construcción en la sección 5.
 [options="header",cols="2,3,3"]
 |===
 |Meta de calidad|Enfoque de solución|Detalle
-|Precisión de geolocalización y ruteo|Ruteo con **Dijkstra** sobre el grafo peatonal propio, sin depender de un servicio externo de ruteo (link:../Arc42/escenarios_calidad.md[Escenario 2])|—
-|Precisión de geolocalización y ruteo|Patrón *Observer* para propagar la ubicación en tiempo real (`geolocator`) sin _polling_ (link:../Arc42/escenarios_calidad.md[Escenario 2])|ADR 0001 (Observer)
-|Disponibilidad / confiabilidad|El plano del campus, el ruteo interno y el contenido del tour no dependen de red (activos locales); el **mapa base y la geocodificación sí dependen de Google Maps SDK/Geocoding API**, por lo que la app requiere conexión a internet para su experiencia completa (link:../Arc42/escenarios_calidad.md[Escenario 3]); si el GPS pierde señal, la app maneja el error de forma controlada|Riesgo: dependencia de disponibilidad de servicios externos de Google (ver 11_technical_risks)
+|Precisión de geolocalización y ruteo|Ruteo con **Dijkstra** sobre el grafo peatonal propio, sin depender de un servicio externo de ruteo (link:../escenarios_calidad.md[Escenario 2])|—
+|Precisión de geolocalización y ruteo|Patrón *Observer* para propagar la ubicación en tiempo real (`geolocator`) sin _polling_ (link:../escenarios_calidad.md[Escenario 2])|ADR 0001 (Observer)
+|Disponibilidad / confiabilidad|El plano del campus, el ruteo interno y el contenido del tour no dependen de red (activos locales); el **mapa base y la geocodificación sí dependen de Google Maps SDK/Geocoding API**, por lo que la app requiere conexión a internet para su experiencia completa (link:../escenarios_calidad.md[Escenario 3]); si el GPS pierde señal, la app maneja el error de forma controlada|Riesgo: dependencia de disponibilidad de servicios externos de Google (ver 11_technical_risks)
 |Mantenibilidad|Patrón *Repository* (`ZonaRepository`) centraliza el punto de cambio para la clasificación de zonas|ADR 0001 (Repository)
-|Fidelidad de contenido|Patrón *Repository* (`MapaRepository`, `PuntoInteresRepository`, `TourRepository`) aísla el formato de los activos locales de quien los consume (link:../Arc42/escenarios_calidad.md[Escenario 5])|ADR 0001 (Repository)
-|Rendimiento|Carga de escena panorámica local en menos de 3 s (link:../Arc42/escenarios_calidad.md[Escenario 1]); pendiente de resolver con una decisión de diseño concreta|Por definir
-|Usabilidad|Usuario nuevo se ubica en menos de 2 minutos sin ayuda (link:../Arc42/escenarios_calidad.md[Escenario 4]); pendiente de resolver con una decisión de diseño de interacción|Por definir
+|Fidelidad de contenido|Patrón *Repository* (`MapaRepository`, `PuntoInteresRepository`, `TourRepository`) aísla el formato de los activos locales de quien los consume (link:../escenarios_calidad.md[Escenario 5])|ADR 0001 (Repository)
+|Rendimiento|Carga de escena panorámica local en menos de 3 s (link:../escenarios_calidad.md[Escenario 1]); pendiente de resolver con una decisión de diseño concreta|Por definir
+|Usabilidad|Usuario nuevo se ubica en menos de 2 minutos sin ayuda (link:../escenarios_calidad.md[Escenario 4]); pendiente de resolver con una decisión de diseño de interacción|Por definir
 |Portabilidad|Cubierta por la decisión tecnológica de usar Flutter|—
 |===
 
-Ver también link:../Arc42/arbol_utilidad.md[arbol_utilidad.md] para el
+Ver también link:../arbol_utilidad.md[arbol_utilidad.md] para el
 árbol de utilidad completo del que derivan estos escenarios.
 
 === Decisiones organizacionales

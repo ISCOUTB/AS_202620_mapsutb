@@ -25,7 +25,7 @@ local), **Adapter** (aislar Google Maps SDK y Google Geocoding API) y
 completo, la matriz comparativa por problema y las consecuencias de cada
 decisión están en:
 
-- [`docs/arc42.md`](./docs/Arc42/04_solution_strategy.adoc) — sección 4, "Estrategia de solución"
+- [`docs/arc42.md`](./docs/arc42/04_solution_strategy.adoc) — sección 4, "Estrategia de solución"
 - [`docs/adr/0001-patrones-de-diseno.md`](./docs/adr/0001-patrones-de-diseno.md)
 ## Estructura del proyecto
 
@@ -44,7 +44,7 @@ test/
   app_smoke_test.dart  # prueba de arranque del esqueleto
 docs/
   adr/                #patrones de diseño
-  Arc42/                # Modelo ARC42 de documentación
+  arc42/                # Modelo ARC42 de documentación
   C4/                  #descripción de la arquitectura
   
 ```

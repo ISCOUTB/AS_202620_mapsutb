@@ -14,7 +14,7 @@ ifndef::imagesdir[:imagesdir: ../images]
 |El mapa base y la geocodificación dependen de conexión a internet, ya que se resuelven mediante Google Maps SDK y Google Geocoding API|El ruteo interno (Dijkstra sobre el grafo peatonal propio), el tour panorámico y la clasificación de zonas son activos locales y funcionan sin conexión; solo el mapa base y la geocodificación requieren que la app esté en línea.
 |Framework: Flutter|Permite un solo código base multiplataforma (Android/iOS), reduciendo el esfuerzo de desarrollo dado el tamaño del equipo.
 |Clasificación de zonas del campus manual (no dinámica)|Fuera de alcance un panel administrativo institucional; se prioriza tener un producto funcional dentro del tiempo del semestre.
-|Se descartaron ARCore Geospatial API, Google Directions API, Google Places API y Google Street View de las dependencias externas del sistema|Decisión registrada en link:../adr/0001-patrones-de-diseno.md[ADR 0001]: el ruteo se resuelve internamente sobre el grafo peatonal propio (sin Directions), los puntos de interés son datos propios del proyecto (sin Places), y no se usa realidad aumentada (sin ARCore ni Street View).
+|Se descartaron Google Directions API y Google Places API de las dependencias externas del sistema; ARCore Geospatial API y Google Street View se descartaron después|Directions y Places: decisión registrada en link:../adr/0001-patrones-de-diseno.md[ADR 0001] (ruteo interno sobre el grafo peatonal propio, puntos de interés como datos propios). ARCore Geospatial API y Street View: descartados en link:../adr/0003-descartar-realidad-aumentada.md[ADR 0003], al abandonar el guiado por realidad aumentada.
 |===
 
 === Restricciones organizacionales

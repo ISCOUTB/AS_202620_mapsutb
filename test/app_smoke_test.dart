@@ -3,18 +3,19 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:mapsutb/main.dart';
 
-/// Prueba de humo del esqueleto arquitectónico.
+/// Prueba de humo de la app.
 ///
-/// No valida lógica de negocio (aún no existe): valida que la app
-/// compone y arranca correctamente sobre la estructura de carpetas
-/// definida en el ADR 0001, para que el equipo pueda empezar la
-/// semana 4 construyendo sobre una base que ya corre en verde.
+/// Valida que la app compone y arranca correctamente sobre la
+/// estructura de carpetas definida en el ADR 0001, para que el
+/// equipo pueda seguir construyendo sobre una base que ya corre en
+/// verde. No valida la lógica de negocio de las pantallas
+/// individuales (Zonas, Ubicación), solo que la app arranca.
 void main() {
   testWidgets('MapsUtbApp arranca y muestra el Scaffold raíz', (tester) async {
     await tester.pumpWidget(const MapsUtbApp());
 
     expect(find.byType(MaterialApp), findsOneWidget);
     expect(find.byType(Scaffold), findsOneWidget);
-    expect(find.text('MAPSUTB — esqueleto de arquitectura'), findsOneWidget);
+    expect(find.text('MAPSUTB'), findsOneWidget);
   });
 }

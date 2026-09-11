@@ -64,21 +64,21 @@ _Interfase(s)_
 - Consume Google Geocoding API (HTTPS) para geocodificación.
 - Lee los tres contenedores de datos empaquetados localmente (plano, panoramas, datos de zonas).
 
-_(Opcional) Características de Calidad/Performance_
+_Características de Calidad/Performance_
 
 Requiere conexión a internet permanente; no funciona offline. No está restringida a la red wifi institucional ni al
 perímetro del campus.
 
-_(Opcional) Ubicación Archivo/Directorio_
+_Ubicación Archivo/Directorio_
 
 Repositorio: `github.com/ISCOUTB/AS_202620_mapsutb`
 
-_(Opcional) Requerimientos Satisfechos_
+_Requerimientos Satisfechos_
 
 Geolocalización en tiempo real, trazado de rutas dentro del campus, clasificación de zonas, tour panorámico, interfaz
 en inglés para estudiantes de intercambio.
 
-_(Opcional) Riesgos/Problemas/Incidentes Abiertos_
+_Riesgos/Problemas/Incidentes Abiertos_
 
 Aún no se ha definido el motor/librería para mostrar panorámicas 360° en Flutter. La navegación en interiores queda
 fuera del alcance inicial.
@@ -95,7 +95,7 @@ _Interfase(s)_
 
 Expuesto a la App móvil a través de un repositorio (`MapaRepository`) que oculta el formato interno del archivo.
 
-_(Opcional) Riesgos/Problemas/Incidentes Abiertos_
+_Riesgos/Problemas/Incidentes Abiertos_
 
 El levantamiento del grafo peatonal es manual y depende de que el equipo lo mantenga actualizado ante cambios físicos
 del campus.
@@ -111,7 +111,7 @@ _Interfase(s)_
 
 Expuesto a la App móvil a través de un repositorio (`TourRepository`).
 
-_(Opcional) Riesgos/Problemas/Incidentes Abiertos_
+_Riesgos/Problemas/Incidentes Abiertos_
 
 El equipo no cuenta con cámaras 360° dedicadas; la calidad de la captura depende del smartphone usado. Aún no se ha
 definido el motor/librería de renderizado 360° en Flutter.
@@ -127,7 +127,7 @@ _Interfase(s)_
 
 Expuesto a la App móvil a través de un repositorio (`ZonaRepository` / `PuntoInteresRepository`).
 
-_(Opcional) Riesgos/Problemas/Incidentes Abiertos_
+_Riesgos/Problemas/Incidentes Abiertos_
 
 La clasificación es cargada manualmente por el equipo; no se actualiza dinámicamente ni la mantiene la universidad.
 
@@ -142,7 +142,7 @@ _Interfase(s)_
 
 HTTPS / SDK nativo de Google Maps.
 
-_(Opcional) Riesgos/Problemas/Incidentes Abiertos_
+_Riesgos/Problemas/Incidentes Abiertos_
 
 Dependencia fuerte de la disponibilidad del servicio de Google; sujeto a límites de cuota/costo según uso.
 
@@ -156,21 +156,13 @@ _Interfase(s)_
 
 HTTPS / REST.
 
-_(Opcional) Riesgos/Problemas/Incidentes Abiertos_
+_Riesgos/Problemas/Incidentes Abiertos_
 
 Dependencia fuerte de la disponibilidad del servicio de Google; sujeto a límites de cuota/costo según uso.
 
 ### Nivel 2
 
-> Aquí se especifica la estructura interna de (algunos) bloques de construcción del nivel 1 como cajas blancas.
->
-> Debe decidir cuales bloques de construcción del sistema son lo suficientemente importantes para justificar una
-> descripción detallada. Prefiera la relevancia sobre la completitud. Especifique bloques de construcción importantes,
-> sorprendentes, riesgosos, complejos o volátiles. Deje fuera las partes normales, simples, estándares o aburridas del sistema.
-
 #### Caja Blanca App móvil
-
-> ...Describe la estructura interna de _bloque de construcción 1_.
 
 Se detalla la App móvil por ser el único artefacto desplegable del sistema y el que concentra toda la lógica de
 negocio. Los demás bloques del Nivel 1 (plano del campus, contenido panorámico, datos de zonas) son simples
@@ -238,10 +230,6 @@ C4Component
   Google Geocoding.
 
 ### Nivel 3
-
-> Aqui se especifica la estructura interna de (algunos) de los bloques de construcción del nivel 2 como cajas blancas.
->
-> Cuando la arquitectura requiera más niveles detallados copiar esta sección para niveles adicionales.
 
 No se documenta un Nivel 3. Los componentes descritos en el Nivel 2 (pantallas, servicios, repositorios y adaptadores)
 son lo suficientemente simples y de bajo riesgo como para no justificar una descomposición interna adicional; su

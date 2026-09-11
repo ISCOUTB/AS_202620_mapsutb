@@ -22,11 +22,11 @@ Desarrollar una aplicación móvil que combine un mapa interactivo del campus co
 
 ## Alcance
 
-El proyecto cubre navegación en exteriores mediante geolocalización sobre un plano propio del campus superpuesto a un mapa base (Google Maps SDK), y un recorrido panorámico 360° de puntos de interés. La navegación en interiores queda limitada en su alcance, pero sigue siendo funcional. No se implementa guiado por realidad aumentada sobre cámara: se evaluó ARCore Geospatial API y se descartó por completo — ver ADR 0002 para el razonamiento.
+El proyecto cubre navegación en exteriores mediante geolocalización sobre un plano propio del campus superpuesto a un mapa base (Google Maps SDK), y un recorrido panorámico 360° de puntos de interés. La navegación en interiores queda limitada en su alcance, pero sigue siendo funcional. No se implementa guiado por realidad aumentada sobre cámara: se evaluó ARCore Geospatial API y se descartó por completo — ver ADR 0003 para el razonamiento.
 
 ## APIs de Google consideradas
 
-Maps SDK (mapa base) y Geocoding API (conversión de coordenadas y direcciones) son las dos que el proyecto usa. Se evaluaron también ARCore Geospatial API, Places API y Directions API, pero se descartaron por el cambio de alcance documentado en el ADR 0002.
+Maps SDK (mapa base) y Geocoding API (conversión de coordenadas y direcciones) son las dos que el proyecto usa. Se evaluaron también ARCore Geospatial API, Places API y Directions API, pero se descartaron por el cambio de alcance documentado en el ADR 0003.
 
 ## Arquitectura propuesta
 

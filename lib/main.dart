@@ -11,9 +11,9 @@ class MapsUtbApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       title: 'MAPSUTB',
-      home: const _RaizNavegacion(),
+      home: _RaizNavegacion(),
     );
   }
 }

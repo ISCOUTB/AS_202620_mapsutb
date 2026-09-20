@@ -52,7 +52,7 @@ std::string Utf8FromUtf16(const wchar_t* utf16_string) {
   // utf16_string ya fue validado como no nulo arriba y es un puntero a una
   // cadena wide-char terminada en nulo (proviene de CommandLineToArgvW),
   // por lo que wcslen es seguro aquí.
-  auto input_length = (int)wcslen(utf16_string);
+  auto input_length = static_cast<int>(wcsnlen_s(utf16_string, 32768));
   std::string utf8_string;
   if (target_length == 0 || target_length > utf8_string.max_size()) {
     return utf8_string;

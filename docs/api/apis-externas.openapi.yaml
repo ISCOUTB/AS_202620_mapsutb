@@ -1,0 +1,194 @@
+openapi: 3.0.3
+info:
+  title: APIs externas consumidas por MAPSUTB
+  version: "1.0.0"
+  description: >
+    Contrato consumido por MAPSUTB de las APIs externas que su propio código
+    invoca directamente por HTTP. Es un contrato de consumidor (consumer-driven
+    contract): documenta únicamente el subconjunto de cada API que los
+    adaptadores de MAPSUTB realmente usan, no la especificación completa del
+    proveedor. Cubre las tres integraciones HTTP reales del sistema
+    (ver ADR 0005 y docs/arc42/05_building_block_view.md):
+      1. Google Geocoding API — geocodificación directa/inversa
+         (lib/adapters/geocoding_adapter.dart).
+      2. Google Static Maps API — miniaturas estáticas de ubicación
+         (lib/adapters/static_map_adapter.dart).
+      3. Measurement Protocol (Firebase/Google Analytics) — registro de
+         eventos de uso (lib/adapters/analytics_adapter.dart).
+    Google Maps SDK (el mapa interactivo embebido en MapaWidget) queda
+    fuera de este contrato a propósito: se consume como SDK nativo
+    embebido, no mediante llamadas REST propias, así que no hay
+    implementación de MAPSUTB con la que un contrato HTTP pueda
+    corresponder.
+
+paths:
+  /maps/api/geocode/json:
+    get:
+      operationId: geocodificar
+      summary: Geocodificación directa o inversa
+      servers:
+        - url: https://maps.googleapis.com
+      parameters:
+        - name: latlng
+          in: query
+          required: false
+          description: Coordenadas "lat,lng" para geocodificación inversa. Requerido si no se envía "address".
+          schema:
+            type: string
+        - name: address
+          in: query
+          required: false
+          description: Dirección de texto libre para geocodificación directa. Requerido si no se envía "latlng".
+          schema:
+            type: string
+        - name: key
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Respuesta de geocodificación (incluso cuando status != OK)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GeocodingResponse"
+
+  /maps/api/staticmap:
+    get:
+      operationId: obtenerImagenEstatica
+      summary: Imagen estática (miniatura) de un mapa centrado en una ubicación
+      servers:
+        - url: https://maps.googleapis.com
+      parameters:
+        - name: center
+          in: query
+          required: true
+          description: Coordenadas "lat,lng" del centro de la imagen.
+          schema:
+            type: string
+        - name: zoom
+          in: query
+          required: true
+          schema:
+            type: integer
+        - name: size
+          in: query
+          required: true
+          description: Tamaño "anchoxalto" en píxeles.
+          schema:
+            type: string
+        - name: maptype
+          in: query
+          required: false
+          schema:
+            type: string
+            default: roadmap
+        - name: key
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Imagen PNG del mapa estático
+          content:
+            image/png:
+              schema:
+                type: string
+                format: binary
+        "4XX":
+          description: >
+            Error del proveedor (parámetros inválidos, key inválida, cuota
+            agotada). MAPSUTB lo traduce a StaticMapException en vez de
+            propagar bytes inválidos.
+          content:
+            text/plain:
+              schema:
+                type: string
+
+  /mp/collect:
+    post:
+      operationId: registrarEvento
+      summary: Envía un evento de analítica (Measurement Protocol)
+      servers:
+        - url: https://www.google-analytics.com
+      parameters:
+        - name: measurement_id
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: api_secret
+          in: query
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MeasurementProtocolEvent"
+      responses:
+        "204":
+          description: >
+            Evento aceptado. El Measurement Protocol no confirma
+            procesamiento ni valida el contenido en el endpoint de
+            producción — solo el código de estado indica aceptación.
+
+components:
+  schemas:
+    GeocodingResponse:
+      type: object
+      required: [status, results]
+      properties:
+        status:
+          type: string
+          enum: [OK, ZERO_RESULTS, OVER_QUERY_LIMIT, REQUEST_DENIED, INVALID_REQUEST, UNKNOWN_ERROR]
+        results:
+          type: array
+          items:
+            $ref: "#/components/schemas/GeocodingResult"
+
+    GeocodingResult:
+      type: object
+      required: [formatted_address, geometry]
+      properties:
+        formatted_address:
+          type: string
+        geometry:
+          type: object
+          required: [location]
+          properties:
+            location:
+              $ref: "#/components/schemas/LatLng"
+
+    LatLng:
+      type: object
+      required: [lat, lng]
+      properties:
+        lat:
+          type: number
+          format: double
+        lng:
+          type: number
+          format: double
+
+    MeasurementProtocolEvent:
+      type: object
+      required: [client_id, events]
+      properties:
+        client_id:
+          type: string
+        events:
+          type: array
+          items:
+            type: object
+            required: [name]
+            properties:
+              name:
+                type: string
+              params:
+                type: object
+                additionalProperties: true

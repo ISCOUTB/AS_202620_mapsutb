@@ -26,7 +26,7 @@ void main() {
   "status": "OK",
   "results": [
     {
-      "formatted_address": "Universidad Tecnológica de Bolívar, Cra. 21 #25-92, Cartagena, Colombia",
+      "address": "Universidad Tecnológica de Bolívar, Cra. 21 #25-92, Cartagena, Colombia",
       "geometry": {
         "location": { "lat": 10.42540, "lng": -75.50770 }
       }

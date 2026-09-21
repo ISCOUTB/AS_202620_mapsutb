@@ -25,7 +25,7 @@ Google Maps SDK).
 sequenceDiagram
     actor Usuario
     participant UI as Pantallas de features
-    participant ZonaRepo as ZonaRepository/PuntoInteresRepository
+    participant ZonaRepo as ZonaRepository
     participant Ubicacion as Servicio de ubicación
     participant Sensor as Sensor de ubicación
     participant Ruteo as Servicio de ruteo
@@ -55,7 +55,7 @@ sequenceDiagram
 ```
 
 1. El usuario selecciona un punto de interés como destino en la pantalla de mapas/ruteo.
-2. La UI consulta `ZonaRepository`/`PuntoInteresRepository` para obtener las coordenadas del punto seleccionado.
+2. La UI consulta `ZonaRepository` para obtener las coordenadas del punto (Espacio/Salon) seleccionado.
 3. La UI lee la posición actual del usuario suscribiéndose al `Stream<Ubicacion>` que expone el `Servicio de ubicación`, el cual a su vez escucha el sensor de ubicación del dispositivo.
 4. La UI solicita al `Servicio de ruteo` una ruta entre la posición actual y el destino.
 5. El `Servicio de ruteo` lee el grafo peatonal propio desde `MapaRepository` y calcula la ruta más corta con Dijkstra.

@@ -135,7 +135,7 @@ sus puntos de interés.
 
 _Interfase(s)_
 
-Expuesto a la App móvil a través de un repositorio (`ZonaRepository` / `PuntoInteresRepository`), sistema de
+Expuesto a la App móvil a través de un repositorio (`ZonaRepository`, ver ADR 0006), sistema de
 archivos, JSON.
 
 _Riesgos/Problemas/Incidentes Abiertos_
@@ -214,7 +214,7 @@ C4Component
         Component(widget, "MapaWidget", "Adapter", "Renderiza Maps SDK como mapa base y superpone el plano propio y las rutas")
         Component(ruteo, "Servicio de ruteo", "Dijkstra sobre grafo propio", "Calcula la ruta más corta dentro del campus")
         Component(mapaRepo, "MapaRepository", "Repository", "Sirve el grafo peatonal y la geometría del plano propio sin exponer su formato")
-        Component(zonaRepo, "ZonaRepository / PuntoInteresRepository", "Repository", "Clasificación manual de zonas y puntos de interés")
+        Component(zonaRepo, "ZonaRepository", "Repository", "Clasificación manual de zonas y puntos de interés (Zona y Espacio, ver ADR 0006)")
         Component(tourRepo, "TourRepository", "Repository", "Sirve el contenido panorámico 360° del tour")
         Component(geocodingAdap, "GeocodingAdapter", "Adapter", "Implementa el puerto de geocodificación; aísla la API de Google")
         Component(staticMapAdap, "StaticMapAdapter", "Adapter", "Genera miniaturas estáticas de ubicación; aísla Static Maps API")
@@ -264,7 +264,7 @@ C4Component
   peatonal; no depende de ningún servicio externo.
 - **MapaRepository** (patrón Repository): sirve el grafo peatonal y la geometría del plano propio sin exponer su
   formato de archivo.
-- **ZonaRepository / PuntoInteresRepository** (patrón Repository): sirve la clasificación manual de zonas y puntos de
+- **ZonaRepository** (patrón Repository): sirve la clasificación manual de zonas y espacios/puntos de
   interés desde el JSON local.
 - **TourRepository** (patrón Repository): sirve el contenido panorámico 360° al módulo de tour.
 - **GeocodingAdapter** (patrón Adapter): implementa el puerto de geocodificación y aísla al resto de la app del SDK de

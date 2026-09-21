@@ -59,18 +59,100 @@ image:08-concepts-EN.drawio.png["Posibles temas para conceptos transversales"]
 ****
 endif::arc42help[]
 
-=== _<Concepto 1>_
+=== Conceptos de dominio: mapa de contextos
 
-_<explicación>_
+MAPSUTB no tiene varios equipos ni varios sistemas heredados — es un cliente único
+Flutter. Aun así, el código ya distingue (y el corte 2 va a terminar de separar) cuatro
+contextos delimitados, con vocabulario y ciclo de vida propios:
 
+[mermaid]
+....
+flowchart LR
+    UI["Pantallas de features<br/>(zonas, mapas_ruteo, tour)"]
 
+    subgraph CAT["Catálogo de lugares"]
+        direction TB
+        CATM["Zona → Piso → Espacio → Salón"]
+    end
 
-=== _<Concepto 2>_
+    subgraph POS["Posicionamiento"]
+        direction TB
+        POSM["Ubicación (Observer, Stream)"]
+    end
 
-_<explicación>_
+    subgraph RUT["Ruteo — pendiente (corte 2)"]
+        direction TB
+        RUTM["Grafo peatonal + Dijkstra"]
+    end
 
-...
+    subgraph TUR["Tour 360° — pendiente (corte 2)"]
+        direction TB
+        TURM["Contenido panorámico"]
+    end
 
-=== _<Concepto n>_
+    UI -->|consulta| CAT
+    UI -->|se suscribe al stream| POS
+    UI -->|solicita una ruta| RUT
+    UI -->|solicita panorámicas| TUR
+    RUT -->|lee destino por id<br/>customer/supplier, solo lectura| CAT
+    TUR -->|referencia por id<br/>customer/supplier, solo lectura| CAT
+....
 
-_<explicación>_
+* **Catálogo de lugares** — qué existe en el campus y cómo se organiza
+  (`lib/models/zona.dart`, `piso.dart`, `espacio.dart`, `salon.dart`; expuesto por
+  `ZonaRepository`, `lib/repositories/zona_repository.dart`). Es el contexto más maduro:
+  ya implementado y con datos reales en `assets/data/zonas.json`. El nombre y los límites
+  de "Zona", "Espacio" y "punto de interés" dentro de este contexto están fijados por el
+  link:../adr/0006-reajuste-limites-contexto.adoc[ADR 0006]. +
+  Aspecto relacionado: ninguno propio todavía — es un candidato no priorizado (ver
+  link:../../aspectos.md[docs/aspectos.md], sección de notas).
+* **Posicionamiento** — dónde está el usuario ahora mismo (`lib/models/ubicacion.dart`,
+  `UbicacionService`, `lib/services/ubicacion_service.dart`). Hoy simulado con un timer;
+  el ADR 0001/0002 ya dejó el patrón Observer listo para el reemplazo por GPS real. +
+  Aspecto relacionado: link:../../aspectos.md[A-01] (localización y guiado en tiempo real).
+* **Ruteo** — cómo llegar de un punto a otro (pendiente: `MapaRepository` + servicio de
+  ruteo con Dijkstra, ya declarado como contenedor pendiente en `docs/c4/C2.md`). +
+  Aspecto relacionado: link:../../aspectos.md[A-01] (localización y guiado en tiempo real).
+* **Tour 360°** — contenido panorámico de un punto (pendiente: `TourRepository`, también
+  declarado como pendiente en `docs/c4/C2.md`). +
+  Aspecto relacionado: ninguno propio todavía — candidato no priorizado (ver
+  link:../../aspectos.md[docs/aspectos.md], sección de notas).
+
+**Relación entre contextos:** Ruteo y Tour van a depender de Catálogo de lugares — pero
+como *customer/supplier* de solo lectura (necesitan el id de una `Zona`/`Espacio`/`Salon`
+para saber a qué punto corresponde una ruta o una foto), nunca como escritores de sus
+datos. No existe hoy ninguna capa anticorrupción porque no hay ningún modelo externo
+(Google Maps SDK, Geocoding) integrado directamente en el dominio — `MapaWidget` y
+`GeocodingAdapter` (patrón Adapter, ADR 0001) ya cumplen ese papel para las integraciones
+que sí están construidas (A-02).
+
+=== Conceptos de dominio: módulo → datos (dueño único)
+
+[cols="1,2,2", options="header"]
+|===
+|Módulo |Dueño único de |Quién más lo toca
+
+|`ZonaRepository` (`lib/repositories/zona_repository.dart`)
+|`Zona`, `Piso`, `Espacio`, `Salon` — cargados desde `assets/data/zonas.json`
+|`ZonasScreen`, `ZonaDetalleScreen` (solo lectura); en el corte 2, Ruteo y Tour lo
+consultarán por id, también solo lectura
+
+|`UbicacionService` (`lib/services/ubicacion_service.dart`)
+|`Ubicacion` (posición en tiempo real, en memoria vía `Stream`, nunca persistida)
+|`UbicacionScreen`; en el corte 2, el servicio de ruteo y `MapaWidget` se suscribirán al
+mismo stream
+
+|`MapaRepository` — pendiente
+|Grafo peatonal (nodos/aristas) y las rutas que calcule Dijkstra sobre él
+|Servicio de ruteo y la UI de `mapas_ruteo`
+
+|`TourRepository` — pendiente
+|Contenido panorámico 360° (imagen + id de referencia a un `Espacio`/`Salon`)
+|Pantalla de tour
+|===
+
+Hoy no hay ninguna violación de este tipo en el código: cada modelo tiene exactamente un
+repositorio/servicio que lo carga, y ninguno escribe sobre el archivo de otro. El riesgo
+real está en lo que todavía no se ha construido — la no conformidad #3 de
+link:../../dominio_y_modularidad.md[dominio_y_modularidad.md] (que `TourRepository` no
+extienda `Espacio`/`Salon` y evite dos escritores sobre el mismo árbol de modelos).

@@ -52,10 +52,13 @@ endif::arc42help[]
 |Imagen equirectangular que cubre una vista completa de 360° alrededor de un punto, capturada con la cámara de un smartphone (sin necesidad de una cámara 360° dedicada).
 
 |Zona
-|Clasificación manual de un espacio del campus (por ejemplo, salón, laboratorio u oficina), cargada por el equipo en un archivo JSON local.
+|Nivel superior de la jerarquía del campus: edificio, cafetería, parqueadero o zona común (`lib/models/zona.dart`), cargada por el equipo en un archivo JSON local. Puede contener `Piso` y/o `Espacio`. Redefinida por el link:0006-reajuste-limites-contexto.adoc[ADR 0006] para coincidir con el código; antes se confundía con lo que hoy se llama "Espacio".
+
+|Espacio
+|Nivel intermedio/hoja dentro de una `Zona` (opcionalmente a través de un `Piso`): salón, laboratorio u oficina (`lib/models/espacio.dart`, `salon.dart`), cargado por el equipo en el mismo archivo JSON local que `Zona`. Es el destino navegable concreto que un usuario selecciona — ver "Punto de interés". Entrada agregada por el link:0006-reajuste-limites-contexto.adoc[ADR 0006].
 
 |Punto de interés (POI)
-|Ubicación específica dentro de una zona del campus, con coordenadas propias, cargada manualmente por el equipo.
+|Nombre de uso común para un `Espacio` o `Salon` (nunca una `Zona` completa): el destino navegable concreto que un usuario selecciona como objetivo de una ruta. No es una clase propia del código — se sirve desde `ZonaRepository`, igual que `Zona`. Definición fijada por el link:0006-reajuste-limites-contexto.adoc[ADR 0006] tras detectar el uso inconsistente entre `Zona` y `Espacio` en la documentación previa.
 
 |Aspirante nuevo
 |Actor humano del sistema: persona que quiere conocer el campus antes de matricularse.
@@ -70,7 +73,7 @@ endif::arc42help[]
 |Actor humano del sistema: visitante que usa la app para ubicarse y desplazarse dentro del campus.
 
 |Repository (patrón)
-|Patrón de diseño que expone los datos de un almacén (plano, zonas, panorámicas) a través de una interfaz simple, sin exponer su formato interno de almacenamiento. Usado en `MapaRepository`, `ZonaRepository`/`PuntoInteresRepository` y `TourRepository`.
+|Patrón de diseño que expone los datos de un almacén (plano, zonas, panorámicas) a través de una interfaz simple, sin exponer su formato interno de almacenamiento. Usado en `MapaRepository`, `ZonaRepository` (sirve `Zona` y `Espacio`, ver ADR 0006) y `TourRepository`.
 
 |Adapter (patrón)
 |Patrón de diseño que aísla al resto de la app de un servicio o SDK externo, traduciendo entre la interfaz que la app espera y la del servicio real. Usado en `MapaWidget` (Google Maps SDK) y `GeocodingAdapter` (Geocoding API).

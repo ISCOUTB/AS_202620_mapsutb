@@ -66,7 +66,7 @@ void main() {
 
     test('un fallo de red no interrumpe el flujo principal (Escenario 3)', () async {
       final client = MockClient((request) async {
-        throw const http.ClientException('sin conexión');
+        throw  http.ClientException('sin conexión');
       });
 
       final adapter = AnalyticsAdapterHttp(

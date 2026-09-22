@@ -19,6 +19,9 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
+        with:
+          # SonarCloud necesita el historial completo para el blame/new-code.
+          fetch-depth: 0
       - uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
           channel: stable
@@ -26,4 +29,36 @@ jobs:
           cache: true
       - run: flutter pub get --enforce-lockfile
       - run: flutter analyze
-      - run: flutter test --coverage
+
+      # Prueba de contrato (ficha S7, criterio 6): se invoca de forma
+      # explícita y nombrada para que el run deje evidencia citable de que el
+      # pipeline ejecuta específicamente las tres pruebas de contrato, no solo
+      # "flutter test" en general.
+      - name: Prueba de contrato (APIs externas)
+        run: >
+          flutter test
+          test/geocoding_adapter_contract_test.dart
+          test/static_map_adapter_contract_test.dart
+          test/analytics_adapter_contract_test.dart
+
+      # Suite completa + cobertura (genera coverage/lcov.info para SonarCloud).
+      - name: Suite completa con cobertura
+        run: flutter test --coverage
+
+      # Análisis estático auditable (ficha S7, criterio "Pipeline y análisis
+      # estático"). Requiere el secret SONAR_TOKEN configurado en el repo.
+      # La configuración (projectKey, organization, cobertura) vive en
+      # sonar-project.properties.
+      - name: Análisis estático — SonarCloud
+        uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: https://sonarcloud.io
+
+      # Falla el pipeline si el Quality Gate del proyecto no pasa, dejando el
+      # resultado del análisis ligado al run de CI.
+      - name: Quality Gate — SonarCloud
+        uses: SonarSource/sonarqube-quality-gate-action@v1
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}

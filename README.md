@@ -25,7 +25,7 @@ local), **Adapter** (aislar Google Maps SDK y Google Geocoding API) y
 completo, la matriz comparativa por problema y las consecuencias de cada
 decisión están en:
 
-- [`docs/arc42.md`](./docs/arc42/04_solution_strategy.adoc) — sección 4, "Estrategia de solución"
+- [`docs/arc42/04_solution_strategy.adoc`](./docs/arc42/04_solution_strategy.adoc) — sección 4, "Estrategia de solución"
 - [`docs/adr/0001-patrones-de-diseno.md`](./docs/adr/0001-patrones-de-diseno.md)
 ## Estructura del proyecto
 
@@ -49,11 +49,11 @@ docs/
   
 ```
  
-Las carpetas `adapters/`, `repositories/`, `routing/`, `services/` y
-cada subcarpeta de `features/` están vacías a propósito (solo contienen
-un `.gitkeep`): son el molde que impone el ADR 0001, listo para que cada
-integrante del equipo empiece a llenar su parte sin decidir estructura de
-nuevo.
+El molde de carpetas lo impone el ADR 0001. Sobre él ya hay código real:
+`adapters/` (`GeocodingAdapter`, `StaticMapAdapter`, `AnalyticsAdapter`),
+`repositories/` (`ZonaRepository`), `services/` (`UbicacionService`) y las
+primeras pantallas en `features/`. `routing/` y las carpetas de tour siguen
+como molde (solo `.gitkeep`), pendientes para el corte 2.
 
 ## Requisitos
 
@@ -80,6 +80,13 @@ flutter pub get && flutter test
 ## Estado actual
 
 - Arranca con un solo comando.
-- Una prueba automatizada en verde (`test/app_smoke_test.dart`).
-- Paquetes vacíos según el estilo del ADR 0001.
-- Sin lógica de negocio todavía
+- Integración con APIs externas por HTTP con contrato ejecutable
+  ([`docs/api/apis-externas.openapi.yaml`](./docs/api/apis-externas.openapi.yaml))
+  e implementación en `lib/adapters/` (Geocoding, Static Maps, Analytics).
+- Catálogo de lugares (`ZonaRepository`) y posicionamiento
+  (`UbicacionService`) implementados en primera versión.
+- Pruebas automatizadas en verde: arranque (`test/app_smoke_test.dart`) y
+  tres pruebas de contrato (`test/*_contract_test.dart`), ejecutadas por el
+  pipeline de CI ([`.github/workflows/ci.yml`](./.github/workflows/ci.yml))
+  junto con `flutter analyze` y el análisis estático de SonarCloud.
+- Ruteo (Dijkstra) y tour panorámico 360° pendientes para el corte 2.

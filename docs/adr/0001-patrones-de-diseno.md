@@ -2,7 +2,16 @@
 
 ## Estado
 
+**Reemplazado por [ADR 0002](./0002-patrones-de-diseno-sin-realidad-aumentada.md)** (2026-08-30).
+
 Aceptado — 2026-08-23 (revisado: mapa local + ruteo no exacto)
+
+> **Nota de trazabilidad (2026-09-25).** Este ADR se editó después de aceptarse (commits
+> `1e370a0` a `3e8335c`, 28 al 31/08/2026) para reflejar cambios de alcance, en lugar de
+> registrarlos en un ADR nuevo. Desde el 30/08 la decisión vigente sobre patrones de diseño es la
+> del ADR 0002, y las decisiones posteriores se registran como ADR nuevos (0003 a 0009). Este
+> archivo ya no se modifica salvo este estado; su historia completa queda en
+> `git log -- docs/adr/0001-patrones-de-diseno.md`.
 
 ## Contexto
 

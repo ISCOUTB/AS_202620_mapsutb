@@ -24,6 +24,8 @@ ifndef::imagesdir[:imagesdir: ../images]
 |Restricción|Justificación
 |Duración limitada por el calendario académico (un semestre)|Define el alcance realista de funcionalidades que pueden implementarse.
 |Equipo estudiantil sin presupuesto institucional asignado|Condiciona decisiones como no adquirir cámara 360° y usar APIs con capa gratuita en vez de soluciones propietarias.
+|Límite de costo: USD 0 al mes para operar el sistema|Todo el entorno desplegado (hosting, CI, sonda, métrica) debe caber en capas gratuitas. El cálculo por volumen y el punto en que cada pieza deja de ser gratis están en link:../costos.md[docs/costos.md].
+|Sin tarjeta: ninguna pieza puede exigir una cuenta personal con tarjeta de crédito|Por eso el entorno público se aloja en Firebase Hosting con el plan Spark, que no pide método de pago (link:../adr/0007-hosting-web-firebase-hosting.md[ADR 0007]), y corre *sin* la key de Google Maps Platform, que exige facturación con tarjeta incluso en su capa gratuita (link:../adr/0009-secretos-dart-define-github-secrets.md[ADR 0009]). Activarla requiere una cuenta de facturación institucional.
 |===
 
 === Restricciones políticas / institucionales

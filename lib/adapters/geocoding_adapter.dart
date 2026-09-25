@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../core/log.dart';
 import '../models/direccion.dart';
 
 /// Aísla al resto de la app de Google Geocoding API (ADR 0001/0002,
@@ -41,6 +42,21 @@ class GeocodingAdapterHttp implements GeocodingAdapter {
   }
 
   Future<Direccion> _geocodificar(Map<String, String> parametrosExtra) async {
+    final reloj = Stopwatch()..start();
+    try {
+      final direccion = await _llamar(parametrosExtra);
+      Log.info('geocoding_ok', {'duracion_ms': reloj.elapsedMilliseconds});
+      return direccion;
+    } on GeocodingException catch (e) {
+      Log.error('geocoding_error', {
+        'status': e.status,
+        'duracion_ms': reloj.elapsedMilliseconds,
+      });
+      rethrow;
+    }
+  }
+
+  Future<Direccion> _llamar(Map<String, String> parametrosExtra) async {
     final uri = Uri.parse(_baseUrl).replace(queryParameters: {
       ...parametrosExtra,
       'key': _apiKey,

@@ -2,6 +2,7 @@ import 'dart:convert';
 
 import 'package:http/http.dart' as http;
 
+import '../core/log.dart';
 import '../models/evento_analitica.dart';
 
 /// Aísla al resto de la app del Measurement Protocol de Firebase/Google
@@ -85,13 +86,21 @@ class AnalyticsAdapterHttp implements AnalyticsAdapter {
       // allá del código de estado: no hay confirmación de procesamiento
       // por diseño del proveedor.
       if (respuesta.statusCode != 204) {
+        Log.error('analitica_fuera_de_contrato', {
+          'evento_analitica': evento.nombre,
+          'status_http': respuesta.statusCode,
+        });
         throw AnalyticsException(respuesta.statusCode);
       }
     } on AnalyticsException {
       rethrow;
-    } catch (_) {
+    } catch (e) {
       // La analítica es de mejor esfuerzo: un fallo de red no debe
       // interrumpir el flujo principal de la app (Escenario 3).
+      Log.warn('analitica_fallo_red', {
+        'evento_analitica': evento.nombre,
+        'error': e,
+      });
       return;
     }
   }

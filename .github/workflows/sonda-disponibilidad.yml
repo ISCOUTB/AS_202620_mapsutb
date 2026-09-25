@@ -1,0 +1,49 @@
+name: Sonda de disponibilidad (métrica Escenario 6)
+
+# Mide cada hora la URL pública y su health check y publica la métrica en
+# la rama `metricas` (ADR 0008). Consulta pública:
+#   https://raw.githubusercontent.com/ISCOUTB/AS_202620_mapsutb/metricas/resumen.json
+on:
+  schedule:
+    - cron: "17 * * * *"  # cada hora
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+concurrency:
+  group: sonda-disponibilidad
+  cancel-in-progress: false
+
+jobs:
+  sonda:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      URL_SITIO: ${{ vars.URL_SITIO || format('https://{0}.web.app/', vars.FIREBASE_PROJECT_ID) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Traer (o crear) la rama metricas
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          REMOTO="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git ls-remote --exit-code --heads "$REMOTO" metricas >/dev/null; then
+            git clone --quiet --depth 1 --branch metricas "$REMOTO" metricas
+          else
+            git init --quiet -b metricas metricas
+            git -C metricas remote add origin "$REMOTO"
+          fi
+
+      - name: Medir
+        run: python3 scripts/sonda_disponibilidad.py "$URL_SITIO" metricas
+
+      - name: Publicar muestra
+        run: |
+          cd metricas
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add disponibilidad.jsonl resumen.json
+          git commit --quiet -m "metricas: muestra $(date -u +%Y-%m-%dT%H:%MZ)"
+          git push --quiet origin metricas

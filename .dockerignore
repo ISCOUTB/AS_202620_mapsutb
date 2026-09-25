@@ -1,0 +1,9 @@
+.git
+.dart_tool
+build
+.env
+android
+ios
+linux
+macos
+windows

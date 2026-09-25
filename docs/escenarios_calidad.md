@@ -53,3 +53,16 @@ artefacto, ambiente, respuesta, medida de respuesta), igual que el escenario de 
 - **Ambiente:** proceso de validación de contenido, antes de publicar/entregar.
 - **Respuesta:** el punto capturado corresponde fielmente al espacio real que representa.
 - **Medida de respuesta:** mínimo 90% de los puntos aprobados sin necesidad de recaptura.
+
+## Escenario 6 — Disponibilidad del despliegue web
+
+- **Fuente del estímulo:** un usuario o evaluador fuera de la red de la universidad.
+- **Estímulo:** abre la URL pública del sistema en cualquier momento de la semana.
+- **Artefacto:** el sitio web desplegado en Firebase Hosting y su health check (`/health.json`).
+- **Ambiente:** operación normal del entorno público.
+- **Respuesta:** el sitio y el health check responden HTTP 200.
+- **Medida de respuesta:** disponibilidad ≥ 99 % y p95 del tiempo de respuesta del health check
+  menor a 1 s, en una ventana de 7 días.
+- **Métrica consultable:** `disponibilidad_pct` y `latencia_p95_ms` en
+  [`resumen.json`](https://raw.githubusercontent.com/ISCOUTB/AS_202620_mapsutb/metricas/resumen.json),
+  medidos cada hora por la sonda de [ADR 0008](./adr/0008-metrica-disponibilidad-sonda-actions.md).

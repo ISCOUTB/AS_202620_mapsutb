@@ -39,11 +39,51 @@ Las decisiones de diseño del proyecto se documentan como Registros de Decisione
 
 | ADR-0001
 | link:../adr/0001-patrones-de-diseno.md[Patrones de diseño para el monolito MAPSUTB]
-| Aceptado (2026-08-23)
+| Reemplazado por ADR-0002 (2026-08-30)
 | Define los patrones de diseño (GoF e idiomáticos de Dart) para las dos dependencias externas que quedan
   (Google Maps SDK y Google Geocoding API, ambas aisladas con **Adapter**), el plano propio del campus, las
   zonas/puntos de interés y el tour panorámico (todos con **Repository**), el ruteo interno dentro del campus
   (servicio único con Dijkstra, sin Strategy) y la ubicación en tiempo real (**Observer** vía `Stream` de Dart).
+
+| ADR-0002
+| link:../adr/0002-patrones-de-diseno-sin-realidad-aumentada.md[Patrones de diseño para navegación sin realidad aumentada]
+| Aceptado (2026-08-30)
+| Decisión vigente de patrones: Adapter para Maps SDK y Geocoding, Repository para datos locales, Observer para ubicación.
+
+| ADR-0003
+| link:../adr/0003-descartar-realidad-aumentada.md[Descartar guiado por realidad aumentada]
+| Aceptado (2026-08-29)
+| Se abandona ARCore Geospatial API y Street View.
+
+| ADR-0004
+| link:../adr/0004-adoptar-monolito-como-estilo-arquitectonico.md[Adoptar monolito como estilo arquitectónico]
+| Aceptado (2026-09-11)
+| Compara tres estilos contra el árbol de utilidad y elige monolito sin backend.
+
+| ADR-0005
+| link:../adr/0005-integracion-apis-externas.md[Integración síncrona con las APIs externas]
+| Aceptado (2026-09-20)
+| Request/response sobre HTTPS para Geocoding, Static Maps y Measurement Protocol, con contrato OpenAPI.
+
+| ADR-0006
+| link:../adr/0006-reajuste-limites-contexto.md[Reajuste de los límites de contexto]
+| Aceptado (2026-09-21)
+| Zona, Espacio y punto de interés en el contexto Catálogo.
+
+| ADR-0007
+| link:../adr/0007-hosting-web-firebase-hosting.md[Publicar la app como sitio web estático en Firebase Hosting]
+| Aceptado (2026-09-25)
+| Plataforma del entorno público; Docker + nginx como alternativa reproducible.
+
+| ADR-0008
+| link:../adr/0008-metrica-disponibilidad-sonda-actions.md[Medir la disponibilidad con una sonda en GitHub Actions]
+| Aceptado (2026-09-25)
+| Métrica del Escenario 6 publicada en la rama `metricas`.
+
+| ADR-0009
+| link:../adr/0009-secretos-dart-define-github-secrets.md[Credenciales: secrets del repositorio con `--dart-define`]
+| Aceptado (2026-09-25)
+| Credenciales fuera del código, `.env.example` y restricción de keys en el proveedor.
 |===
 
 Nuevas decisiones de diseño relevantes que surjan durante el desarrollo deben agregarse como un nuevo ADR

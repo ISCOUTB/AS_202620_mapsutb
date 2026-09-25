@@ -1,5 +1,6 @@
 import 'package:http/http.dart' as http;
 
+import '../core/log.dart';
 import '../models/imagen_mapa.dart';
 
 /// Aísla al resto de la app de Google Static Maps API (ADR 0001/0002,
@@ -50,7 +51,9 @@ class StaticMapAdapterHttp implements StaticMapAdapter {
       'key': _apiKey,
     });
 
+    final reloj = Stopwatch()..start();
     final respuesta = await _client.get(uri);
+    final duracionMs = reloj.elapsedMilliseconds;
 
     // Contrato esperado (docs/api/apis-externas.openapi.yaml): 200 con
     // Content-Type image/png y el cuerpo crudo de la imagen. Cualquier
@@ -58,9 +61,18 @@ class StaticMapAdapterHttp implements StaticMapAdapter {
     // reporta como StaticMapException en vez de propagar bytes basura.
     if (respuesta.statusCode != 200 ||
         !(respuesta.headers['content-type']?.startsWith('image/') ?? false)) {
+      Log.error('static_map_error', {
+        'status_http': respuesta.statusCode,
+        'content_type': respuesta.headers['content-type'],
+        'duracion_ms': duracionMs,
+      });
       throw StaticMapException(respuesta.statusCode, respuesta.headers['content-type']);
     }
 
+    Log.info('static_map_ok', {
+      'bytes': respuesta.bodyBytes.length,
+      'duracion_ms': duracionMs,
+    });
     return ImagenMapa(bytesPng: respuesta.bodyBytes, ancho: ancho, alto: alto);
   }
 }

@@ -156,3 +156,20 @@ repositorio/servicio que lo carga, y ninguno escribe sobre el archivo de otro. E
 real está en lo que todavía no se ha construido — la no conformidad #3 de
 link:../../dominio_y_modularidad.md[dominio_y_modularidad.md] (que `TourRepository` no
 extienda `Espacio`/`Salon` y evite dos escritores sobre el mismo árbol de modelos).
+
+=== Observabilidad: logs estructurados y métrica
+
+* *Logs de la app:* `lib/core/log.dart` emite una línea JSON por evento con `ts`, `nivel` y
+  `evento` fijos más campos propios. Eventos instrumentados: `zonas_cargadas` / `zonas_error`
+  (`ZonaRepositoryLocal`), `geocoding_ok` / `geocoding_error`, `static_map_ok` /
+  `static_map_error` y `analitica_fallo_red` / `analitica_fuera_de_contrato` (adaptadores), todos
+  con `duracion_ms` cuando aplica. Ejemplo:
++
+[source,json]
+----
+{"ts":"2026-09-25T22:08:03.615Z","nivel":"info","evento":"zonas_cargadas","cantidad":11,"duracion_ms":38}
+----
+* *Logs del entorno Docker:* nginx escribe una línea JSON por petición (`infra/nginx.conf`,
+  formato `json_mapsutb`).
+* *Métrica:* disponibilidad y p95 del health check del entorno público, ligada al Escenario 6
+  (link:../adr/0008-metrica-disponibilidad-sonda-actions.md[ADR 0008]).

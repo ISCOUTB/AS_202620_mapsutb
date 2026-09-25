@@ -100,6 +100,67 @@ El `api_secret` del Measurement Protocol solo permite enviar eventos, así
 que el riesgo es que alguien inyecte eventos falsos; si eso importa, el
 envío debe moverse a un backend propio.
 
+## Despliegue (entorno público)
+
+| | |
+|---|---|
+| URL del sistema | https://mapsutb.web.app/ |
+| Health check | https://mapsutb.web.app/health.json → `200` con `{"status":"ok","commit":…}` |
+| Métrica (Escenario 6) | https://raw.githubusercontent.com/ISCOUTB/AS_202620_mapsutb/metricas/resumen.json |
+| Análisis estático | https://sonarcloud.io/summary/new_code?id=ISCOUTB_AS_202620_mapsutb |
+| Costo mensual | USD 0 hoy; cálculo y punto de ruptura en [`docs/costos.md`](./docs/costos.md) |
+
+El arranque local de arriba **no** es el despliegue. El entorno público es la
+app compilada a web y alojada en Firebase Hosting, plan Spark
+([ADR 0007](./docs/adr/0007-hosting-web-firebase-hosting.md)), definido como
+código en [`.github/workflows/deploy.yml`](./.github/workflows/deploy.yml) y
+[`firebase.json`](./firebase.json): en cada push a `master` compila, prueba,
+genera `health.json`, publica y verifica que el health responde 200 con el
+commit desplegado. Detalle de cada pieza y dónde se ejecuta:
+[arc42 §7](./docs/arc42/07_deployment_view.adoc).
+
+### Recrear el entorno público desde cero
+
+1. En [console.firebase.google.com](https://console.firebase.google.com),
+   crear un proyecto (plan Spark, sin método de pago) y activar Hosting.
+2. En Google Cloud Console → *IAM → Cuentas de servicio* del mismo proyecto,
+   crear una cuenta con el rol **Administrador de Firebase Hosting** y
+   descargar su clave JSON.
+3. En *Settings → Secrets and variables → Actions* del repositorio:
+   - secret `FIREBASE_SERVICE_ACCOUNT` = contenido completo del JSON;
+   - variable `FIREBASE_PROJECT_ID` = el Project ID;
+   - (opcional) los secrets de [`.env.example`](./.env.example)
+     ([ADR 0009](./docs/adr/0009-secretos-dart-define-github-secrets.md)).
+     Sin ellos la app se publica igual, sin Geocoding ni Static Maps.
+4. *Actions → Despliegue web (Firebase Hosting) → Run workflow* sobre `master`.
+5. Comprobar:
+   ```bash
+   curl -sS -o /dev/null -w 'http=%{http_code} tiempo=%{time_total}s\n' https://mapsutb.web.app/
+   curl -sS https://mapsutb.web.app/health.json
+   ```
+
+Revertir a la versión anterior: *Firebase console → Hosting → historial de
+versiones → Revertir* (no hace falta recompilar).
+
+### Recrear el entorno en el servidor del laboratorio (Docker)
+
+```bash
+cp .env.example .env          # opcional: credenciales
+docker compose --env-file .env -f infra/docker-compose.yml up --build
+curl http://localhost:8080/health
+docker compose -f infra/docker-compose.yml logs web   # logs JSON de nginx
+```
+
+### Observabilidad
+
+- **Logs estructurados:** una línea JSON por evento desde
+  [`lib/core/log.dart`](./lib/core/log.dart) (consola del navegador o
+  `adb logcat`) y desde nginx en Docker ([arc42 §8](./docs/arc42/08_concepts.adoc)).
+- **Métrica:** disponibilidad y p95 del health check, medidos cada hora por
+  [`sonda-disponibilidad.yml`](./.github/workflows/sonda-disponibilidad.yml)
+  ([ADR 0008](./docs/adr/0008-metrica-disponibilidad-sonda-actions.md)) y
+  ligados al Escenario 6 de [`docs/escenarios_calidad.md`](./docs/escenarios_calidad.md).
+
 ## Estado actual
 
 - Arranca con un solo comando.
@@ -112,4 +173,8 @@ envío debe moverse a un backend propio.
   tres pruebas de contrato (`test/*_contract_test.dart`), ejecutadas por el
   pipeline de CI ([`.github/workflows/ci.yml`](./.github/workflows/ci.yml))
   junto con `flutter analyze` y el análisis estático de SonarCloud.
+- Desplegado como sitio web en Firebase Hosting, con health check, logs
+  estructurados, métrica de disponibilidad y secretos fuera del código (S8).
 - Ruteo (Dijkstra) y tour panorámico 360° pendientes para el corte 2.
+- Las 11 zonas de `assets/data/zonas.json` aún no tienen coordenadas reales
+  (están en 0,0).

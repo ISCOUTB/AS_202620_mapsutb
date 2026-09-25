@@ -5,93 +5,102 @@ ifndef::imagesdir[:imagesdir: ../images]
 
 == Vista de Despliegue
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contenido
-La vista de despliegue describe:
+MAPSUTB es un monolito Flutter sin backend propio (ADR 0004). Se despliega en dos entornos que
+comparten el mismo código y los mismos artefactos de build:
 
-. La infraestructura técnica usada para ejecutar el sistema, con elementos de infraestructura como locaciones geográficas,
-ambientes, computadoras, procesadores, canales y topologías de red así como otros elementos de infraestructura.
-. El mapeo de los bloques de construcción (software) en dichos elementos de infraestructura.
+* *Público* — la app compilada a web, alojada en Firebase Hosting, plan Spark (ADR 0007). Es el entorno que se
+  evalúa y sobre el que se hace la sustentación.
+* *Reproducible* — el mismo sitio en un contenedor nginx (`infra/`), para el servidor del
+  laboratorio o cualquier máquina con Docker.
 
-Comúnmente los sistemas son ejecutados en diferentes ambientes, por ejemplo, ambiente de desarrollo, de pruebas, de producción. En dichos casos deberían documentarse todos los ambientes relevantes.
-
-Deberá documentarse la vista de despliegue de manera especial cuando el software se ejecute como un sistema distribuido
-con mas de una computadora, procesador, servidor o contenedor o cuando se diseñen los procesadores y chips de hardware propios.
-
-Desde una perspectiva de software es suficiente con capturar los elementos de la infraestructura necesarios para mostrar
-el despliegue de los bloques de construcción. Los arquitectos de hardware pueden ir más alla y describir la infraestructura
-a cualquier nivel de detalle que requieran.
-
-.Motivación
-El software no corre sin haardware.
-El hardware subyacente puede influenciar el sistema o algunos conceptos entrecruzados. Por ende, es necesario conocer
-la infraestructura.
-
-.Forma
-Quizá el más alto nivel de diagrama de despliegue esté contenido en la sección 3.2. como contexto técnico con la 
-propia infraestructura como UNA caja negra. En esta sección se deberá realizar un acercamiento a ésta caja negra 
-utilizando diagramas de despliegue adicionales:
-
-* UML provee diagramas de despliegue para expresar la vista. Uselos, probablemente con diagramas anidados.
-* Cuando las partes relacionadas de Hardware prefieran otro tipo de diagramas además de los diagramas de despliegue,
-permítales usar cualquier tipo que permita mostrar los nodos y canales de la infraestructura.
-****
-endif::arc42help[]
+La app móvil (Android/iOS) se instala desde el build local (`flutter run`); no se distribuye por
+tiendas.
 
 === Nivel de infraestructura 1
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-Describa (Usualmente en una combinación de diagramas, tablas y texto):
+[source]
+----
+                 Internet (fuera de la red UTB)
+                             │ HTTPS
+   ┌─────────────────────────▼──────────────────────────┐
+   │ Firebase Hosting (Spark) · mapsutb.web.app         │
+   │  index.html, main.dart.js, assets/zonas.json,      │
+   │  health.json                                       │
+   └─────────────────────────▲──────────────────────────┘
+                             │ action-hosting-deploy (push a master)
+   ┌─────────────────────────┴──────────────────────────┐
+   │ GitHub Actions (runners ubuntu-latest)              │
+   │  ci.yml ─ analyze, pruebas, SonarCloud + QG          │
+   │  deploy.yml ─ flutter build web + health.json        │
+   │  sonda-disponibilidad.yml ─ cada hora ───────────────┼──► rama `metricas`
+   │  Secrets: GOOGLE_MAPS_API_KEY, GA_*, SONAR_TOKEN     │    (resumen.json)
+   └─────────────────────────────────────────────────────┘
 
-* La distribución del sistema en múltiples ubicaciones, ambientes, computadoras, procesadores, ... así como las
-conexiones físicas entre ellos
-* La motivación o justificación de importancia para la estructura de despliegue
-* Características de Calidad y/o rendimiento de la infraestructura
-* El mapeo de los artefactos de software a los elementos de la infraestructura.
+   Navegador / dispositivo del usuario ── HTTPS ──► Google Maps Platform (Geocoding,
+   (ejecuta la app: Dart compilado a JS)            Static Maps) y GA4 Measurement Protocol
+----
 
-Para múltiples ambientes o despliegues alternativos copie esta sección para todos los ambientes relevantes.
-****
-endif::arc42help[]
+Una caja por pieza y dónde se ejecuta:
 
-_**<Diagrama General>**_
+[options="header",cols="2,2,3,2"]
+|===
+|Pieza |Dónde se ejecuta |Qué contiene / hace |Definida en
+|Sitio web (app Flutter compilada) |Firebase Hosting (CDN de Google), proyecto `mapsutb` |Estáticos de `flutter build web`, `zonas.json` y `health.json` |`.github/workflows/deploy.yml`, `firebase.json`, ADR 0007
+|Health check |Firebase Hosting |`/health.json`: `status`, `commit`, `desplegado` |`.github/workflows/deploy.yml`
+|Lógica de la app (UI, Repository, Adapters, Observer) |Navegador del usuario (JS) o dispositivo Android/iOS |Todo el monolito; no hay código en servidor |`lib/`
+|Pipeline de CI |GitHub Actions |`flutter analyze`, pruebas de contrato, cobertura, SonarCloud y Quality Gate |`.github/workflows/ci.yml`
+|Análisis estático |SonarCloud (organización `isco-utb`) |Quality Gate del proyecto `ISCOUTB_AS_202620_mapsutb` |`sonar-project.properties`
+|Sonda de disponibilidad |GitHub Actions (programado cada hora) |Mide sitio y health, publica la métrica |`.github/workflows/sonda-disponibilidad.yml`, ADR 0008
+|Métrica publicada |Rama `metricas` del repositorio (raw.githubusercontent.com) |`resumen.json`, `disponibilidad.jsonl` |`scripts/sonda_disponibilidad.py`
+|Almacén de secretos |GitHub Actions secrets |Cuenta de servicio de Firebase y credenciales de Google y GA4 para el build |ADR 0009, `.env.example`
+|APIs externas |Google Maps Platform y Google Analytics vinculado al proyecto de Firebase (terceros) |Geocoding, Static Maps, Measurement Protocol |ADR 0005, `docs/api/apis-externas.openapi.yaml`
+|Sitio en contenedor (alternativo) |Servidor del laboratorio o máquina con Docker |nginx con los mismos estáticos, `/health` y logs JSON |`infra/Dockerfile`, `infra/docker-compose.yml`, `infra/nginx.conf`
+|===
 
 Motivación::
-
-_<Explicación en forma textual>_
+Sin backend propio, lo único que hay que alojar son estáticos. Firebase Hosting (plan Spark) los
+sirve gratis, sin método de pago y con HTTPS desde fuera de la universidad (restricciones de §2);
+permite revertir a una versión publicada anterior en un paso y concentra en un proyecto de Firebase
+las piezas que recomendó el docente.
 
 Características de Calidad/Rendimiento::
-
-_<Explicación en forma textual>_
+* Disponibilidad y latencia del despliegue medidas por la sonda (Escenario 6: ≥ 99 % y p95 del
+  health < 1 s en 7 días).
+* Ante fallos de red o de las APIs externas, la app muestra errores controlados (Escenario 3).
+* Logs estructurados en JSON: en la app (`lib/core/log.dart`, consola del navegador o logcat) y en
+  nginx para el entorno Docker (§8).
 
 Mapeo de los Bloques de Construcción a Infraestructura:::
-_<Descripción del mapeo>_
-
+Todos los bloques de §5 (pantallas de `features/`, `ZonaRepository`, `UbicacionService`,
+adaptadores de `adapters/`) se empaquetan en un único artefacto (`build/web` o el APK/IPA) y se
+ejecutan en el cliente. Los datos del catálogo (`assets/data/zonas.json`) viajan dentro del mismo
+artefacto.
 
 === Nivel de Infraestructura 2
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-Aquí puede incluir la estructura interna de (algunos) elementos de infraestructura del nivel 1.
+==== Pipeline de despliegue (`deploy.yml`)
 
-Copie la estructura del nivel 1 para cada elemento elegido.
-****
-endif::arc42help[]
+. `flutter pub get --enforce-lockfile` y `flutter test`.
+. `flutter build web --base-href /AS_202620_mapsutb/` con las credenciales tomadas de los secrets
+  (vacías si no existen).
+. Genera `build/web/health.json` con el SHA del commit y la hora del despliegue.
+. Publica con `FirebaseExtended/action-hosting-deploy` (canal `live`) usando la cuenta de servicio
+  del secret `FIREBASE_SERVICE_ACCOUNT`, y verifica que `health.json` responde 200 con el commit
+  recién desplegado; si no, el run falla.
 
-==== _<Elemento de Infraestructura 1>_
+Recrear el entorno desde cero: crear el proyecto de Firebase, cargar `FIREBASE_SERVICE_ACCOUNT` y
+`FIREBASE_PROJECT_ID` en el repositorio y re-ejecutar `deploy.yml` sobre `master` (pasos en el
+README). Revertir: *Firebase console → Hosting → historial de versiones → Revertir*.
 
-_<diagrama + explicación>_
+==== Contenedor nginx (`infra/`)
 
-==== _<Elemento de Infraestructura 2>_
+Imagen en dos etapas: `ghcr.io/cirruslabs/flutter` compila la app a web y `nginx:alpine` la sirve.
+Expone el puerto 80 (8080 en el host), responde `/health` y escribe una línea JSON por petición en
+stdout (`docker compose logs`).
 
-_<diagrama + explicación>_
-
-...
-
-==== _<Elemento de Infraestructura n>_
-
-_<diagrama + explicación>_
+[source,bash]
+----
+cp .env.example .env   # opcional: credenciales
+docker compose --env-file .env -f infra/docker-compose.yml up --build
+curl http://localhost:8080/health
+----

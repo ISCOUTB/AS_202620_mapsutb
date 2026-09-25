@@ -1,0 +1,15 @@
+# Levanta el sitio web de MAPSUTB en http://localhost:8080 (health en /health).
+# Las credenciales se leen de ../.env (copiar desde .env.example); nunca
+# se versionan.
+services:
+  web:
+    build:
+      context: ..
+      dockerfile: infra/Dockerfile
+      args:
+        GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+        GA_MEASUREMENT_ID: ${GA_MEASUREMENT_ID:-}
+        GA_API_SECRET: ${GA_API_SECRET:-}
+    ports:
+      - "8080:80"
+    restart: unless-stopped

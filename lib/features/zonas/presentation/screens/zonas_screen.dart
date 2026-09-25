@@ -34,7 +34,9 @@ class _ZonasScreenState extends State<ZonasScreen> {
   }
 
   void _reintentar() {
-    setState(() => _zonas = widget.repository.obtenerPuntos());
+    setState(() {
+      _zonas = widget.repository.obtenerPuntos();
+    });
   }
 
   void _abrirDetalle(Zona zona) {

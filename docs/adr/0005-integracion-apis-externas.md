@@ -52,7 +52,7 @@ depende de un callback o evento posterior:
 |---|---|---|---|
 | Google Geocoding API | `GeocodingAdapter` / `GeocodingAdapterHttp` | `Direccion` | `GeocodingException` |
 | Google Static Maps API | `StaticMapAdapter` / `StaticMapAdapterHttp` | `ImagenMapa` | `StaticMapException` |
-| Measurement Protocol | `AnalyticsAdapter` / `AnalyticsAdapterHttp` | `EventoAnalitica` | `AnalyticsException` (capturada internamente, ver más abajo) |
+| Measurement Protocol | `AnalyticsAdapter` / `AnalyticsAdapterHttp` | `EventoAnalitica` | `AnalyticsException` (solo ante respuesta fuera de contrato; los fallos de red se absorben, ver más abajo) |
 
 El contrato ejecutable de las tres integraciones vive en un único archivo,
 `docs/api/apis-externas.openapi.yaml`, y la correspondencia entre ese contrato y cada
@@ -62,7 +62,9 @@ implementación se valida en `test/geocoding_adapter_contract_test.dart`,
 **Caso especial — analítica nunca bloquea ni rompe el flujo principal:** a diferencia de
 Geocoding y Static Maps (donde un error se propaga como excepción para que la UI decida qué
 mostrar), `AnalyticsAdapterHttp.registrarEvento` captura internamente cualquier fallo de red y
-retorna sin lanzar. Un evento de analítica perdido no es un caso que deba interrumpir la
+retorna sin lanzar. Solo lanza `AnalyticsException` si el proveedor responde algo distinto
+de 204 (respuesta fuera de contrato), para que la prueba de contrato pueda detectarlo; la UI
+descarta ese error con `Future.ignore()` al registrar el evento. Un evento de analítica perdido no es un caso que deba interrumpir la
 navegación del usuario; sigue siendo un requerimiento del Escenario 3 ("la app no se cae"), pero
 aplicado de forma más estricta porque este flujo ni siquiera necesita mostrar el mensaje de error
 controlado — el usuario nunca debería notar que un evento no se registró.

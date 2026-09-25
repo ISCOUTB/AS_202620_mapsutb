@@ -17,10 +17,25 @@ import '../models/evento_analitica.dart';
 /// implementación se valida en
 /// test/analytics_adapter_contract_test.dart (ficha S7, criterio 3).
 abstract class AnalyticsAdapter {
-  /// Registra un evento de uso. No lanza excepción si la app no tiene
-  /// conexión — la analítica nunca debe bloquear ni afectar el flujo
-  /// principal (ver Escenario 3, docs/escenarios_calidad.md).
+  /// Registra un evento de uso.
+  ///
+  /// Un fallo de red (sin conexión, timeout) se absorbe en silencio: la
+  /// analítica nunca debe bloquear ni afectar el flujo principal (ver
+  /// Escenario 3, docs/escenarios_calidad.md). En cambio, una respuesta
+  /// fuera de contrato (status distinto de 204) se reporta como
+  /// [AnalyticsException] para que la prueba de contrato la detecte; quien
+  /// llame desde la UI debe descartar ese error (p. ej. con
+  /// `Future.ignore()`) para no interrumpir la navegación.
   Future<void> registrarEvento(EventoAnalitica evento);
+}
+
+/// Implementación vacía, usada cuando no hay credenciales de Measurement
+/// Protocol configuradas (ver `ConfigApis`).
+class AnalyticsAdapterNulo implements AnalyticsAdapter {
+  const AnalyticsAdapterNulo();
+
+  @override
+  Future<void> registrarEvento(EventoAnalitica evento) async {}
 }
 
 class AnalyticsAdapterHttp implements AnalyticsAdapter {

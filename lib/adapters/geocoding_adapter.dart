@@ -8,9 +8,10 @@ import '../models/direccion.dart';
 /// patrón Adapter). Ningún tipo de la librería de Google debe usarse
 /// fuera de esta clase — quien la consume solo conoce [Direccion].
 ///
-/// Contrato consumido: docs/api/geocoding.openapi.yaml. La correspondencia
-/// entre ese contrato y esta implementación se valida en
-/// test/geocoding_adapter_contract_test.dart (ficha S7, criterio 3).
+/// Contrato consumido: docs/api/apis-externas.openapi.yaml (sección
+/// Geocoding). La correspondencia entre ese contrato y esta
+/// implementación se valida en test/geocoding_adapter_contract_test.dart
+/// (ficha S7, criterio 3).
 abstract class GeocodingAdapter {
   /// Geocodificación inversa: coordenadas -> dirección legible.
   Future<Direccion> geocodificarInversa({required double lat, required double lng});
@@ -46,6 +47,14 @@ class GeocodingAdapterHttp implements GeocodingAdapter {
     });
 
     final respuesta = await _client.get(uri);
+
+    // Un error HTTP (5xx, 403 de cuota, página HTML de un proxy) no trae el
+    // JSON del contrato: se reporta como GeocodingException en vez de dejar
+    // escapar un FormatException de jsonDecode.
+    if (respuesta.statusCode != 200) {
+      throw GeocodingException('HTTP_${respuesta.statusCode}');
+    }
+
     final cuerpo = jsonDecode(respuesta.body) as Map<String, dynamic>;
 
     final status = cuerpo['status'] as String?;
@@ -58,7 +67,7 @@ class GeocodingAdapterHttp implements GeocodingAdapter {
       throw GeocodingException('ZERO_RESULTS');
     }
 
-    // Contrato esperado (docs/api/geocoding.openapi.yaml): cada resultado
+    // Contrato esperado (docs/api/apis-externas.openapi.yaml): cada resultado
     // trae formatted_address y geometry.location.{lat,lng}. Si Google
     // cambia esta forma de manera incompatible, este cast/acceso falla
     // aquí — es justo lo que valida la prueba de contrato.

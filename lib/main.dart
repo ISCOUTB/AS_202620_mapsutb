@@ -1,4 +1,10 @@
+import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'adapters/analytics_adapter.dart';
+import 'adapters/geocoding_adapter.dart';
+import 'adapters/static_map_adapter.dart';
+import 'core/config_apis.dart';
 import 'features/zonas/presentation/screens/zonas_screen.dart';
 import 'features/mapas_ruteo/presentation/screens/ubicacion_screen.dart';
 import 'repositories/zona_repository.dart';
@@ -29,12 +35,32 @@ class _RaizNavegacionState extends State<_RaizNavegacion> {
   int _indice = 0;
   late final UbicacionService _ubicacionService;
   late final ZonaRepository _zonaRepository;
+  late final AnalyticsAdapter _analytics;
+  GeocodingAdapter? _geocoding;
+  StaticMapAdapter? _staticMap;
 
   @override
   void initState() {
     super.initState();
     _ubicacionService = UbicacionServiceSimulado();
     _zonaRepository = ZonaRepositoryLocal();
+
+    // Sin credenciales (--dart-define, ver ConfigApis) la app arranca igual
+    // y solo se ocultan las funciones que dependen de cada API.
+    if (ConfigApis.tieneGoogleMaps) {
+      _geocoding = GeocodingAdapterHttp(apiKey: ConfigApis.googleMapsApiKey);
+      _staticMap = StaticMapAdapterHttp(apiKey: ConfigApis.googleMapsApiKey);
+    }
+    _analytics = ConfigApis.tieneAnalytics
+        ? AnalyticsAdapterHttp(
+            measurementId: ConfigApis.gaMeasurementId,
+            apiSecret: ConfigApis.gaApiSecret,
+            // Identificador por sesión: sin almacenamiento persistente aún,
+            // cada arranque cuenta como un cliente nuevo en GA4.
+            clientId: '${Random().nextInt(1 << 31)}'
+                '.${DateTime.now().millisecondsSinceEpoch ~/ 1000}',
+          )
+        : const AnalyticsAdapterNulo();
   }
 
   @override
@@ -46,8 +72,12 @@ class _RaizNavegacionState extends State<_RaizNavegacion> {
   @override
   Widget build(BuildContext context) {
     final pantalla = _indice == 0
-        ? ZonasScreen(repository: _zonaRepository)
-        : UbicacionScreen(service: _ubicacionService);
+        ? ZonasScreen(
+            repository: _zonaRepository,
+            analytics: _analytics,
+            staticMap: _staticMap,
+          )
+        : UbicacionScreen(service: _ubicacionService, geocoding: _geocoding);
 
     return Scaffold(
       appBar: AppBar(title: const Text('MAPSUTB')),

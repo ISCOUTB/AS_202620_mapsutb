@@ -62,7 +62,8 @@ como molde (solo `.gitkeep`), pendientes para el corte 2.
 - Un dispositivo, emulador o navegador configurado para `flutter run`
   (para solo compilar y correr las pruebas no hace falta dispositivo).
 - Conexión a internet y una API key válida de Google Maps SDK / Geocoding
-  API (el mapa base y la geocodificación no funcionan sin ella).
+  API (el mapa base y la geocodificación no funcionan sin ella; ver
+  "Credenciales de APIs externas" más abajo).
 ## Arranque con un solo comando
 
 ```bash
@@ -76,6 +77,28 @@ prueba pasa en verde, sin levantar la app:
 ```bash
 flutter pub get && flutter test
 ```
+
+### Credenciales de APIs externas
+
+Las credenciales se pasan en tiempo de compilación con `--dart-define`
+(ver `lib/core/config_apis.dart`); nunca se versionan en el repositorio:
+
+```bash
+flutter run \
+  --dart-define=GOOGLE_MAPS_API_KEY=... \
+  --dart-define=GA_MEASUREMENT_ID=G-... \
+  --dart-define=GA_API_SECRET=...
+```
+
+Sin ellas la app arranca igual y solo oculta lo que depende de cada API:
+el botón "¿Dónde estoy?" (Geocoding), la miniatura de la zona (Static
+Maps) y el envío de eventos de uso (Measurement Protocol).
+
+Los valores de `--dart-define` quedan embebidos en el binario. La API key
+de Google debe restringirse por paquete/huella en Google Cloud Console.
+El `api_secret` del Measurement Protocol solo permite enviar eventos, así
+que el riesgo es que alguien inyecte eventos falsos; si eso importa, el
+envío debe moverse a un backend propio.
 
 ## Estado actual
 

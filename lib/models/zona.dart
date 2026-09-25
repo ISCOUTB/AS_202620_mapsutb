@@ -34,6 +34,10 @@ class Zona {
             .toList(),
       );
 
+  /// `false` mientras la zona no tenga coordenadas reales en zonas.json
+  /// (0,0 es el valor de relleno que se usa mientras se levantan).
+  bool get tieneCoordenadas => lat != 0 || lng != 0;
+
   /// Espacios que ocupan un piso específico (un espacio puede aparecer
   /// en más de un piso, ej. un auditorio de doble altura).
   List<Espacio> espaciosEnPiso(String pisoId) =>

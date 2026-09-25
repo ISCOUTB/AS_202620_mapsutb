@@ -8,7 +8,7 @@ import 'package:mapsutb/adapters/geocoding_adapter.dart';
 /// Prueba de contrato para GeocodingAdapter (ficha S7).
 ///
 /// No llama a la red real: usa http.testing.MockClient para simular
-/// exactamente las respuestas descritas en docs/api/geocoding.openapi.yaml,
+/// exactamente las respuestas descritas en docs/api/apis-externas.openapi.yaml,
 /// y valida que GeocodingAdapter las traduce al modelo Direccion tal como
 /// dice docs/arc42/06_runtime_view.md ("Geocodificar una ubicación").
 ///
@@ -66,6 +66,19 @@ void main() {
     test('reporta status distinto de OK como GeocodingException, no como excepción cruda', () async {
       final client = MockClient((request) async {
         return http.Response(jsonEncode({'status': 'ZERO_RESULTS', 'results': []}), 200);
+      });
+
+      final adapter = GeocodingAdapterHttp(apiKey: 'test-key', client: client);
+
+      expect(
+        () => adapter.geocodificarInversa(lat: 0, lng: 0),
+        throwsA(isA<GeocodingException>()),
+      );
+    });
+
+    test('reporta un error HTTP como GeocodingException, no como FormatException', () async {
+      final client = MockClient((request) async {
+        return http.Response('<html>Service Unavailable</html>', 503);
       });
 
       final adapter = GeocodingAdapterHttp(apiKey: 'test-key', client: client);

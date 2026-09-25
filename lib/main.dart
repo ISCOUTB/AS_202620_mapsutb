@@ -57,7 +57,7 @@ class _RaizNavegacionState extends State<_RaizNavegacion> {
             apiSecret: ConfigApis.gaApiSecret,
             // Identificador por sesión: sin almacenamiento persistente aún,
             // cada arranque cuenta como un cliente nuevo en GA4.
-            clientId: '${Random().nextInt(1 << 31)}'
+            clientId: '${Random.secure().nextInt(1 << 31)}'
                 '.${DateTime.now().millisecondsSinceEpoch ~/ 1000}',
           )
         : const AnalyticsAdapterNulo();

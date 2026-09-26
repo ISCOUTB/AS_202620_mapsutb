@@ -87,3 +87,52 @@ De las correcciones anunciadas o exigibles en S1-S4, se cerraron con evidencia r
 verde, la matriz de estilos, y la convención de nombres de ADR— siguen abiertas y se declaran así
 sin maquillaje, porque una fila sin evidencia real se marca "No cumple" de todas formas y una
 afirmación falsa aquí es peor que dejarla pendiente.
+
+# Correcciones · S6, S7 y matriz transversal (2026-09-25)
+
+Respuesta a los hallazgos abiertos de las revisiones de S6 (`8aee879`, 5/8) y S7 (`5e2fdd5`,
+10/10 en la ficha, con tres transversales en No cumple), y a la revisión preliminar de S8
+(`7048021`). Las notas de S6 y S7 se calcularon sobre esos commits; estas correcciones son
+posteriores a sus cierres y se aplican sobre `master` a partir de `23637a3`. Se solicita al
+docente un re-barrido si acepta correcciones tardías, como en el primer corte.
+
+Evidencia común a todas las filas: CI en verde con SonarCloud y Quality Gate sobre `c4d036e`
+([run](https://github.com/ISCOUTB/AS_202620_mapsutb/actions/runs/36202698033)); análisis público en
+[SonarCloud](https://sonarcloud.io/summary/new_code?id=ISCOUTB_AS_202620_mapsutb).
+
+## Hallazgos de S6
+
+| Hallazgo | Acción | Evidencia | Estado |
+|---|---|---|---|
+| arc42 §8 era plantilla, sin lenguaje ubicuo ni mapa de contextos | Se trasladaron el mapa de contextos y la tabla módulo → datos desde `dominio_y_modularidad.md` | `docs/arc42/08_concepts.adoc` («Conceptos de dominio: mapa de contextos» y «módulo → datos»), commit `23637a3` | Corregida |
+| Sin ADR que registre el reajuste de límites de S6 | ADR nuevo, sin editar los aceptados | `docs/adr/0006-reajuste-limites-contexto.md`, commit `23637a3` | Corregida |
+| `docs/aspectos.md` sin columna de contexto; A-01 no cubre los cuatro contextos | Columna «Contexto (arc42 §8)»; filas nuevas A-03 (Catálogo, con código, pruebas y CI) y A-04 (Tour, declarada pendiente) | `docs/aspectos.md`, commits `23637a3` y el de este documento | Corregida (A-04 sin implementación, declarado) |
+| Sin scanner, run ni URL pública de SonarCloud con Quality Gate | Pasos de scanner y Quality Gate en el CI; se desactivó el análisis automático de SonarCloud, que hacía fallar el scanner | `.github/workflows/ci.yml:53` (scanner) y `:61` (Quality Gate), commit `83556fb`; [run verde](https://github.com/ISCOUTB/AS_202620_mapsutb/actions/runs/36202698033) | Corregida |
+
+## Hallazgos transversales de S7 (y S6)
+
+| Hallazgo | Acción | Evidencia | Estado |
+|---|---|---|---|
+| ADR 0001 reescrito tras aceptarse, sin reemplazo | El historial no se puede deshacer; se declaró el reemplazo: estado «Reemplazado por ADR 0002» con nota que cita los commits de la reescritura. Las decisiones posteriores van en ADR nuevos (0003 a 0009) | `docs/adr/0001-patrones-de-diseno.md` (sección Estado), `docs/arc42/09_architecture_decisions.adoc`, commit `c4d036e` | Corregida con reemplazo declarado |
+| `docs/ia.md` sin entradas desde el 30/08 | Entradas del 25/09 con herramienta, uso, resultado y lo rechazado con su motivo | `docs/ia.md`, commit `c4d036e` | Corregida para S8; sin entradas retroactivas de S6/S7 |
+| Pipeline, SonarCloud y Quality Gate públicos | Ver fila de SonarCloud en S6; el CI de la punta está en verde | [run](https://github.com/ISCOUTB/AS_202620_mapsutb/actions/runs/36202698033) | Corregida |
+
+## Hallazgos de S8 (revisión preliminar)
+
+| Hallazgo | Acción | Evidencia | Estado |
+|---|---|---|---|
+| Sin URL pública ni health check | App compilada a web en Firebase Hosting (plan Spark) | https://mapsutb.web.app/ → 200 y https://mapsutb.web.app/health.json → 200 con el commit desplegado, comprobados el 2026-09-25T23:54:39Z; [run de despliegue](https://github.com/ISCOUTB/AS_202620_mapsutb/actions/runs/36202698191); ADR 0007 | Corregida |
+| Sin infraestructura como código | Workflow de despliegue + configuración de Hosting; alternativa Docker + nginx | `.github/workflows/deploy.yml`, `firebase.json`, `.firebaserc`, `infra/` | Corregida |
+| Pipeline de la punta en rojo | Ver SonarCloud arriba | [run](https://github.com/ISCOUTB/AS_202620_mapsutb/actions/runs/36202698033) | Corregida |
+| Sin logs estructurados | Logger JSON en la app y logs JSON de nginx | `lib/core/log.dart`, `test/log_test.dart`, `infra/nginx.conf`, arc42 §8 «Observabilidad» | Corregida |
+| Sin métrica ligada a un escenario | Sonda horaria de disponibilidad y p95, ligada al Escenario 6 | `.github/workflows/sonda-disponibilidad.yml`, [resumen.json](https://raw.githubusercontent.com/ISCOUTB/AS_202620_mapsutb/metricas/resumen.json), ADR 0008 | Corregida |
+| Clave de Google sin manejo seguro; sin `.env.example` | Credenciales por `--dart-define` desde secrets de Actions; `.env` ignorado | `.env.example`, `lib/core/config_apis.dart`, `deploy.yml`, ADR 0009 | Corregida |
+| Sin costo mensual ni punto de ruptura | Estimación desde el volumen supuesto | `docs/costos.md` | Corregida |
+| arc42 §7 con marcadores de plantilla | Una caja por pieza con dónde se ejecuta | `docs/arc42/07_deployment_view.adoc` | Corregida |
+| Sin ADR de plataforma | Un ADR por decisión, con alternativas descartadas | ADR 0007 (hosting), 0008 (métrica), 0009 (secretos) | Corregida |
+
+## Siguen abiertos
+
+- Coordenadas reales de las 11 zonas de `assets/data/zonas.json` (hoy en 0,0).
+- Tour 360° (A-04) y ruteo con Dijkstra, sin implementación (corte 2).
+- Hallazgos de S1 a S4 marcados «Pendiente» arriba que el primer corte no cerró con revisión flexible.

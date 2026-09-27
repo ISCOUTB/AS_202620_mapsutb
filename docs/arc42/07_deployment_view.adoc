@@ -90,7 +90,8 @@ artefacto.
 
 Recrear el entorno desde cero: crear el proyecto de Firebase, cargar `FIREBASE_SERVICE_ACCOUNT` y
 `FIREBASE_PROJECT_ID` en el repositorio y re-ejecutar `deploy.yml` sobre `master` (pasos en el
-README). Revertir: *Firebase console → Hosting → historial de versiones → Revertir*.
+README). Revertir sin recompilar (link:../adr/0010-reversion-sitio-web.md[ADR 0010]): workflow `reversion-firebase.yml`
+o *Firebase console → Hosting → historial de versiones → Revertir*. Medido: 0,4 s.
 
 ==== Contenedor nginx (`infra/`)
 

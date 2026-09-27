@@ -66,3 +66,17 @@ artefacto, ambiente, respuesta, medida de respuesta), igual que el escenario de 
 - **Métrica consultable:** `disponibilidad_pct` y `latencia_p95_ms` en
   [`resumen.json`](https://raw.githubusercontent.com/ISCOUTB/AS_202620_mapsutb/metricas/resumen.json),
   medidos cada hora por la sonda de [ADR 0008](./adr/0008-metrica-disponibilidad-sonda-actions.md).
+
+## Escenario 7 — Reversión del sitio web
+
+- **Fuente del estímulo:** un integrante del equipo, desde fuera de la universidad.
+- **Estímulo:** detecta que el último despliegue dejó el sitio roto y decide volver a la versión
+  anterior.
+- **Artefacto:** el sitio web desplegado (`https://mapsutb.web.app/`) y su `health.json`.
+- **Ambiente:** operación normal, justo después de un despliegue automático desde `master`.
+- **Respuesta:** el sitio vuelve a servir la versión anterior sin recompilar, y `health.json`
+  muestra el commit de esa versión.
+- **Medida de respuesta:** 5 minutos o menos desde la decisión hasta que `health.json` muestra el
+  commit anterior. Medido: 0,4 s en Firebase Hosting
+  ([run](https://github.com/ISCOUTB/AS_202620_mapsutb/actions/runs/36351911654)); ver
+  [ADR 0010](./adr/0010-reversion-sitio-web.md) y [`taller-despliegue.md`](./taller-despliegue.md).

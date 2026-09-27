@@ -139,8 +139,11 @@ commit desplegado. Detalle de cada pieza y dónde se ejecuta:
    curl -sS https://mapsutb.web.app/health.json
    ```
 
-Revertir a la versión anterior: *Firebase console → Hosting → historial de
-versiones → Revertir* (no hace falta recompilar).
+Revertir a la versión anterior sin recompilar: *Actions → Reversión medida
+(Firebase Hosting)*, o *Firebase console → Hosting → historial de versiones →
+Revertir*. Procedimiento completo y mediciones en
+[`docs/taller-despliegue.md`](./docs/taller-despliegue.md) (taller de despliegue,
+[ADR 0010](./docs/adr/0010-reversion-sitio-web.md)).
 
 ### Recrear el entorno en el servidor del laboratorio (Docker)
 

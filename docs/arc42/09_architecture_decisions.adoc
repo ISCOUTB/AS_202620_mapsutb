@@ -84,6 +84,11 @@ Las decisiones de diseño del proyecto se documentan como Registros de Decisione
 | link:../adr/0009-secretos-dart-define-github-secrets.md[Credenciales: secrets del repositorio con `--dart-define`]
 | Aceptado (2026-09-25)
 | Credenciales fuera del código, `.env.example` y restricción de keys en el proveedor.
+
+| ADR-0010
+| link:../adr/0010-reversion-sitio-web.md[Revertir el sitio republicando versiones guardadas en Firebase Hosting]
+| Aceptado (2026-09-27)
+| Taller de despliegue, condición «necesidad de reversión»: reversión medida en 0,4 s sin recompilar; Docker + nginx como contingencia.
 |===
 
 Nuevas decisiones de diseño relevantes que surjan durante el desarrollo deben agregarse como un nuevo ADR

@@ -13,10 +13,14 @@ COPY . .
 ARG GOOGLE_MAPS_API_KEY=""
 ARG GA_MEASUREMENT_ID=""
 ARG GA_API_SECRET=""
+# Commit que contiene la imagen: queda en /health.json para saber qué versión
+# está en línea tras un despliegue o una reversión (ADR 0010).
+ARG COMMIT="local"
 RUN flutter build web --release \
       --dart-define=GOOGLE_MAPS_API_KEY="$GOOGLE_MAPS_API_KEY" \
       --dart-define=GA_MEASUREMENT_ID="$GA_MEASUREMENT_ID" \
-      --dart-define=GA_API_SECRET="$GA_API_SECRET"
+      --dart-define=GA_API_SECRET="$GA_API_SECRET" \
+ && printf '{"status":"ok","servicio":"mapsutb-web","commit":"%s"}\n' "$COMMIT" > build/web/health.json
 
 # Etapa 2: sirve los estáticos con nginx (logs de acceso en JSON).
 FROM nginx:1.27-alpine

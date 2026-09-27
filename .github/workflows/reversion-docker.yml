@@ -1,0 +1,106 @@
+name: Reversión medida (Docker + nginx)
+
+# Taller de despliegue · condición «necesidad de reversión» (ADR 0010).
+# Reproduce en un runner de GitHub el procedimiento del servidor del
+# laboratorio: construye la imagen del commit actual y la del anterior
+# (etiquetadas por commit), levanta la actual y mide cuánto tarda en verse
+# la anterior en /health.json al revertir sin recompilar. El tiempo de
+# construcción de la imagen anterior es el costo de revertir si esa imagen
+# no se hubiera conservado.
+on:
+  workflow_dispatch:
+    inputs:
+      commit_anterior:
+        description: "Commit al que revertir (vacío = el anterior a HEAD)"
+        type: string
+        default: ""
+
+permissions:
+  contents: read
+
+jobs:
+  revertir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Preparar commits
+        id: c
+        run: |
+          NUEVO=$(git rev-parse HEAD)
+          ANTERIOR=${{ inputs.commit_anterior }}
+          ANTERIOR=$(git rev-parse "${ANTERIOR:-HEAD~1}")
+          git worktree add ../anterior "$ANTERIOR"
+          echo "nuevo=$NUEVO" >> "$GITHUB_OUTPUT"
+          echo "anterior=$ANTERIOR" >> "$GITHUB_OUTPUT"
+
+      - name: Construir imágenes etiquetadas por commit
+        env:
+          NUEVO: ${{ steps.c.outputs.nuevo }}
+          ANTERIOR: ${{ steps.c.outputs.anterior }}
+        run: |
+          resta() { awk -v a="$1" -v b="$2" 'BEGIN{printf "%.2f", a-b}'; }
+          t0=$(date +%s.%N)
+          docker build -f infra/Dockerfile --build-arg COMMIT="$NUEVO" -t "mapsutb-web:$NUEVO" .
+          t1=$(date +%s.%N)
+          docker build -f infra/Dockerfile --build-arg COMMIT="$ANTERIOR" -t "mapsutb-web:$ANTERIOR" ../anterior
+          t2=$(date +%s.%N)
+          echo "BUILD_NUEVO_S=$(resta "$t1" "$t0")" >> "$GITHUB_ENV"
+          echo "BUILD_ANTERIOR_S=$(resta "$t2" "$t1")" >> "$GITHUB_ENV"
+          docker images mapsutb-web
+
+      - name: Desplegar, revertir y restaurar midiendo
+        env:
+          NUEVO: ${{ steps.c.outputs.nuevo }}
+          ANTERIOR: ${{ steps.c.outputs.anterior }}
+        run: |
+          resta() { awk -v a="$1" -v b="$2" 'BEGIN{printf "%.2f", a-b}'; }
+          esperar() {  # espera a que /health.json muestre el commit $1; imprime segundos
+            local t0 t
+            t0=$(date +%s.%N)
+            for _ in $(seq 1 600); do
+              if curl -fsS http://localhost:8080/health.json 2>/dev/null | grep -q "$1"; then
+                t=$(date +%s.%N); resta "$t" "$t0"; return 0
+              fi
+              sleep 0.2
+            done
+            echo "timeout esperando $1" >&2; return 1
+          }
+          cambiar() {  # levanta la imagen del commit $1 sin recompilar y mide
+            local t0 t
+            t0=$(date +%s.%N)
+            IMAGE_TAG="$1" docker compose -f infra/docker-compose.yml up -d --no-build >&2
+            esperar "$1" >/dev/null
+            t=$(date +%s.%N); resta "$t" "$t0"
+          }
+          IMAGE_TAG="$NUEVO" docker compose -f infra/docker-compose.yml up -d --no-build
+          esperar "$NUEVO" >/dev/null
+          REVERSION_S=$(cambiar "$ANTERIOR")
+          RESTAURACION_S=$(cambiar "$NUEVO")
+          docker compose -f infra/docker-compose.yml logs --tail 3 web
+          cat > resultado-docker.json <<JSON
+          {
+            "alternativa": "Docker + nginx (imagen del commit anterior, sin recompilar)",
+            "entorno_medicion": "runner ubuntu-latest de GitHub Actions (sustituto del servidor del laboratorio)",
+            "commit_antes": "$NUEVO",
+            "commit_revertido": "$ANTERIOR",
+            "reversion": { "total_s": $REVERSION_S },
+            "restauracion": { "total_s": $RESTAURACION_S },
+            "recompilar_si_no_hay_imagen_s": $BUILD_ANTERIOR_S,
+            "construccion_imagen_actual_s": $BUILD_NUEVO_S,
+            "recompila": false
+          }
+          JSON
+          cat resultado-docker.json
+          docker compose -f infra/docker-compose.yml down
+
+      - name: Resumen
+        run: |
+          { echo '### Reversión con Docker + nginx'; echo '```json'; cat resultado-docker.json; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: resultado-docker
+          path: resultado-docker.json

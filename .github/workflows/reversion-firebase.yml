@@ -1,0 +1,46 @@
+name: Reversión medida (Firebase Hosting)
+
+# Taller de despliegue · condición «necesidad de reversión» (ADR 0010).
+# Vuelve a publicar la versión anterior del sitio SIN recompilar, mide cuánto
+# tarda en verse en https://<proyecto>.web.app/health.json y, si se pide,
+# restaura la versión original midiendo igual.
+on:
+  workflow_dispatch:
+    inputs:
+      restaurar:
+        description: "Restaurar la versión original al terminar"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: deploy-firebase
+  cancel-in-progress: false
+
+jobs:
+  revertir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install --quiet google-auth==2.35.0 requests==2.32.3
+      - name: Revertir y medir
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: >
+          python scripts/revertir_hosting.py
+          --sitio "${{ vars.FIREBASE_PROJECT_ID }}"
+          ${{ inputs.restaurar && '--restaurar' || '' }}
+          --salida resultado-firebase.json
+      - name: Resumen
+        run: |
+          { echo '### Reversión en Firebase Hosting'; echo '```json'; cat resultado-firebase.json; echo '```'; } >> "$GITHUB_STEP_SUMMARY"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: resultado-firebase
+          path: resultado-firebase.json

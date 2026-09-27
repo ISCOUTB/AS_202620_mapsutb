@@ -1,8 +1,14 @@
 # Levanta el sitio web de MAPSUTB en http://localhost:8080 (health en /health).
 # Las credenciales se leen de ../.env (copiar desde .env.example); nunca
 # se versionan.
+#
+# Cada imagen se etiqueta con su commit (IMAGE_TAG). Desplegar y revertir
+# (ADR 0010):
+#   IMAGE_TAG=$(git rev-parse HEAD) docker compose -f infra/docker-compose.yml up -d --build
+#   IMAGE_TAG=<commit-anterior>    docker compose -f infra/docker-compose.yml up -d --no-build
 services:
   web:
+    image: mapsutb-web:${IMAGE_TAG:-local}
     build:
       context: ..
       dockerfile: infra/Dockerfile
@@ -10,6 +16,7 @@ services:
         GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
         GA_MEASUREMENT_ID: ${GA_MEASUREMENT_ID:-}
         GA_API_SECRET: ${GA_API_SECRET:-}
+        COMMIT: ${IMAGE_TAG:-local}
     ports:
       - "8080:80"
     restart: unless-stopped

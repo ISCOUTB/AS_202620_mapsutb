@@ -3,8 +3,17 @@
 #
 #   docker compose -f infra/docker-compose.yml up --build
 #
-# Etapa 1: compila la app Flutter para web.
-FROM ghcr.io/cirruslabs/flutter:3.47.4 AS build
+# Etapa 1: compila la app Flutter para web con la MISMA versión de Flutter que
+# el CI (.github/workflows/ci.yml). Se instala desde el tag oficial porque no
+# hay imagen publicada para esa versión.
+FROM debian:bookworm-slim AS build
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends git curl unzip xz-utils ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+ARG FLUTTER_VERSION=3.47.4
+RUN git clone --quiet --depth 1 --branch "$FLUTTER_VERSION" https://github.com/flutter/flutter.git /flutter
+ENV PATH="/flutter/bin:${PATH}"
+RUN flutter config --no-analytics --enable-web && flutter precache --web
 WORKDIR /app
 COPY pubspec.yaml pubspec.lock ./
 RUN flutter pub get --enforce-lockfile

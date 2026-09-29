@@ -1,8 +1,8 @@
 {
   "escenario": "Escenario 6 — Disponibilidad del despliegue web",
   "ventana": "7 días",
-  "actualizado": "2026-09-29T16:35:11Z",
-  "muestras": 90,
+  "actualizado": "2026-09-29T17:29:14Z",
+  "muestras": 91,
   "disponibilidad_pct": 100.0,
   "latencia_p95_ms": 203,
   "meta": {

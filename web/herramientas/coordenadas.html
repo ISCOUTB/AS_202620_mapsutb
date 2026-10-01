@@ -268,13 +268,15 @@
 
   // Promedio ponderado por precisión (las lecturas más precisas pesan más).
   function promediar(lista) {
-    let sw = 0, sLat = 0, sLng = 0, mejor = Infinity;
+    let sw = 0, sLat = 0, sLng = 0;
     for (const p of lista) {
       const w = 1 / Math.max(p.coords.accuracy, 1) ** 2;
       sw += w; sLat += p.coords.latitude * w; sLng += p.coords.longitude * w;
-      mejor = Math.min(mejor, p.coords.accuracy);
     }
-    return { lat: sLat / sw, lng: sLng / sw, precision: Math.round(Math.max(mejor / Math.sqrt(lista.length), 1) * 10) / 10 };
+    // Precisión informada: mediana de las lecturas. Promediar reduce el ruido,
+    // pero no el sesgo del GPS junto a edificios, así que no se divide entre √n.
+    const accs = lista.map((p) => p.coords.accuracy).sort((a, b) => a - b);
+    return { lat: sLat / sw, lng: sLng / sw, precision: Math.round(accs[Math.floor(accs.length / 2)] * 10) / 10 };
   }
 
   async function registrar() {

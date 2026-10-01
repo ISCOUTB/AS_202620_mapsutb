@@ -397,13 +397,15 @@
 
   // ---------- puntos ----------
   function promediar(lista) {
-    let sw = 0, la = 0, lo = 0, sa = 0, swa = 0, mejor = Infinity;
+    let sw = 0, la = 0, lo = 0, sa = 0, swa = 0;
     for (const p of lista) {
       const c = p.coords, w = 1 / Math.max(c.accuracy, 1) ** 2;
-      sw += w; la += c.latitude * w; lo += c.longitude * w; mejor = Math.min(mejor, c.accuracy);
+      sw += w; la += c.latitude * w; lo += c.longitude * w;
       if (c.altitude != null) { const wa = 1 / Math.max(c.altitudeAccuracy || 10, 1) ** 2; sa += c.altitude * wa; swa += wa; }
     }
-    return { lat: la / sw, lng: lo / sw, acc: Math.max(mejor / Math.sqrt(lista.length), 1), alt: swa ? sa / swa : null };
+    // Precisión informada: mediana de las lecturas (promediar no corrige el sesgo).
+    const accs = lista.map((p) => p.coords.accuracy).sort((a, b) => a - b);
+    return { lat: la / sw, lng: lo / sw, acc: accs[Math.floor(accs.length / 2)], alt: swa ? sa / swa : null };
   }
   async function registrarPunto() {
     if (!ultima) return;

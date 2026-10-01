@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#093AD8">
+<title>Registro de coordenadas · MAPSUTB</title>
+<style>
+  /* Herramienta de levantamiento en campo del equipo MAPSUTB.
+     Registra puntos GPS del campus (entradas, cruces, escaleras…) para
+     construir el grafo peatonal. Los datos solo viven en este celular
+     (localStorage) hasta que se exportan. */
+  :root {
+    --azul: #093AD8; --navy: #032742; --esmeralda: #028C5C; --lima: #71EC37;
+    --bg: #F3F5FB; --surface: #FFFFFF; --ink: #032742; --muted: #5B6B82; --line: #DCE2F0;
+    --ok: #028C5C; --warn: #9A5B00; --warn-bg: #FFF1DC; --bad: #B3261E; --bad-bg: #FDE7E4;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #07121F; --surface: #0E1D30; --ink: #EAF0FA; --muted: #9AA9C0; --line: #1F3350;
+      --warn-bg: #33250F; --warn: #F2B35B; --bad-bg: #3A1512; --bad: #FF8A80; --ok: #3FCB93;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 16px; }
+  header {
+    background: var(--azul); color: #fff; padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 16px;
+    border-radius: 0 0 20px 20px; position: sticky; top: 0; z-index: 2;
+  }
+  header h1 { margin: 0; font-size: 19px; }
+  header p { margin: 2px 0 0; font-size: 13px; opacity: .85; }
+  main { padding: 14px 16px calc(24px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 14px; max-width: 560px; margin: 0 auto; }
+
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px; display: grid; gap: 10px; }
+  .gps { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; align-items: center; }
+  .coords { font-variant-numeric: tabular-nums; font-size: 15px; font-weight: 600; word-break: break-all; }
+  .acc { font-size: 13px; font-weight: 700; padding: 4px 10px; border-radius: 999px; white-space: nowrap; }
+  .acc.ok { background: #DDF3EA; color: var(--ok); }
+  .acc.meh { background: var(--warn-bg); color: var(--warn); }
+  .acc.bad, .acc.none { background: var(--bad-bg); color: var(--bad); }
+  .small { font-size: 13px; color: var(--muted); }
+
+  label.lbl { font-size: 13px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip {
+    border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+    border-radius: 999px; padding: 9px 14px; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  .chip[aria-pressed="true"] { background: var(--azul); border-color: var(--azul); color: #fff; }
+  select, input[type="text"] {
+    width: 100%; font: inherit; font-size: 16px; padding: 11px 12px; border-radius: 12px;
+    border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+  }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .row label { font-size: 15px; display: flex; gap: 8px; align-items: center; }
+
+  button.main {
+    width: 100%; font: inherit; font-size: 19px; font-weight: 800; padding: 18px; border: 0; border-radius: 16px;
+    background: var(--esmeralda); color: #fff; cursor: pointer;
+  }
+  button.main:disabled { background: #8FA3BF; }
+  button.sec {
+    font: inherit; font-size: 15px; font-weight: 700; padding: 11px 14px; border-radius: 12px; cursor: pointer;
+    border: 1.5px solid var(--azul); background: transparent; color: var(--azul); flex: 1;
+  }
+  @media (prefers-color-scheme: dark) { button.sec { color: #9DB5FF; border-color: #6F8EF0; } }
+  button.link { font: inherit; font-size: 14px; border: 0; background: none; color: var(--bad); cursor: pointer; padding: 6px; }
+  button:focus-visible, .chip:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--lima); outline-offset: 2px; }
+
+  .msg { font-size: 14px; padding: 10px 12px; border-radius: 12px; }
+  .msg.ok { background: #DDF3EA; color: var(--ok); }
+  .msg.warn { background: var(--warn-bg); color: var(--warn); }
+  .msg.bad { background: var(--bad-bg); color: var(--bad); }
+
+  ol.list { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+  ol.list li { border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; display: grid; grid-template-columns: 1fr auto; gap: 2px 8px; }
+  ol.list b { font-size: 15px; }
+  ol.list .small { grid-column: 1; font-variant-numeric: tabular-nums; }
+  ol.list button { grid-row: 1 / span 2; grid-column: 2; align-self: center; }
+  .count { font-size: 14px; font-weight: 700; color: var(--muted); }
+  footer { text-align: center; font-size: 12px; color: var(--muted); padding-bottom: 12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Registro de coordenadas</h1>
+  <p>MAPSUTB · levantamiento del grafo peatonal del campus</p>
+</header>
+
+<main>
+  <section class="card" aria-live="polite">
+    <div class="gps">
+      <div>
+        <div class="coords" id="coords">Esperando GPS…</div>
+        <div class="small" id="gpsInfo">Permite el acceso a la ubicación cuando el navegador lo pida.</div>
+      </div>
+      <span class="acc none" id="acc">sin señal</span>
+    </div>
+  </section>
+
+  <section class="card">
+    <label class="lbl" id="tipoLbl">Qué es este punto</label>
+    <div class="chips" role="group" aria-labelledby="tipoLbl" id="tipos"></div>
+
+    <div id="zonaBox" hidden>
+      <label class="lbl" for="zona">Zona</label>
+      <select id="zona"></select>
+      <div class="row" style="margin-top:8px">
+        <label><input type="checkbox" id="principal" checked> Entrada principal</label>
+      </div>
+    </div>
+
+    <div>
+      <label class="lbl" for="nota">Nota (opcional)</label>
+      <input type="text" id="nota" placeholder="Ej.: puerta norte, reja abierta de 7 a 18">
+    </div>
+
+    <div class="row">
+      <label for="promedio">Promediar</label>
+      <select id="promedio" style="width:auto">
+        <option value="0">No (lectura actual)</option>
+        <option value="5">5 s</option>
+        <option value="10" selected>10 s</option>
+        <option value="20">20 s</option>
+      </select>
+    </div>
+
+    <button class="main" id="registrar" disabled>Registrar punto</button>
+    <div id="estado" class="msg" hidden></div>
+  </section>
+
+  <section class="card">
+    <div class="row" style="justify-content:space-between">
+      <span class="count" id="count">0 puntos</span>
+      <button class="link" id="borrarTodo" hidden>Borrar todo</button>
+    </div>
+    <div class="row">
+      <button class="sec" id="expGeo">Exportar GeoJSON</button>
+      <button class="sec" id="expCsv">Exportar CSV</button>
+    </div>
+    <ol class="list" id="lista"></ol>
+  </section>
+
+  <footer>Los puntos se guardan solo en este celular hasta que los exportes. Para no perderlos, exporta al terminar cada recorrido.</footer>
+</main>
+
+<script>
+(() => {
+  "use strict";
+
+  const TIPOS = [
+    ["entrada", "Entrada"], ["cruce", "Cruce"], ["escalera", "Escalera"],
+    ["rampa", "Rampa"], ["puerta", "Puerta o reja"], ["acceso", "Acceso al campus"], ["otro", "Otro"],
+  ];
+  // Respaldo si no se puede leer zonas.json (mismo orden que assets/data/zonas.json).
+  const ZONAS_RESPALDO = [
+    ["a1", "A1"], ["a2", "A2"], ["eda2", "EDA2"], ["contenedores", "Contenedores"], ["a3", "A3"],
+    ["a4", "A4"], ["a5", "A5"], ["zonat", "Zona T"], ["quid", "Quid"], ["alcatraz", "Alcatraz"],
+    ["biblioteca", "Biblioteca Luis Enrique Borja Barón"],
+  ];
+  const CLAVE = "mapsutb-coordenadas-v1";
+  const $ = (id) => document.getElementById(id);
+
+  let tipo = "entrada";
+  let ultima = null;          // última lectura del GPS
+  let lecturas = null;        // lecturas acumuladas mientras se promedia
+  let puntos = cargar();
+
+  // ---------- almacenamiento ----------
+  function cargar() {
+    try { return JSON.parse(localStorage.getItem(CLAVE)) || []; } catch { return []; }
+  }
+  function guardar() {
+    try { localStorage.setItem(CLAVE, JSON.stringify(puntos)); return true; }
+    catch { mensaje("No se pudo guardar en el celular. Exporta ahora para no perder los puntos.", "bad"); return false; }
+  }
+
+  // ---------- interfaz ----------
+  function mensaje(texto, clase) {
+    const e = $("estado"); e.textContent = texto; e.className = "msg " + clase; e.hidden = false;
+  }
+  function pintarTipos() {
+    $("tipos").innerHTML = "";
+    for (const [id, nombre] of TIPOS) {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "chip"; b.textContent = nombre;
+      b.setAttribute("aria-pressed", String(id === tipo));
+      b.addEventListener("click", () => { tipo = id; pintarTipos(); });
+      $("tipos").appendChild(b);
+    }
+    $("zonaBox").hidden = tipo !== "entrada";
+  }
+  function pintarZonas(zonas) {
+    $("zona").innerHTML = zonas.map(([id, nombre]) => `<option value="${id}">${nombre}</option>`).join("");
+  }
+  function nombreTipo(id) { return (TIPOS.find((t) => t[0] === id) || [id, id])[1]; }
+  function nombreZona(id) {
+    const o = [...$("zona").options].find((x) => x.value === id);
+    return o ? o.textContent : id;
+  }
+  function pintarLista() {
+    $("count").textContent = `${puntos.length} punto${puntos.length === 1 ? "" : "s"}`;
+    $("borrarTodo").hidden = puntos.length === 0;
+    $("lista").innerHTML = "";
+    [...puntos].reverse().forEach((p) => {
+      const li = document.createElement("li");
+      const titulo = p.tipo === "entrada" ? `Entrada ${p.zona_nombre}${p.principal ? " (principal)" : ""}` : nombreTipo(p.tipo);
+      const hora = new Date(p.ts).toLocaleTimeString("es-CO", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      li.innerHTML = `<b></b><span class="small"></span>`;
+      li.querySelector("b").textContent = `${p.n}. ${titulo}`;
+      li.querySelector(".small").textContent =
+        `${p.lat.toFixed(6)}, ${p.lng.toFixed(6)} · ±${p.precision_m} m · ${hora}${p.nota ? " · " + p.nota : ""}`;
+      const del = document.createElement("button");
+      del.className = "link"; del.textContent = "Quitar"; del.setAttribute("aria-label", `Quitar punto ${p.n}`);
+      del.addEventListener("click", () => quitar(p.n, del));
+      li.appendChild(del);
+      $("lista").appendChild(li);
+    });
+  }
+  function quitar(n, boton) {
+    // Confirmación en dos toques, sin diálogos del navegador.
+    if (boton.dataset.confirmar !== "1") {
+      boton.dataset.confirmar = "1"; boton.textContent = "¿Seguro?";
+      setTimeout(() => { boton.dataset.confirmar = ""; boton.textContent = "Quitar"; }, 3000);
+      return;
+    }
+    puntos = puntos.filter((p) => p.n !== n); guardar(); pintarLista();
+  }
+
+  // ---------- GPS ----------
+  function claseAcc(m) { return m <= 8 ? "ok" : m <= 20 ? "meh" : "bad"; }
+  function pintarGps(pos) {
+    const { latitude, longitude, accuracy } = pos.coords;
+    $("coords").textContent = `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
+    const a = Math.round(accuracy);
+    $("acc").textContent = `±${a} m`;
+    $("acc").className = "acc " + claseAcc(a);
+    $("gpsInfo").textContent = a > 20
+      ? "Precisión baja: sal a un espacio abierto o espera unos segundos."
+      : "Señal lista. Párate justo sobre el punto antes de registrar.";
+    $("registrar").disabled = false;
+  }
+  function iniciarGps() {
+    if (!("geolocation" in navigator)) {
+      $("coords").textContent = "Este navegador no da ubicación.";
+      $("gpsInfo").textContent = "Abre la página en Chrome o Safari del celular.";
+      return;
+    }
+    navigator.geolocation.watchPosition(
+      (pos) => {
+        ultima = pos;
+        if (lecturas) lecturas.push(pos);
+        pintarGps(pos);
+      },
+      (err) => {
+        $("acc").textContent = "sin señal"; $("acc").className = "acc none";
+        $("coords").textContent = err.code === 1 ? "Permiso de ubicación denegado." : "No se pudo leer el GPS.";
+        $("gpsInfo").textContent = err.code === 1
+          ? "Actívalo en los ajustes del navegador para este sitio y recarga la página."
+          : "Revisa que la ubicación del celular esté encendida.";
+      },
+      { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 },
+    );
+  }
+
+  // Promedio ponderado por precisión (las lecturas más precisas pesan más).
+  function promediar(lista) {
+    let sw = 0, sLat = 0, sLng = 0, mejor = Infinity;
+    for (const p of lista) {
+      const w = 1 / Math.max(p.coords.accuracy, 1) ** 2;
+      sw += w; sLat += p.coords.latitude * w; sLng += p.coords.longitude * w;
+      mejor = Math.min(mejor, p.coords.accuracy);
+    }
+    return { lat: sLat / sw, lng: sLng / sw, precision: Math.round(Math.max(mejor / Math.sqrt(lista.length), 1) * 10) / 10 };
+  }
+
+  async function registrar() {
+    if (!ultima) return;
+    const segundos = Number($("promedio").value);
+    const boton = $("registrar");
+    let r;
+    if (segundos > 0) {
+      lecturas = [ultima];
+      boton.disabled = true;
+      for (let s = segundos; s > 0; s--) {
+        boton.textContent = `Promediando… ${s} s (quieto)`;
+        await new Promise((ok) => setTimeout(ok, 1000));
+      }
+      r = { ...promediar(lecturas), muestras: lecturas.length };
+      lecturas = null;
+      boton.textContent = "Registrar punto";
+      boton.disabled = false;
+    } else {
+      r = { lat: ultima.coords.latitude, lng: ultima.coords.longitude, precision: Math.round(ultima.coords.accuracy), muestras: 1 };
+    }
+    const zona = $("zona").value;
+    const p = {
+      n: (puntos.reduce((m, x) => Math.max(m, x.n), 0)) + 1,
+      tipo,
+      zona: tipo === "entrada" ? zona : null,
+      zona_nombre: tipo === "entrada" ? nombreZona(zona) : null,
+      principal: tipo === "entrada" ? $("principal").checked : null,
+      nota: $("nota").value.trim(),
+      lat: Number(r.lat.toFixed(7)),
+      lng: Number(r.lng.toFixed(7)),
+      precision_m: r.precision,
+      muestras: r.muestras,
+      ts: new Date().toISOString(),   // UTC: sirve para cruzar con la hora de los videos y del GPX
+    };
+    puntos.push(p);
+    if (guardar()) {
+      const aviso = p.precision_m > 20 ? "warn" : "ok";
+      mensaje(`Punto ${p.n} guardado (±${p.precision_m} m${p.muestras > 1 ? `, ${p.muestras} lecturas` : ""}).`, aviso);
+    }
+    $("nota").value = "";
+    if ("vibrate" in navigator) navigator.vibrate(60);
+    pintarLista();
+  }
+
+  // ---------- exportar ----------
+  function nombreArchivo(ext) {
+    const d = new Date(), z = (x) => String(x).padStart(2, "0");
+    return `mapsutb-puntos-${d.getFullYear()}${z(d.getMonth() + 1)}${z(d.getDate())}-${z(d.getHours())}${z(d.getMinutes())}.${ext}`;
+  }
+  async function entregar(texto, ext, tipoMime) {
+    if (puntos.length === 0) { mensaje("Todavía no hay puntos para exportar.", "warn"); return; }
+    const archivo = new File([texto], nombreArchivo(ext), { type: tipoMime });
+    // En el celular, compartir permite mandarlo directo a Drive, WhatsApp o correo.
+    if (navigator.canShare && navigator.canShare({ files: [archivo] })) {
+      try { await navigator.share({ files: [archivo], title: archivo.name }); return; }
+      catch (e) { if (e.name === "AbortError") return; }
+    }
+    const url = URL.createObjectURL(archivo);
+    const a = Object.assign(document.createElement("a"), { href: url, download: archivo.name });
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    mensaje(`Exportado ${archivo.name}.`, "ok");
+  }
+  function geojson() {
+    return JSON.stringify({
+      type: "FeatureCollection",
+      properties: { fuente: "MAPSUTB · registro de coordenadas en campo", exportado: new Date().toISOString() },
+      features: puntos.map(({ lat, lng, ...props }) => ({
+        type: "Feature", geometry: { type: "Point", coordinates: [lng, lat] }, properties: props,
+      })),
+    }, null, 2);
+  }
+  function csv() {
+    const cols = ["n", "tipo", "zona", "zona_nombre", "principal", "lat", "lng", "precision_m", "muestras", "ts", "nota"];
+    const esc = (v) => {
+      const s = v === null || v === undefined ? "" : String(v);
+      return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+    };
+    return [cols.join(","), ...puntos.map((p) => cols.map((c) => esc(p[c])).join(","))].join("\n");
+  }
+
+  // ---------- arranque ----------
+  pintarTipos();
+  pintarZonas(ZONAS_RESPALDO);
+  fetch("../assets/assets/data/zonas.json")
+    .then((r) => (r.ok ? r.json() : Promise.reject()))
+    .then((zs) => pintarZonas(zs.map((z) => [z.id, z.nombre])))
+    .catch(() => { /* se queda la lista de respaldo */ });
+  pintarLista();
+  iniciarGps();
+
+  $("registrar").addEventListener("click", registrar);
+  $("expGeo").addEventListener("click", () => entregar(geojson(), "geojson", "application/geo+json"));
+  $("expCsv").addEventListener("click", () => entregar(csv(), "csv", "text/csv"));
+  $("borrarTodo").addEventListener("click", (ev) => {
+    const b = ev.currentTarget;
+    if (b.dataset.confirmar !== "1") {
+      b.dataset.confirmar = "1"; b.textContent = "Toca otra vez para borrar todo (exporta antes)";
+      setTimeout(() => { b.dataset.confirmar = ""; b.textContent = "Borrar todo"; }, 4000);
+      return;
+    }
+    puntos = []; guardar(); pintarLista(); b.dataset.confirmar = ""; b.textContent = "Borrar todo";
+    mensaje("Lista vacía.", "ok");
+  });
+
+  // Mantener la pantalla encendida mientras se camina (si el navegador lo permite).
+  let candado = null;
+  async function pedirCandado() {
+    try { if ("wakeLock" in navigator && document.visibilityState === "visible") candado = await navigator.wakeLock.request("screen"); }
+    catch { /* no es indispensable */ }
+  }
+  document.addEventListener("visibilitychange", pedirCandado);
+  pedirCandado();
+})();
+</script>
+</body>
+</html>

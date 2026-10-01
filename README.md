@@ -164,6 +164,16 @@ docker compose -f infra/docker-compose.yml logs web   # logs JSON de nginx
   ([ADR 0008](./docs/adr/0008-metrica-disponibilidad-sonda-actions.md)) y
   ligados al Escenario 6 de [`docs/escenarios_calidad.md`](./docs/escenarios_calidad.md).
 
+## Herramientas de campo
+
+- **Registro de coordenadas:** https://mapsutb.web.app/herramientas/coordenadas.html
+  (`web/herramientas/coordenadas.html`). Página para el celular que guarda
+  puntos GPS del campus (entradas de cada zona, cruces, escaleras, rampas,
+  puertas) con su precisión y hora UTC, promediando varias lecturas, y los
+  exporta a GeoJSON o CSV. Sirve para levantar el grafo peatonal y cruzarlo
+  con los videos del recorrido y el trazado de OpenStreetMap. Los datos
+  quedan solo en el celular hasta que se exportan.
+
 ## Estado actual
 
 - Arranca con un solo comando.

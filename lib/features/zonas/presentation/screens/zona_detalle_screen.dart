@@ -8,11 +8,15 @@ import 'package:mapsutb/models/zona.dart';
 class ZonaDetalleScreen extends StatelessWidget {
   final Zona zona;
   final StaticMapAdapter? staticMap;
-  const ZonaDetalleScreen({super.key, required this.zona, this.staticMap});
+
+  /// Si se da, aparece "Cómo llegar": cierra el detalle y pide la ruta a la zona.
+  final ValueChanged<String>? onComoLlegar;
+  const ZonaDetalleScreen({super.key, required this.zona, this.staticMap, this.onComoLlegar});
 
   @override
   Widget build(BuildContext context) {
     final adapter = staticMap;
+    final comoLlegar = onComoLlegar;
 
     return Scaffold(
       appBar: AppBar(title: Text(zona.nombre)),
@@ -21,6 +25,18 @@ class ZonaDetalleScreen extends StatelessWidget {
         children: [
           if (adapter != null && zona.tieneCoordenadas)
             _MiniaturaMapa(zona: zona, adapter: adapter),
+          if (comoLlegar != null && zona.tieneCoordenadas)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
+              child: FilledButton.icon(
+                icon: const Icon(Icons.directions_walk),
+                label: const Text('Cómo llegar'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  comoLlegar(zona.id);
+                },
+              ),
+            ),
           Expanded(child: _ListaPisos(zona: zona)),
         ],
       ),

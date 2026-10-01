@@ -66,9 +66,9 @@ void main() {
       final ubicacion = await service.ubicacionStream.first
           .timeout(const Duration(seconds: 5));
 
-      expect(ubicacion.lat, closeTo(10.4254, 0.001));
-      expect(ubicacion.lng, closeTo(-75.5077, 0.001));
-      expect(ubicacion.toString(), startsWith('lat: 10.42'));
+      expect(ubicacion.lat, closeTo(10.37005, 0.001));
+      expect(ubicacion.lng, closeTo(-75.46545, 0.001));
+      expect(ubicacion.toString(), startsWith('lat: 10.37'));
     });
   });
 

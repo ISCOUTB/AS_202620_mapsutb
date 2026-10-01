@@ -20,8 +20,9 @@ abstract class UbicacionService {
 /// reemplaza esta clase por una que escuche el sensor real — el resto
 /// de la app (que solo conoce `UbicacionService`) no cambia.
 class UbicacionServiceSimulado implements UbicacionService {
-  static const double _latBase = 10.42540; // UTB, Cartagena (aprox.)
-  static const double _lngBase = -75.50770;
+  // Campus Tecnológico de la UTB (Ternera), entre los edificios A1 y Alcatraz.
+  static const double _latBase = 10.37005;
+  static const double _lngBase = -75.46545;
 
   final _random = Random();
   late final StreamController<Ubicacion> _controller;

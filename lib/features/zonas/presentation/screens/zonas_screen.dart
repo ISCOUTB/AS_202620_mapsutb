@@ -10,12 +10,14 @@ class ZonasScreen extends StatefulWidget {
   final ZonaRepository repository;
   final AnalyticsAdapter analytics;
   final StaticMapAdapter? staticMap;
+  final ValueChanged<String>? onComoLlegar;
 
   const ZonasScreen({
     super.key,
     required this.repository,
     this.analytics = const AnalyticsAdapterNulo(),
     this.staticMap,
+    this.onComoLlegar,
   });
 
   @override
@@ -53,7 +55,7 @@ class _ZonasScreenState extends State<ZonasScreen> {
       context,
       MaterialPageRoute(
         builder: (_) =>
-            ZonaDetalleScreen(zona: zona, staticMap: widget.staticMap),
+            ZonaDetalleScreen(zona: zona, staticMap: widget.staticMap, onComoLlegar: widget.onComoLlegar),
       ),
     );
   }

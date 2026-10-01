@@ -110,8 +110,8 @@ flowchart LR
   `UbicacionService`, `lib/services/ubicacion_service.dart`). Hoy simulado con un timer;
   el ADR 0001/0002 ya dejó el patrón Observer listo para el reemplazo por GPS real. +
   Aspecto relacionado: link:../../aspectos.md[A-01] (localización y guiado en tiempo real).
-* **Ruteo** — cómo llegar de un punto a otro (pendiente: `MapaRepository` + servicio de
-  ruteo con Dijkstra, ya declarado como contenedor pendiente en `docs/c4/C2.md`). +
+* **Ruteo** — cómo llegar de un punto a otro: `MapaRepository` + `ServicioRuteo` (Dijkstra)
+  en `lib/routing/`, sobre `assets/data/grafo.json` (link:../adr/0013-ruteo-dijkstra-grafo-propio.md[ADR 0013]). +
   Aspecto relacionado: link:../../aspectos.md[A-01] (localización y guiado en tiempo real).
 * **Tour 360°** — contenido panorámico de un punto (pendiente: `TourRepository`, también
   declarado como pendiente en `docs/c4/C2.md`). +
@@ -142,7 +142,7 @@ consultarán por id, también solo lectura
 |`UbicacionScreen`; en el corte 2, el servicio de ruteo y `MapaWidget` se suscribirán al
 mismo stream
 
-|`MapaRepository` — pendiente
+|`MapaRepository` (`lib/routing/mapa_repository.dart`)
 |Grafo peatonal (nodos/aristas) y las rutas que calcule Dijkstra sobre él
 |Servicio de ruteo y la UI de `mapas_ruteo`
 

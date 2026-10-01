@@ -31,6 +31,7 @@ class StaticMapAdapterHttp implements StaticMapAdapter {
         _client = client ?? http.Client();
 
   static const _baseUrl = 'https://maps.googleapis.com/maps/api/staticmap';
+  static const _contentType = 'content-type';
 
   final String _apiKey;
   final http.Client _client;
@@ -59,14 +60,14 @@ class StaticMapAdapterHttp implements StaticMapAdapter {
     // Content-Type image/png y el cuerpo crudo de la imagen. Cualquier
     // otro caso (error del proveedor, cuota agotada, key inválida) se
     // reporta como StaticMapException en vez de propagar bytes basura.
-    if (respuesta.statusCode != 200 ||
-        !(respuesta.headers['content-type']?.startsWith('image/') ?? false)) {
+    final tipo = respuesta.headers[_contentType];
+    if (respuesta.statusCode != 200 || !(tipo?.startsWith('image/') ?? false)) {
       Log.error('static_map_error', {
         'status_http': respuesta.statusCode,
-        'content_type': respuesta.headers['content-type'],
+        'content_type': tipo,
         'duracion_ms': duracionMs,
       });
-      throw StaticMapException(respuesta.statusCode, respuesta.headers['content-type']);
+      throw StaticMapException(respuesta.statusCode, tipo);
     }
 
     Log.info('static_map_ok', {

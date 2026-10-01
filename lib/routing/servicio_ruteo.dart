@@ -60,38 +60,54 @@ class ServicioRuteo {
       return null;
     }
     final reloj = Stopwatch()..start();
+    final busqueda = _dijkstra(origen, destino, evitarEscaleras);
+    if (busqueda == null) {
+      Log.warn('ruta_no_encontrada', {'origen': origen, 'destino': destino, 'evitar_escaleras': evitarEscaleras});
+      return null;
+    }
+    final ruta = _reconstruir(origen, destino, busqueda);
+    Log.info('ruta_calculada', {
+      'origen': origen,
+      'destino': destino,
+      'metros': ruta.metros.round(),
+      'tramos': ruta.nodos.length - 1,
+      'duracion_us': reloj.elapsedMicroseconds,
+    });
+    return ruta;
+  }
+
+  /// Dijkstra con montículo binario. Devuelve, para cada nodo alcanzado, su
+  /// distancia y el tramo por el que se llegó; null si el destino no se alcanza.
+  _Busqueda? _dijkstra(String origen, String destino, bool evitarEscaleras) {
     final distancia = <String, double>{origen: 0};
-    final llegada = <String, TramoGrafo>{}; // tramo por el que se llegó a cada nodo
+    final llegada = <String, TramoGrafo>{};
     final cerrados = <String>{};
     final cola = _Monticulo()..agregar(origen, 0);
-
     while (cola.isNotEmpty) {
       final (nodo, d) = cola.sacarMenor();
       if (!cerrados.add(nodo)) continue; // entrada vieja del montículo
-      if (nodo == destino) break;
+      if (nodo == destino) return _Busqueda(distancia, llegada);
       for (final t in _grafo.tramosDe(nodo)) {
-        if (evitarEscaleras && t.escaleras) continue;
         final vecino = t.otroExtremo(nodo);
-        if (cerrados.contains(vecino)) continue;
         final nueva = d + t.metros;
-        if (nueva < (distancia[vecino] ?? double.infinity)) {
+        final util = !(evitarEscaleras && t.escaleras) && !cerrados.contains(vecino);
+        if (util && nueva < (distancia[vecino] ?? double.infinity)) {
           distancia[vecino] = nueva;
           llegada[vecino] = t;
           cola.agregar(vecino, nueva);
         }
       }
     }
-    if (!cerrados.contains(destino)) {
-      Log.warn('ruta_no_encontrada', {'origen': origen, 'destino': destino, 'evitar_escaleras': evitarEscaleras});
-      return null;
-    }
+    return null;
+  }
 
-    // Reconstrucción: del destino hacia atrás por los tramos de llegada.
+  /// Arma la ruta del destino hacia atrás por los tramos de llegada.
+  Ruta _reconstruir(String origen, String destino, _Busqueda b) {
     final nodos = <String>[destino];
     final tramos = <TramoGrafo>[];
     var actual = destino;
     while (actual != origen) {
-      final t = llegada[actual]!;
+      final t = b.llegada[actual]!;
       tramos.add(t);
       actual = t.otroExtremo(actual);
       nodos.add(actual);
@@ -107,21 +123,19 @@ class ServicioRuteo {
       final n = _grafo.nodos[origen]!;
       geometria.add([n.lat, n.lng]);
     }
-    final ruta = Ruta(
+    return Ruta(
       nodos: enOrden,
       geometria: geometria,
-      metros: distancia[destino]!,
+      metros: b.distancia[destino]!,
       tramosConEscaleras: tramos.where((t) => t.escaleras).length,
     );
-    Log.info('ruta_calculada', {
-      'origen': origen,
-      'destino': destino,
-      'metros': ruta.metros.round(),
-      'tramos': tramos.length,
-      'duracion_us': reloj.elapsedMicroseconds,
-    });
-    return ruta;
   }
+}
+
+class _Busqueda {
+  _Busqueda(this.distancia, this.llegada);
+  final Map<String, double> distancia;
+  final Map<String, TramoGrafo> llegada; // tramo por el que se llegó a cada nodo
 }
 
 /// Montículo binario mínimo de (nodo, distancia). Se escribió aquí en lugar

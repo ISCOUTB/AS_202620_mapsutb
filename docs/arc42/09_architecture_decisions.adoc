@@ -94,6 +94,21 @@ Las decisiones de diseño del proyecto se documentan como Registros de Decisione
 | link:../adr/0011-fuente-datos-geograficos-osm.md[Datos geográficos del campus: OpenStreetMap más levantamiento propio]
 | Aceptado (2026-10-01)
 | Grafo peatonal y coordenadas de zonas desde OSM (ODbL) más levantamiento en campo; se descarta trazar sobre Google por sus términos.
+
+| ADR-0012
+| link:../adr/0012-mapa-base-flutter-map-osm.md[Mapa base con flutter_map y teselas de OpenStreetMap]
+| Aceptado (2026-10-01)
+| Reemplaza Google Maps SDK como mapa base (exige tarjeta y expone la key en web).
+
+| ADR-0013
+| link:../adr/0013-ruteo-dijkstra-grafo-propio.md[Ruteo a pie con Dijkstra sobre el grafo propio]
+| Aceptado (2026-10-01)
+| Dijkstra con montículo propio, sin dependencias nuevas; p95 de 0,92 ms por ruta (Escenario 2).
+
+| ADR-0014
+| link:../adr/0014-sin-componente-generativo.md[No incorporar un componente generativo en la app]
+| Propuesto (2026-10-01)
+| Pendiente de confirmación del equipo: costo y tarjeta, funcionamiento sin conexión y resultados verificables.
 |===
 
 Nuevas decisiones de diseño relevantes que surjan durante el desarrollo deben agregarse como un nuevo ADR

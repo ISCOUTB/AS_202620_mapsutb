@@ -107,9 +107,12 @@ class _MapaScreenState extends State<MapaScreen> {
     final destino = zonas.any((z) => z.id == _destino) ? _destino : null;
     final estado = _calcularRuta(grafo, destino);
     final pos = _posicion;
-    final centro = destino != null
-        ? zonas.firstWhere((z) => z.id == destino)
-        : (zonas.isNotEmpty ? zonas.first : null);
+    Zona? centro;
+    if (destino != null) {
+      centro = zonas.firstWhere((z) => z.id == destino);
+    } else if (zonas.isNotEmpty) {
+      centro = zonas.first;
+    }
 
     return Stack(children: [
       Positioned.fill(
@@ -180,9 +183,9 @@ class _MapaScreenState extends State<MapaScreen> {
           : 'No hay ruta hasta ese destino.');
     }
     final minutos = (ruta.tiempoCaminando.inSeconds / 60).ceil();
-    final escaleras = ruta.tramosConEscaleras == 0
-        ? 'sin escaleras'
-        : '${ruta.tramosConEscaleras} tramo${ruta.tramosConEscaleras == 1 ? '' : 's'} con escaleras';
+    final n = ruta.tramosConEscaleras;
+    final plural = n == 1 ? '' : 's';
+    final escaleras = n == 0 ? 'sin escaleras' : '$n tramo$plural con escaleras';
     return _EstadoRuta(ruta, '$minutos min · ${ruta.metros.round()} m · $escaleras');
   }
 }

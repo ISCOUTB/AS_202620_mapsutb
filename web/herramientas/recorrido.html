@@ -1,0 +1,597 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#093AD8">
+<title>Grabar recorrido · MAPSUTB</title>
+<style>
+  /* Herramienta de levantamiento en campo del equipo MAPSUTB.
+     Graba el recorrido continuo (con altitud y piso declarado), registra
+     puntos y marca instantes de sincronización con el video de las gafas.
+     Los datos solo viven en este celular (localStorage) hasta exportarlos. */
+  :root {
+    --azul: #093AD8; --navy: #032742; --esmeralda: #028C5C; --lima: #71EC37;
+    --bg: #F3F5FB; --surface: #FFFFFF; --ink: #032742; --muted: #5B6B82; --line: #DCE2F0;
+    --ok: #028C5C; --ok-bg: #DDF3EA; --warn: #9A5B00; --warn-bg: #FFF1DC; --bad: #B3261E; --bad-bg: #FDE7E4;
+    --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #07121F; --surface: #0E1D30; --ink: #EAF0FA; --muted: #9AA9C0; --line: #1F3350;
+      --ok: #3FCB93; --ok-bg: #0E2E24; --warn: #F2B35B; --warn-bg: #33250F; --bad: #FF8A80; --bad-bg: #3A1512;
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--ink); font-family: var(--font); font-size: 16px; }
+  header {
+    background: var(--azul); color: #fff; padding: calc(12px + env(safe-area-inset-top, 0px)) 16px 14px;
+    border-radius: 0 0 20px 20px; position: sticky; top: 0; z-index: 2;
+    display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 8px;
+  }
+  header h1 { margin: 0; font-size: 18px; }
+  header .crono { font-variant-numeric: tabular-nums; font-size: 22px; font-weight: 800; }
+  header .rec { font-size: 12px; font-weight: 700; opacity: .9; }
+  header .rec.on::before { content: ""; display: inline-block; width: 9px; height: 9px; border-radius: 50%; background: #FF5A4E; margin-right: 6px; animation: parpadeo 1s infinite; }
+  @keyframes parpadeo { 50% { opacity: .25; } }
+  @media (prefers-reduced-motion: reduce) { header .rec.on::before { animation: none; } }
+  main { padding: 14px 16px calc(24px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 14px; max-width: 560px; margin: 0 auto; }
+
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 16px; padding: 14px; display: grid; gap: 10px; }
+  .card h2 { margin: 0; font-size: 15px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .dato { background: var(--bg); border-radius: 12px; padding: 8px 10px; }
+  .dato span { display: block; font-size: 12px; color: var(--muted); }
+  .dato b { font-size: 16px; font-variant-numeric: tabular-nums; word-break: break-all; }
+  .pill { display: inline-block; font-size: 13px; font-weight: 700; padding: 3px 9px; border-radius: 999px; }
+  .ok { background: var(--ok-bg); color: var(--ok); }
+  .meh { background: var(--warn-bg); color: var(--warn); }
+  .bad { background: var(--bad-bg); color: var(--bad); }
+  .small { font-size: 13px; color: var(--muted); }
+
+  label.lbl { font-size: 13px; font-weight: 700; color: var(--muted); }
+  select, input[type="text"] {
+    width: 100%; font: inherit; font-size: 16px; padding: 10px 12px; border-radius: 12px;
+    border: 1.5px solid var(--line); background: var(--surface); color: var(--ink);
+  }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; }
+  .chip { border: 1.5px solid var(--line); background: var(--surface); color: var(--ink); border-radius: 999px; padding: 8px 13px; font: inherit; font-size: 15px; font-weight: 600; cursor: pointer; }
+  .chip[aria-pressed="true"] { background: var(--azul); border-color: var(--azul); color: #fff; }
+  .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+  button { font: inherit; cursor: pointer; }
+  .btn { width: 100%; font-size: 18px; font-weight: 800; padding: 16px; border: 0; border-radius: 16px; color: #fff; }
+  .btn.start { background: var(--esmeralda); }
+  .btn.stop { background: var(--bad); }
+  .btn.sync { background: var(--navy); }
+  .btn.punto { background: var(--azul); }
+  .btn:disabled { background: #8FA3BF; }
+  .sec { flex: 1; font-size: 15px; font-weight: 700; padding: 11px 12px; border-radius: 12px; border: 1.5px solid var(--azul); background: transparent; color: var(--azul); }
+  @media (prefers-color-scheme: dark) { .sec { color: #9DB5FF; border-color: #6F8EF0; } }
+  .link { border: 0; background: none; color: var(--bad); padding: 6px; font-size: 14px; }
+  button:focus-visible, .chip:focus-visible, select:focus-visible, input:focus-visible { outline: 3px solid var(--lima); outline-offset: 2px; }
+  .msg { font-size: 14px; padding: 10px 12px; border-radius: 12px; }
+
+  canvas { width: 100%; height: 260px; background: var(--bg); border-radius: 12px; display: block; }
+  ol.list { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; max-height: 260px; overflow: auto; }
+  ol.list li { border: 1px solid var(--line); border-radius: 10px; padding: 8px 10px; font-size: 14px; }
+  ol.list li .small { display: block; font-variant-numeric: tabular-nums; }
+  footer { text-align: center; font-size: 12px; color: var(--muted); padding-bottom: 12px; }
+  footer a { color: inherit; }
+
+  /* Pantalla de sincronización: lo que graban las gafas. */
+  #sync {
+    position: fixed; inset: 0; z-index: 10; background: #000; color: #fff;
+    display: grid; place-items: center; text-align: center; padding: 24px;
+  }
+  #sync[hidden] { display: none; }
+  #sync.flash { background: var(--lima); color: #000; }
+  #sync .grande { font-size: clamp(56px, 19vw, 140px); font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1; }
+  #sync .utc { font-size: clamp(22px, 7vw, 44px); font-weight: 700; font-variant-numeric: tabular-nums; margin-top: 12px; }
+  #sync .marca { font-size: clamp(30px, 10vw, 64px); font-weight: 900; margin-top: 18px; min-height: 1.2em; }
+  #sync .acciones { display: grid; gap: 12px; margin-top: 28px; width: min(420px, 100%); }
+  #sync .btn.sync { background: var(--lima); color: #000; font-size: 22px; }
+  #sync .cerrar { background: transparent; border: 2px solid #fff; color: #fff; border-radius: 14px; padding: 12px; font-size: 17px; font-weight: 700; }
+  #sync.flash .cerrar { border-color: #000; color: #000; }
+  #sync.flash .btn.sync { background: #000; color: var(--lima); }
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Grabar recorrido</h1>
+    <div class="rec" id="recEstado">Sin grabar</div>
+  </div>
+  <div class="crono" id="cronoTop" aria-live="off">00:00:00</div>
+</header>
+
+<main>
+  <!-- 1. GPS -->
+  <section class="card" aria-live="polite">
+    <h2>GPS</h2>
+    <div class="grid2">
+      <div class="dato"><span>Posición</span><b id="gPos">esperando…</b></div>
+      <div class="dato"><span>Precisión horizontal</span><b id="gAcc">—</b></div>
+      <div class="dato"><span>Altitud</span><b id="gAlt">—</b></div>
+      <div class="dato"><span>Velocidad</span><b id="gVel">—</b></div>
+    </div>
+    <div class="small" id="gInfo">Permite el acceso a la ubicación cuando el navegador lo pida.</div>
+  </section>
+
+  <!-- 2. Recorrido -->
+  <section class="card">
+    <h2>Recorrido</h2>
+    <div class="grid2">
+      <div class="dato"><span>Muestras del recorrido</span><b id="rFix">0</b></div>
+      <div class="dato"><span>Distancia</span><b id="rDist">0 m</b></div>
+      <div class="dato"><span>Marcas SYNC</span><b id="rSync">0</b></div>
+      <div class="dato"><span>Puntos</span><b id="rPts">0</b></div>
+    </div>
+    <button class="btn start" id="btnIniciar" disabled>Iniciar recorrido</button>
+    <button class="btn sync" id="btnSync">Pantalla de sincronización</button>
+    <div class="small">Al empezar y al terminar cada video, abre la pantalla de sincronización, mírala con las gafas y toca “Marcar SYNC”. El destello y la hora quedan en el video y en el registro.</div>
+  </section>
+
+  <!-- 3. Dónde estoy -->
+  <section class="card">
+    <h2>Dónde estoy</h2>
+    <div>
+      <label class="lbl" for="ctxZona">Zona</label>
+      <select id="ctxZona"></select>
+    </div>
+    <div id="ctxPisoBox" hidden>
+      <label class="lbl" for="ctxPiso">Piso</label>
+      <select id="ctxPiso"></select>
+    </div>
+    <div class="small">Todo lo que se grabe desde ahora queda con esta zona y este piso. Cámbialo al entrar a un edificio o al subir o bajar escaleras.</div>
+  </section>
+
+  <!-- 4. Punto -->
+  <section class="card">
+    <h2>Registrar punto</h2>
+    <div class="chips" role="group" aria-label="Tipo de punto" id="tipos"></div>
+    <div id="espBox" hidden>
+      <label class="lbl" for="espacio">Espacio (del piso actual)</label>
+      <select id="espacio"></select>
+    </div>
+    <div class="row" id="principalBox" hidden>
+      <label><input type="checkbox" id="principal" checked> Entrada principal</label>
+    </div>
+    <div>
+      <label class="lbl" for="nota">Nota (opcional)</label>
+      <input type="text" id="nota" placeholder="Ej.: puerta norte, escalera hacia el piso 2">
+    </div>
+    <div class="row">
+      <label class="lbl" for="promedio">Promediar</label>
+      <select id="promedio" style="width:auto">
+        <option value="0">No</option><option value="5">5 s</option><option value="10" selected>10 s</option>
+      </select>
+    </div>
+    <button class="btn punto" id="btnPunto" disabled>Registrar punto</button>
+    <div id="estado" class="msg" hidden></div>
+  </section>
+
+  <!-- 5. Vista -->
+  <section class="card">
+    <h2>Vista del recorrido</h2>
+    <canvas id="lienzo" width="1000" height="520" role="img" aria-label="Dibujo del recorrido grabado y de los puntos"></canvas>
+    <div class="small">Línea azul: recorrido. Puntos verdes: puntos registrados. Escala aproximada abajo a la izquierda.</div>
+    <ol class="list" id="lista"></ol>
+  </section>
+
+  <!-- 6. Exportar -->
+  <section class="card">
+    <h2>Exportar</h2>
+    <div class="row">
+      <button class="sec" id="expGpx">GPX</button>
+      <button class="sec" id="expGeo">GeoJSON</button>
+      <button class="sec" id="expJson">JSON completo</button>
+    </div>
+    <div class="small">GPX abre en OpenStreetMap, JOSM y Google Earth. El JSON completo incluye las marcas SYNC; mándalo junto con los videos.</div>
+    <button class="link" id="btnBorrar">Borrar esta sesión</button>
+  </section>
+
+  <footer>Mantén esta página abierta y la pantalla encendida mientras grabas: con la pantalla apagada el navegador deja de leer el GPS.<br>
+    Para puntos sueltos sin grabar recorrido: <a href="coordenadas.html">registro de coordenadas</a>.</footer>
+</main>
+
+<!-- Pantalla de sincronización -->
+<div id="sync" hidden role="dialog" aria-modal="true" aria-label="Pantalla de sincronización">
+  <div>
+    <div style="font-size:18px;font-weight:700;letter-spacing:.1em;opacity:.8">MAPSUTB · CRONÓMETRO</div>
+    <div class="grande" id="syncCrono">00:00:00.0</div>
+    <div class="utc" id="syncUtc">--:--:--.- UTC</div>
+    <div class="marca" id="syncMarca"></div>
+    <div class="acciones">
+      <button class="btn sync" id="btnMarcar">Marcar SYNC</button>
+      <button class="cerrar" id="btnCerrarSync">Volver</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const CLAVE = "mapsutb-recorrido-v1";
+  const TIPOS = [
+    ["entrada", "Entrada"], ["cruce", "Cruce"], ["escalera", "Escalera"], ["ascensor", "Ascensor"],
+    ["rampa", "Rampa"], ["puerta", "Puerta o reja"], ["espacio", "Salón o espacio"], ["acceso", "Acceso al campus"], ["otro", "Otro"],
+  ];
+  let ZONAS = [];           // [{id, nombre, pisos:[{id,nombre}], espacios:[{id,nombre,pisos,salones}]}]
+  let tipo = "entrada";
+  let ultima = null, lecturas = null;
+  let sesion = cargar() || nueva();
+  let tick = null;
+
+  // ---------- sesión ----------
+  function nueva() {
+    return { version: 1, creada: new Date().toISOString(), inicio: null, fin: null, grabando: false,
+             ctx: { zona: "exterior", piso: null }, track: [], puntos: [], sync: [] };
+  }
+  function cargar() { try { return JSON.parse(localStorage.getItem(CLAVE)); } catch { return null; } }
+  let avisoGuardado = false;
+  function guardar() {
+    try { localStorage.setItem(CLAVE, JSON.stringify(sesion)); avisoGuardado = false; }
+    catch {
+      if (!avisoGuardado) mensaje("El celular no deja guardar más. Exporta el JSON completo ahora.", "bad");
+      avisoGuardado = true;
+    }
+  }
+
+  // ---------- utilidades ----------
+  const z2 = (x) => String(x).padStart(2, "0");
+  function fmtCrono(ms, decimas) {
+    if (ms < 0) ms = 0;
+    const s = Math.floor(ms / 1000), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60);
+    const base = `${z2(h)}:${z2(m)}:${z2(s % 60)}`;
+    return decimas ? `${base}.${Math.floor((ms % 1000) / 100)}` : base;
+  }
+  function fmtUtc(d) { return `${z2(d.getUTCHours())}:${z2(d.getUTCMinutes())}:${z2(d.getUTCSeconds())}.${Math.floor(d.getUTCMilliseconds() / 100)} UTC`; }
+  function metros(a, b) {
+    const R = 6371000, toR = Math.PI / 180;
+    const x = (b.lng - a.lng) * toR * Math.cos(((a.lat + b.lat) / 2) * toR), y = (b.lat - a.lat) * toR;
+    return R * Math.hypot(x, y);
+  }
+  function mensaje(t, clase) { const e = $("estado"); e.textContent = t; e.className = "msg " + clase; e.hidden = false; }
+  const transcurrido = () => (sesion.inicio ? (sesion.fin ? Date.parse(sesion.fin) : Date.now()) - Date.parse(sesion.inicio) : 0);
+  const zonaActual = () => ZONAS.find((z) => z.id === sesion.ctx.zona);
+  const nombrePiso = (zona, piso) => (zona && zona.pisos.find((p) => p.id === piso) || {}).nombre || null;
+
+  // ---------- zonas ----------
+  function pintarZonas() {
+    $("ctxZona").innerHTML = `<option value="exterior">Exterior (andenes del campus)</option>` +
+      ZONAS.map((z) => `<option value="${z.id}">${z.nombre}</option>`).join("");
+    $("ctxZona").value = sesion.ctx.zona;
+    pintarPisos();
+  }
+  function pintarPisos() {
+    const z = zonaActual();
+    const pisos = z ? z.pisos : [];
+    $("ctxPisoBox").hidden = pisos.length === 0;
+    $("ctxPiso").innerHTML = pisos.map((p) => `<option value="${p.id}">${p.nombre}</option>`).join("");
+    if (pisos.length && !pisos.some((p) => p.id === sesion.ctx.piso)) sesion.ctx.piso = pisos[0].id;
+    if (!pisos.length) sesion.ctx.piso = null;
+    if (sesion.ctx.piso) $("ctxPiso").value = sesion.ctx.piso;
+    pintarEspacios();
+  }
+  function pintarEspacios() {
+    const z = zonaActual();
+    const lista = z ? z.espacios.filter((e) => !e.pisos.length || !sesion.ctx.piso || e.pisos.includes(sesion.ctx.piso)) : [];
+    $("espacio").innerHTML = lista.length
+      ? lista.map((e) => `<option value="${e.id}">${e.nombre}</option>`).join("")
+      : `<option value="">(sin espacios registrados en este piso)</option>`;
+    $("espBox").hidden = tipo !== "espacio";
+    $("principalBox").hidden = tipo !== "entrada";
+  }
+  function pintarTipos() {
+    $("tipos").innerHTML = "";
+    for (const [id, nombre] of TIPOS) {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "chip"; b.textContent = nombre; b.setAttribute("aria-pressed", String(id === tipo));
+      b.addEventListener("click", () => { tipo = id; pintarTipos(); pintarEspacios(); });
+      $("tipos").appendChild(b);
+    }
+  }
+
+  // ---------- GPS ----------
+  const nivel = (m) => (m <= 8 ? "ok" : m <= 20 ? "meh" : "bad");
+  function alRecibir(pos) {
+    ultima = pos;
+    if (lecturas) lecturas.push(pos);
+    const c = pos.coords;
+    $("gPos").textContent = `${c.latitude.toFixed(6)}, ${c.longitude.toFixed(6)}`;
+    const a = Math.round(c.accuracy);
+    $("gAcc").innerHTML = `<span class="pill ${nivel(a)}">±${a} m</span>`;
+    $("gAlt").textContent = c.altitude == null ? "no disponible"
+      : `${c.altitude.toFixed(1)} m${c.altitudeAccuracy != null ? ` ±${Math.round(c.altitudeAccuracy)} m` : ""}`;
+    $("gVel").textContent = c.speed == null ? "—" : `${(c.speed * 3.6).toFixed(1)} km/h`;
+    $("gInfo").textContent = c.altitude == null
+      ? "Este celular no entrega altitud por GPS; el piso queda con “Dónde estoy”."
+      : a > 20 ? "Precisión baja: dentro de edificios es normal. Usa “Dónde estoy” para el piso." : "Señal lista.";
+    $("btnIniciar").disabled = false;
+    $("btnPunto").disabled = !!lecturas;
+    if (sesion.grabando) agregarMuestra(pos);
+  }
+  function agregarMuestra(pos) {
+    const c = pos.coords;
+    const m = {
+      t: new Date(pos.timestamp || Date.now()).toISOString(),
+      lat: Number(c.latitude.toFixed(7)), lng: Number(c.longitude.toFixed(7)),
+      acc: Math.round(c.accuracy * 10) / 10,
+      alt: c.altitude == null ? null : Math.round(c.altitude * 10) / 10,
+      alt_acc: c.altitudeAccuracy == null ? null : Math.round(c.altitudeAccuracy * 10) / 10,
+      vel: c.speed == null ? null : Math.round(c.speed * 100) / 100,
+      rumbo: c.heading == null || Number.isNaN(c.heading) ? null : Math.round(c.heading),
+      zona: sesion.ctx.zona, piso: sesion.ctx.piso,
+    };
+    const prev = sesion.track[sesion.track.length - 1];
+    // Sin moverse, una muestra cada 5 s basta; al caminar, todas.
+    if (prev && metros(prev, m) < 1 && Date.parse(m.t) - Date.parse(prev.t) < 5000 && prev.piso === m.piso) return;
+    sesion.track.push(m);
+    if (sesion.track.length % 5 === 0) guardar();
+    pintarResumen(); dibujar();
+  }
+  function iniciarGps() {
+    if (!("geolocation" in navigator)) { $("gPos").textContent = "este navegador no da ubicación"; return; }
+    navigator.geolocation.watchPosition(alRecibir, (err) => {
+      $("gAcc").innerHTML = `<span class="pill bad">sin señal</span>`;
+      $("gInfo").textContent = err.code === 1
+        ? "Permiso de ubicación denegado: actívalo para este sitio y recarga."
+        : "No se pudo leer el GPS. Revisa que la ubicación del celular esté encendida.";
+    }, { enableHighAccuracy: true, maximumAge: 0, timeout: 30000 });
+  }
+
+  // ---------- grabación y cronómetro ----------
+  function pintarResumen() {
+    const buenos = sesion.track.filter((m) => m.acc <= 25);
+    let d = 0;
+    for (let i = 1; i < buenos.length; i++) d += metros(buenos[i - 1], buenos[i]);
+    $("rFix").textContent = sesion.track.length;
+    $("rDist").textContent = d < 1000 ? `${Math.round(d)} m` : `${(d / 1000).toFixed(2)} km`;
+    $("rSync").textContent = sesion.sync.length;
+    $("rPts").textContent = sesion.puntos.length;
+    const b = $("btnIniciar");
+    b.textContent = sesion.grabando ? "Terminar recorrido" : sesion.inicio ? "Continuar recorrido" : "Iniciar recorrido";
+    b.className = "btn " + (sesion.grabando ? "stop" : "start");
+    $("recEstado").textContent = sesion.grabando ? "Grabando" : sesion.inicio ? "En pausa" : "Sin grabar";
+    $("recEstado").className = "rec" + (sesion.grabando ? " on" : "");
+  }
+  function refrescarCrono() {
+    const ms = transcurrido();
+    $("cronoTop").textContent = fmtCrono(ms, false);
+    if (!$("sync").hidden) {
+      $("syncCrono").textContent = fmtCrono(ms, true);
+      $("syncUtc").textContent = fmtUtc(new Date());
+    }
+  }
+  function alternarGrabacion() {
+    if (sesion.grabando) {
+      sesion.grabando = false; sesion.fin = new Date().toISOString();
+    } else {
+      if (!sesion.inicio) sesion.inicio = new Date().toISOString();
+      else if (sesion.fin) {  // continuar: el cronómetro sigue desde donde iba
+        sesion.inicio = new Date(Date.now() - (Date.parse(sesion.fin) - Date.parse(sesion.inicio))).toISOString();
+      }
+      sesion.fin = null; sesion.grabando = true;
+      if (ultima) agregarMuestra(ultima);
+    }
+    guardar(); pintarResumen(); pedirCandado();
+  }
+
+  // ---------- sincronización ----------
+  function abrirSync() { $("sync").hidden = false; $("syncMarca").textContent = ""; refrescarCrono(); $("btnMarcar").focus(); pedirCandado(); }
+  function marcar() {
+    const ahora = new Date();
+    const n = sesion.sync.length + 1;
+    sesion.sync.push({ n, t: ahora.toISOString(), crono_ms: transcurrido(),
+      lat: ultima ? Number(ultima.coords.latitude.toFixed(7)) : null, lng: ultima ? Number(ultima.coords.longitude.toFixed(7)) : null });
+    guardar(); pintarResumen();
+    const s = $("sync");
+    s.classList.add("flash");
+    $("syncMarca").textContent = `SYNC ${n}`;
+    if ("vibrate" in navigator) navigator.vibrate(200);
+    setTimeout(() => s.classList.remove("flash"), 1000);
+  }
+
+  // ---------- puntos ----------
+  function promediar(lista) {
+    let sw = 0, la = 0, lo = 0, sa = 0, swa = 0, mejor = Infinity;
+    for (const p of lista) {
+      const c = p.coords, w = 1 / Math.max(c.accuracy, 1) ** 2;
+      sw += w; la += c.latitude * w; lo += c.longitude * w; mejor = Math.min(mejor, c.accuracy);
+      if (c.altitude != null) { const wa = 1 / Math.max(c.altitudeAccuracy || 10, 1) ** 2; sa += c.altitude * wa; swa += wa; }
+    }
+    return { lat: la / sw, lng: lo / sw, acc: Math.max(mejor / Math.sqrt(lista.length), 1), alt: swa ? sa / swa : null };
+  }
+  async function registrarPunto() {
+    if (!ultima) return;
+    const seg = Number($("promedio").value);
+    let r;
+    if (seg > 0) {
+      lecturas = [ultima]; const b = $("btnPunto"); b.disabled = true;
+      for (let s = seg; s > 0; s--) { b.textContent = `Promediando… ${s} s (quieto)`; await new Promise((ok) => setTimeout(ok, 1000)); }
+      r = { ...promediar(lecturas), muestras: lecturas.length };
+      lecturas = null; b.textContent = "Registrar punto"; b.disabled = false;
+    } else {
+      const c = ultima.coords; r = { lat: c.latitude, lng: c.longitude, acc: c.accuracy, alt: c.altitude, muestras: 1 };
+    }
+    const z = zonaActual();
+    const espSel = tipo === "espacio" && z ? z.espacios.find((e) => e.id === $("espacio").value) : null;
+    const p = {
+      n: sesion.puntos.reduce((m, x) => Math.max(m, x.n), 0) + 1,
+      tipo, t: new Date().toISOString(), crono_ms: transcurrido(),
+      lat: Number(r.lat.toFixed(7)), lng: Number(r.lng.toFixed(7)),
+      precision_m: Math.round(r.acc * 10) / 10, alt: r.alt == null ? null : Math.round(r.alt * 10) / 10, muestras: r.muestras,
+      zona: sesion.ctx.zona === "exterior" ? null : sesion.ctx.zona,
+      zona_nombre: z ? z.nombre : null,
+      piso: sesion.ctx.piso, piso_nombre: nombrePiso(z, sesion.ctx.piso),
+      espacio: espSel ? espSel.id : null, espacio_nombre: espSel ? espSel.nombre : null,
+      principal: tipo === "entrada" ? $("principal").checked : null,
+      nota: $("nota").value.trim(),
+    };
+    sesion.puntos.push(p); guardar();
+    $("nota").value = "";
+    if ("vibrate" in navigator) navigator.vibrate(60);
+    mensaje(`Punto ${p.n} guardado (±${p.precision_m} m${p.alt != null ? `, altitud ${p.alt} m` : ""}${p.piso_nombre ? `, ${p.piso_nombre}` : ""}).`, p.precision_m > 20 ? "meh" : "ok");
+    pintarResumen(); pintarLista(); dibujar();
+  }
+  function describir(p) {
+    const nombre = (TIPOS.find((t) => t[0] === p.tipo) || [0, p.tipo])[1];
+    const lugar = [p.zona_nombre, p.piso_nombre, p.espacio_nombre].filter(Boolean).join(" · ");
+    return `${p.n}. ${nombre}${p.tipo === "entrada" && p.principal ? " principal" : ""}${lugar ? " — " + lugar : ""}`;
+  }
+  function pintarLista() {
+    const ol = $("lista"); ol.innerHTML = "";
+    [...sesion.puntos].reverse().forEach((p) => {
+      const li = document.createElement("li");
+      const b = document.createElement("b"); b.textContent = describir(p);
+      const s = document.createElement("span"); s.className = "small";
+      s.textContent = `${fmtCrono(p.crono_ms, false)} · ${p.lat.toFixed(6)}, ${p.lng.toFixed(6)} · ±${p.precision_m} m${p.alt != null ? ` · alt ${p.alt} m` : ""}${p.nota ? " · " + p.nota : ""}`;
+      li.append(b, s); ol.appendChild(li);
+    });
+  }
+
+  // ---------- dibujo ----------
+  function dibujar() {
+    const cv = $("lienzo"), ctx = cv.getContext("2d");
+    const W = cv.width, H = cv.height, pad = 40;
+    const oscuro = matchMedia("(prefers-color-scheme: dark)").matches;
+    ctx.clearRect(0, 0, W, H);
+    const pts = [...sesion.track, ...sesion.puntos];
+    if (pts.length === 0) {
+      ctx.fillStyle = oscuro ? "#9AA9C0" : "#5B6B82"; ctx.font = "28px system-ui"; ctx.textAlign = "center";
+      ctx.fillText("Aún no hay recorrido grabado", W / 2, H / 2); return;
+    }
+    const lat0 = pts.reduce((s, p) => s + p.lat, 0) / pts.length;
+    const kx = Math.cos(lat0 * Math.PI / 180) * 111320, ky = 110540;
+    const xs = pts.map((p) => p.lng * kx), ys = pts.map((p) => p.lat * ky);
+    const minX = Math.min(...xs), maxX = Math.max(...xs), minY = Math.min(...ys), maxY = Math.max(...ys);
+    const span = Math.max(maxX - minX, maxY - minY, 20);
+    const esc = Math.min((W - 2 * pad) / span, (H - 2 * pad) / span);
+    const X = (p) => pad + (p.lng * kx - minX) * esc + ((W - 2 * pad) - (maxX - minX) * esc) / 2;
+    const Y = (p) => H - pad - (p.lat * ky - minY) * esc - ((H - 2 * pad) - (maxY - minY) * esc) / 2;
+    ctx.lineWidth = 5; ctx.lineJoin = "round"; ctx.lineCap = "round"; ctx.strokeStyle = "#093AD8";
+    ctx.beginPath();
+    sesion.track.forEach((p, i) => (i ? ctx.lineTo(X(p), Y(p)) : ctx.moveTo(X(p), Y(p))));
+    ctx.stroke();
+    for (const p of sesion.puntos) {
+      ctx.beginPath(); ctx.arc(X(p), Y(p), 11, 0, Math.PI * 2);
+      ctx.fillStyle = "#028C5C"; ctx.fill(); ctx.lineWidth = 3; ctx.strokeStyle = "#FFFFFF"; ctx.stroke();
+      ctx.fillStyle = oscuro ? "#EAF0FA" : "#032742"; ctx.font = "bold 22px system-ui"; ctx.textAlign = "left";
+      ctx.fillText(String(p.n), X(p) + 14, Y(p) - 10);
+    }
+    if (ultima) {
+      const u = { lat: ultima.coords.latitude, lng: ultima.coords.longitude };
+      ctx.beginPath(); ctx.arc(X(u), Y(u), 10, 0, Math.PI * 2); ctx.fillStyle = "#71EC37"; ctx.fill();
+      ctx.lineWidth = 3; ctx.strokeStyle = "#032742"; ctx.stroke();
+    }
+    // escala
+    const paso = [5, 10, 20, 50, 100, 200, 500].find((m) => m * esc > 80) || 1000;
+    ctx.strokeStyle = oscuro ? "#EAF0FA" : "#032742"; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(pad, H - 14); ctx.lineTo(pad + paso * esc, H - 14); ctx.stroke();
+    ctx.fillStyle = ctx.strokeStyle; ctx.font = "20px system-ui"; ctx.textAlign = "left";
+    ctx.fillText(`${paso} m`, pad + paso * esc + 8, H - 8);
+  }
+
+  // ---------- exportar ----------
+  const xml = (s) => String(s ?? "").replace(/[<>&"']/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;", "'": "&apos;" }[c]));
+  function gpx() {
+    const wpt = sesion.puntos.map((p) =>
+      `  <wpt lat="${p.lat}" lon="${p.lng}">${p.alt != null ? `<ele>${p.alt}</ele>` : ""}<time>${p.t}</time>` +
+      `<name>${xml(describir(p))}</name><desc>${xml(`±${p.precision_m} m; crono ${fmtCrono(p.crono_ms, true)}${p.nota ? "; " + p.nota : ""}`)}</desc><type>${xml(p.tipo)}</type></wpt>`).join("\n");
+    const sync = sesion.sync.filter((s) => s.lat != null).map((s) =>
+      `  <wpt lat="${s.lat}" lon="${s.lng}"><time>${s.t}</time><name>SYNC ${s.n}</name><type>sync</type></wpt>`).join("\n");
+    const trk = sesion.track.map((m) =>
+      `      <trkpt lat="${m.lat}" lon="${m.lng}">${m.alt != null ? `<ele>${m.alt}</ele>` : ""}<time>${m.t}</time>` +
+      `<hdop>${m.acc}</hdop><desc>${xml([m.zona, m.piso].filter(Boolean).join(" / ") || "exterior")}</desc></trkpt>`).join("\n");
+    return `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="MAPSUTB · grabar recorrido" xmlns="http://www.topografix.com/GPX/1/1">
+  <metadata><name>Recorrido MAPSUTB</name><time>${sesion.inicio || sesion.creada}</time></metadata>
+${wpt}
+${sync}
+  <trk><name>Recorrido MAPSUTB ${sesion.inicio || ""}</name><trkseg>
+${trk}
+  </trkseg></trk>
+</gpx>
+`;
+  }
+  function geojson() {
+    const f = [];
+    if (sesion.track.length > 1) f.push({ type: "Feature", properties: { tipo: "recorrido", inicio: sesion.inicio, fin: sesion.fin,
+      tiempos: sesion.track.map((m) => m.t), precision_m: sesion.track.map((m) => m.acc), zona: sesion.track.map((m) => m.zona), piso: sesion.track.map((m) => m.piso) },
+      geometry: { type: "LineString", coordinates: sesion.track.map((m) => (m.alt != null ? [m.lng, m.lat, m.alt] : [m.lng, m.lat])) } });
+    for (const { lat, lng, alt, ...props } of sesion.puntos)
+      f.push({ type: "Feature", properties: props, geometry: { type: "Point", coordinates: alt != null ? [lng, lat, alt] : [lng, lat] } });
+    return JSON.stringify({ type: "FeatureCollection", features: f }, null, 2);
+  }
+  function nombreArchivo(ext) {
+    const d = sesion.inicio ? new Date(sesion.inicio) : new Date();
+    return `mapsutb-recorrido-${d.getFullYear()}${z2(d.getMonth() + 1)}${z2(d.getDate())}-${z2(d.getHours())}${z2(d.getMinutes())}.${ext}`;
+  }
+  async function entregar(texto, ext, mime) {
+    if (!sesion.track.length && !sesion.puntos.length) { mensaje("Todavía no hay nada grabado para exportar.", "meh"); return; }
+    const archivo = new File([texto], nombreArchivo(ext), { type: mime });
+    if (navigator.canShare && navigator.canShare({ files: [archivo] })) {
+      try { await navigator.share({ files: [archivo], title: archivo.name }); return; }
+      catch (e) { if (e.name === "AbortError") return; }
+    }
+    const url = URL.createObjectURL(archivo);
+    const a = Object.assign(document.createElement("a"), { href: url, download: archivo.name });
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(url), 2000);
+    mensaje(`Exportado ${archivo.name}.`, "ok");
+  }
+
+  // ---------- pantalla encendida ----------
+  async function pedirCandado() {
+    try { if ("wakeLock" in navigator && document.visibilityState === "visible") await navigator.wakeLock.request("screen"); }
+    catch { /* opcional */ }
+  }
+  document.addEventListener("visibilitychange", () => {
+    pedirCandado();
+    if (document.visibilityState === "visible" && sesion.grabando) {
+      mensaje("Volviste a la página. Si la pantalla estuvo apagada, ese tramo del recorrido no se grabó.", "meh");
+    }
+  });
+
+  // ---------- eventos ----------
+  $("btnIniciar").addEventListener("click", alternarGrabacion);
+  $("btnSync").addEventListener("click", abrirSync);
+  $("btnMarcar").addEventListener("click", marcar);
+  $("btnCerrarSync").addEventListener("click", () => { $("sync").hidden = true; $("btnSync").focus(); });
+  $("btnPunto").addEventListener("click", registrarPunto);
+  $("ctxZona").addEventListener("change", (e) => { sesion.ctx.zona = e.target.value; sesion.ctx.piso = null; pintarPisos(); guardar(); });
+  $("ctxPiso").addEventListener("change", (e) => { sesion.ctx.piso = e.target.value; pintarEspacios(); guardar(); });
+  $("expGpx").addEventListener("click", () => entregar(gpx(), "gpx", "application/gpx+xml"));
+  $("expGeo").addEventListener("click", () => entregar(geojson(), "geojson", "application/geo+json"));
+  $("expJson").addEventListener("click", () => entregar(JSON.stringify(sesion, null, 2), "json", "application/json"));
+  $("btnBorrar").addEventListener("click", (ev) => {
+    const b = ev.currentTarget;
+    if (b.dataset.ok !== "1") {
+      b.dataset.ok = "1"; b.textContent = "Toca otra vez para borrar (exporta antes)";
+      setTimeout(() => { b.dataset.ok = ""; b.textContent = "Borrar esta sesión"; }, 4000); return;
+    }
+    sesion = nueva(); guardar(); b.dataset.ok = ""; b.textContent = "Borrar esta sesión";
+    pintarZonas(); pintarResumen(); pintarLista(); dibujar(); refrescarCrono();
+    mensaje("Sesión nueva lista.", "ok");
+  });
+
+  // ---------- arranque ----------
+  pintarTipos();
+  fetch("../assets/assets/data/zonas.json")
+    .then((r) => (r.ok ? r.json() : Promise.reject()))
+    .then((zs) => {
+      ZONAS = zs.map((z) => ({ id: z.id, nombre: z.nombre, pisos: z.pisos || [],
+        espacios: (z.espacios || []).map((e) => ({ id: e.id, nombre: e.nombre, pisos: e.pisos || [] })) }));
+    })
+    .catch(() => mensaje("No se pudo cargar la lista de zonas; se puede grabar igual en “Exterior”.", "meh"))
+    .finally(() => { pintarZonas(); });
+  pintarResumen(); pintarLista(); dibujar(); refrescarCrono();
+  tick = setInterval(refrescarCrono, 100);
+  iniciarGps();
+})();
+</script>
+</body>
+</html>

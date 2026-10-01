@@ -174,6 +174,16 @@ docker compose -f infra/docker-compose.yml logs web   # logs JSON de nginx
   con los videos del recorrido y el trazado de OpenStreetMap. Los datos
   quedan solo en el celular hasta que se exportan.
 
+- **Grabar recorrido:** https://mapsutb.web.app/herramientas/recorrido.html
+  (`web/herramientas/recorrido.html`). Graba el recorrido continuo con hora
+  UTC, coordenadas, altitud del GPS (si el celular la entrega), precisión y
+  el contexto declarado (zona → piso → espacio de `zonas.json`), registra
+  puntos y tiene un cronómetro con pantalla de sincronización: al mirarla
+  con las gafas y tocar "Marcar SYNC", el destello y la hora quedan en el
+  video y en el registro. Exporta GPX, GeoJSON y JSON completo. La altitud
+  del GPS no distingue pisos (error vertical de ±10–30 m); el piso sale del
+  contexto declarado.
+
 ## Estado actual
 
 - Arranca con un solo comando.

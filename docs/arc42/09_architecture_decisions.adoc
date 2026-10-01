@@ -89,6 +89,11 @@ Las decisiones de diseño del proyecto se documentan como Registros de Decisione
 | link:../adr/0010-reversion-sitio-web.md[Revertir el sitio republicando versiones guardadas en Firebase Hosting]
 | Aceptado (2026-09-27)
 | Taller de despliegue, condición «necesidad de reversión»: reversión medida en 0,4 s sin recompilar; Docker + nginx como contingencia.
+
+| ADR-0011
+| link:../adr/0011-fuente-datos-geograficos-osm.md[Datos geográficos del campus: OpenStreetMap más levantamiento propio]
+| Aceptado (2026-10-01)
+| Grafo peatonal y coordenadas de zonas desde OSM (ODbL) más levantamiento en campo; se descarta trazar sobre Google por sus términos.
 |===
 
 Nuevas decisiones de diseño relevantes que surjan durante el desarrollo deben agregarse como un nuevo ADR

@@ -166,6 +166,10 @@ docker compose -f infra/docker-compose.yml logs web   # logs JSON de nginx
 
 ## Herramientas de campo
 
+Fuentes, herramientas y procedimiento del levantamiento del campus:
+[`docs/levantamiento-campo.md`](./docs/levantamiento-campo.md)
+([ADR 0011](./docs/adr/0011-fuente-datos-geograficos-osm.md)).
+
 - **Registro de coordenadas:** https://mapsutb.web.app/herramientas/coordenadas.html
   (`web/herramientas/coordenadas.html`). Página para el celular que guarda
   puntos GPS del campus (entradas de cada zona, cruces, escaleras, rampas,

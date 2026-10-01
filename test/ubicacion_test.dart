@@ -68,7 +68,8 @@ void main() {
 
       expect(ubicacion.lat, closeTo(10.37005, 0.001));
       expect(ubicacion.lng, closeTo(-75.46545, 0.001));
-      expect(ubicacion.toString(), startsWith('lat: 10.37'));
+      // El desplazamiento aleatorio puede dar 10.369… o 10.370…: se valida el formato.
+      expect(ubicacion.toString(), matches(RegExp(r'^lat: 10\.3[67]\d{3}, lng: -75\.46\d{3}$')));
     });
   });
 

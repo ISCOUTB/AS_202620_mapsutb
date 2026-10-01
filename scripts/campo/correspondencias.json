@@ -1,0 +1,36 @@
+{
+  "_descripcion": "Conocimiento del equipo que el análisis de campo no puede deducir solo. Lo leen scripts/campo/analizar_campo.py y la generación del grafo en cada ejecución.",
+  "campus_osm_way": "68735397",
+  "edificio_osm_a_zona": {
+    "97546323": "a1",
+    "1563809302": "a2",
+    "1563809309": "a3",
+    "238258177": "a4",
+    "992473927": "a5",
+    "1563809308": "zonat",
+    "1563809305": "biblioteca",
+    "1563809303": "alcatraz"
+  },
+  "_edificio_osm_a_zona_fuentes": {
+    "1563809303": "2026-10-01: el equipo confirma que el edificio marcado en OSM como amenity=cafe es Alcatraz (en el video se ve el letrero «La Placita UTB»)."
+  },
+  "zona_desde_puntos": {
+    "quid": {
+      "puntos": [71],
+      "motivo": "Punto 71 (nota «QUID») registrado en campo; no hay polígono de Quid en OSM."
+    },
+    "eda2": {
+      "puntos": [37, 38, 39, 40],
+      "motivo": "Espacios de EDA2 según zonas.json (Dirección de infraestructura, Servicios administrativos, Cuarto de seccionadores, Bodega). A revisar: caen dentro del polígono que OSM asigna a Alcatraz."
+    }
+  },
+  "zona_de_punto": {
+    "_motivo": "La zona declarada en la herramienta quedó con la elegida antes; se corrige con zonas.json y lo confirmado por el equipo.",
+    "35": "eda2",
+    "36": "eda2",
+    "71": "quid",
+    "79": "a5",
+    "80": "a5",
+    "81": "a5"
+  }
+}

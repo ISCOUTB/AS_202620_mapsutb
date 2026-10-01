@@ -61,6 +61,13 @@ def dist_seg(p, a, b):
     return math.hypot(px - ax - t * dx, py - ay - t * dy)
 
 
+def metros_geo(a, b):
+    """Distancia en metros entre dos (lat, lng), con el coseno de su propia latitud."""
+    la1, la2 = math.radians(a[0]), math.radians(b[0])
+    x = math.radians(b[1] - a[1]) * math.cos((la1 + la2) / 2)
+    return 6371000 * math.hypot(x, la2 - la1)
+
+
 def adentro(p, poly):
     x, y = p
     c = False
@@ -219,6 +226,13 @@ def analizar(carpeta, sin_descarga=False):
     res = os.path.join(carpeta, "resultados")
     os.makedirs(res, exist_ok=True)
     muestras, puntos, sync, fuentes = leer_exportaciones(carpeta)
+    # Correcciones de zona confirmadas por el equipo (scripts/campo/correspondencias.json).
+    correccion = json.load(open(os.path.join(os.path.dirname(__file__), "correspondencias.json"),
+                                encoding="utf-8")).get("zona_de_punto", {})
+    for p in puntos:
+        z = correccion.get(str(p.get("n")))
+        if z and p.get("zona") != z:
+            p["zona_declarada"], p["zona"] = p.get("zona"), z
     videos = leer_videos(carpeta, sync)
     pos, ways, nodos_tag = osm(carpeta, sin_descarga)
     zonas = json.load(open(ZONAS_JSON, encoding="utf-8"))
@@ -405,9 +419,184 @@ def dibujar(ruta, pos, ways, muestras, puntos, tramos):
     open(ruta, "w", encoding="utf-8").write("\n".join(o))
 
 
+# ---------------------------------------------------------------- grafo y zonas
+REPO = os.path.normpath(os.path.join(os.path.dirname(__file__), "..", ".."))
+CORRESPONDENCIAS = os.path.join(os.path.dirname(__file__), "correspondencias.json")
+CAMINABLE_GRAFO = {"footway", "steps", "path", "pedestrian", "service", "living_street", "corridor", "track", "unclassified"}
+MARGEN_CAMPUS_M = 20     # caminos pegados al límite del campus también cuentan
+MAX_ENTRADA_M = 40       # una zona a más de esto del camino más cercano queda sin conectar
+
+
+def generar_grafo_y_zonas(carpeta, escribir_repo):
+    """Construye grafo.json desde OSM y las coordenadas de las zonas.
+
+    Devuelve un resumen. Si escribir_repo, actualiza assets/data/grafo.json y las
+    coordenadas de assets/data/zonas.json (sin reformatear el archivo).
+    """
+    corr = json.load(open(CORRESPONDENCIAS, encoding="utf-8"))
+    pos, ways, _ = osm(carpeta, sin_descarga=True)
+    datos = json.load(open(os.path.join(carpeta, "resultados", "datos_unificados.json"), encoding="utf-8"))
+    puntos = {p.get("n"): p for p in datos["puntos"] if p.get("n") is not None}
+    zonas = json.load(open(ZONAS_JSON, encoding="utf-8"))
+    nombre_zona = {z["id"]: z["nombre"] for z in zonas}
+    way = {wid: (t, nd) for wid, t, nd in ways}
+
+    campus = [xy(*pos[n]) for n in way[corr["campus_osm_way"]][1]]
+
+    def cerca_campus(n):
+        p = xy(*pos[n])
+        return adentro(p, campus) or min(dist_seg(p, a, b) for a, b in zip(campus, campus[1:] + campus[:1])) <= MARGEN_CAMPUS_M
+
+    # segmentos caminables dentro del campus
+    adj = defaultdict(dict)          # nodo -> vecino -> (metros, escaleras, tipo)
+    usos = Counter()
+    for wid, (t, nd) in way.items():
+        hw = t.get("highway")
+        if hw not in CAMINABLE_GRAFO:
+            continue
+        dentro = [n for n in nd if n in pos and cerca_campus(n)]
+        if len(dentro) < 2:
+            continue
+        for n in set(dentro):
+            usos[n] += 1
+        for a, b in zip(nd, nd[1:]):
+            if a in pos and b in pos and cerca_campus(a) and cerca_campus(b):
+                m = metros_geo(pos[a], pos[b])
+                adj[a][b] = adj[b][a] = (m, hw == "steps", hw)
+
+    # zonas: coordenada y nodo de llegada provisional
+    def poligono(wid):
+        return [xy(*pos[n]) for n in way[wid][1]]
+
+    def nodo_mas_cercano(p_xy, poly=None):
+        mejor = None
+        for n in adj:
+            q = xy(*pos[n])
+            d = min(dist_seg(q, a, b) for a, b in zip(poly, poly[1:] + poly[:1])) if poly else math.hypot(q[0] - p_xy[0], q[1] - p_xy[1])
+            if mejor is None or d < mejor[0]:
+                mejor = (d, n)
+        return mejor
+
+    coords, entradas = {}, []
+    for wid, zid in corr["edificio_osm_a_zona"].items():
+        nd = way[wid][1][:-1] if way[wid][1][0] == way[wid][1][-1] else way[wid][1]
+        coords[zid] = (sum(pos[n][0] for n in nd) / len(nd), sum(pos[n][1] for n in nd) / len(nd),
+                       f"centro del edificio OSM way {wid}")
+        d, n = nodo_mas_cercano(None, poligono(wid))
+        entradas.append({"zona": zid, "nodo": n, "distancia_m": round(d, 1),
+                         "fuente": f"provisional: nodo de camino más cercano al edificio (way {wid})"})
+    for zid, info in corr["zona_desde_puntos"].items():
+        ps = [puntos[i] for i in info["puntos"] if i in puntos]
+        if not ps:
+            continue
+        la = sum(p["lat"] for p in ps) / len(ps)
+        lo = sum(p["lng"] for p in ps) / len(ps)
+        coords[zid] = (la, lo, "puntos de campo " + ", ".join(str(i) for i in info["puntos"]))
+        d, n = nodo_mas_cercano(xy(la, lo))
+        entradas.append({"zona": zid, "nodo": n, "distancia_m": round(d, 1),
+                         "fuente": "provisional: nodo de camino más cercano a los puntos de campo " + ", ".join(map(str, info["puntos"]))})
+    entradas = [e for e in entradas if e["distancia_m"] <= MAX_ENTRADA_M]
+
+    # comprimir cadenas: se conservan cruces, extremos, nodos compartidos y nodos de entrada
+    anclas = {e["nodo"] for e in entradas}
+    importante = {n for n in adj if len(adj[n]) != 2 or usos[n] > 1 or n in anclas}
+    aristas, vistos = [], set()
+    for a in importante:
+        for b in adj[a]:
+            if (a, b) in vistos:
+                continue
+            camino, metros, escaleras, tipos = [a, b], adj[a][b][0], adj[a][b][1], {adj[a][b][2]}
+            prev, act = a, b
+            while act not in importante and act != a:
+                sig = next(x for x in adj[act] if x != prev)
+                metros += adj[act][sig][0]
+                escaleras |= adj[act][sig][1]
+                tipos.add(adj[act][sig][2])
+                prev, act = act, sig
+                camino.append(act)
+            for x, y in zip(camino, camino[1:]):
+                vistos.add((x, y))
+                vistos.add((y, x))
+            aristas.append({"desde": f"n{a}", "hasta": f"n{act}", "metros": round(metros, 1),
+                            "escaleras": escaleras, "via": "steps" if escaleras else sorted(tipos)[0],
+                            "geometria": [[round(pos[n][0], 7), round(pos[n][1], 7)] for n in camino]})
+
+    # componentes conexas
+    vec = defaultdict(set)
+    for e in aristas:
+        vec[e["desde"]].add(e["hasta"])
+        vec[e["hasta"]].add(e["desde"])
+    comp, cid = {}, 0
+    for n in vec:
+        if n in comp:
+            continue
+        pila = [n]
+        comp[n] = cid
+        while pila:
+            x = pila.pop()
+            for y in vec[x]:
+                if y not in comp:
+                    comp[y] = cid
+                    pila.append(y)
+        cid += 1
+    tam = Counter(comp.values())
+    principal = tam.most_common(1)[0][0] if tam else None
+
+    nodos = [{"id": f"n{n}", "lat": round(pos[n][0], 7), "lng": round(pos[n][1], 7),
+              **({"entrada_de": [e["zona"] for e in entradas if e["nodo"] == n]} if n in anclas else {})}
+             for n in sorted(importante)]
+    for e in entradas:
+        e["nodo"] = f"n{e['nodo']}"
+        e["conectada"] = comp.get(e["nodo"]) == principal
+    grafo = {
+        "version": 1,
+        "licencia": "ODbL 1.0 · © colaboradores de OpenStreetMap",
+        "fuente": "OpenStreetMap (área del campus, way %s) + levantamiento de campo MAPSUTB; ver docs/levantamiento-campo.md" % corr["campus_osm_way"],
+        "generado": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "nodos": nodos, "aristas": sorted(aristas, key=lambda e: (e["desde"], e["hasta"])), "entradas": sorted(entradas, key=lambda e: e["zona"]),
+    }
+
+    resumen = [f"\n## Grafo generado\n",
+               f"- Nodos: {len(nodos)} · tramos: {len(aristas)} · {sum(e['metros'] for e in aristas) / 1000:.2f} km caminables"
+               f" · con escaleras: {sum(e['escaleras'] for e in aristas)}",
+               f"- Componentes conexas: {len(tam)} (la principal tiene {tam[principal] if tam else 0} nodos)"]
+    for z in zonas:
+        e = next((x for x in entradas if x["zona"] == z["id"]), None)
+        c = coords.get(z["id"])
+        estado = ("sin coordenada ni entrada" if not c else
+                  f"coordenada: {c[2]} · entrada {'conectada' if e and e['conectada'] else 'SIN conectar'}"
+                  + (f" a {e['distancia_m']} m del edificio (provisional)" if e else ""))
+        resumen.append(f"- {nombre_zona[z['id']]}: {estado}")
+
+    if escribir_repo:
+        json.dump(grafo, open(os.path.join(REPO, "assets", "data", "grafo.json"), "w", encoding="utf-8"),
+                  ensure_ascii=False, indent=1)
+        actualizar_coordenadas(coords)
+    return "\n".join(resumen)
+
+
+def actualizar_coordenadas(coords):
+    """Escribe lat/lng de cada zona en zonas.json tocando solo esas dos líneas."""
+    import re
+    texto = open(ZONAS_JSON, encoding="utf-8").read()
+    for zid, (la, lo, _) in coords.items():
+        m = re.search(r'"id"\s*:\s*"%s"' % re.escape(zid), texto)
+        if not m:
+            continue
+        bloque = re.compile(r'("lat"\s*:\s*)(-?[\d.]+)(\s*,\s*"lng"\s*:\s*)(-?[\d.]+)')
+        b = bloque.search(texto, m.end())
+        if b:
+            texto = texto[:b.start()] + f"{b.group(1)}{la:.7f}{b.group(3)}{lo:.7f}" + texto[b.end():]
+    open(ZONAS_JSON, "w", encoding="utf-8", newline="").write(texto)
+
+
 if __name__ == "__main__":
     args = [a for a in sys.argv[1:] if not a.startswith("--")]
     carpeta = args[0] if args else r"C:\mapsutb-campo"
     n = analizar(carpeta, sin_descarga="--sin-osm" in sys.argv)
     print("muestras %d · puntos %d · videos %d · tramos fuera de lo trazado %d" % n)
+    resumen = generar_grafo_y_zonas(carpeta, escribir_repo="--escribir-repo" in sys.argv)
+    with open(os.path.join(carpeta, "resultados", "informe.md"), "a", encoding="utf-8") as f:
+        f.write(resumen + "\n")
+    print(resumen)
     print("resultados en", os.path.join(carpeta, "resultados"))

@@ -91,8 +91,10 @@ void main() {
   testWidgets('sin destino pide elegir uno y muestra solo zonas con coordenadas', (tester) async {
     await _montar(tester);
     expect(_resumen(tester), contains('Elige un destino'));
-    expect(find.text('A1'), findsOneWidget); // pin en el mapa
-    expect(find.text('Contenedores'), findsNothing); // sin coordenadas
+    expect(find.byKey(const Key('pin_a1')), findsOneWidget);
+    expect(find.byKey(const Key('pin_a2')), findsOneWidget);
+    expect(find.byKey(const Key('pin_contenedores')), findsNothing); // sin coordenadas
+    expect(find.byTooltip('A1'), findsOneWidget); // nombre al pasar el cursor
   });
 
   testWidgets('con destino espera la ubicación y luego muestra la ruta', (tester) async {
@@ -123,9 +125,10 @@ void main() {
     ubicacion.controller.add(Ubicacion(lat: 10.37008, lng: -75.46600, timestamp: DateTime(2026)));
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('A2'));
+    await tester.tap(find.byKey(const Key('pin_a2')));
     await tester.pumpAndSettle();
     expect(_resumen(tester), contains('m ·'));
+    expect(find.byTooltip('A2'), findsNothing); // el elegido muestra su etiqueta, sin tooltip
     expect(analytics.eventos.single.nombre, 'solicitud_ruta');
     expect(analytics.eventos.single.parametros['zona_destino'], 'a2');
   });

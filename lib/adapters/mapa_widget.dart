@@ -83,8 +83,8 @@ class MapaWidget extends StatelessWidget {
           for (final l in lugares)
             Marker(
               point: LatLng(l.lat, l.lng),
-              width: 120,
-              height: 46,
+              width: l.id == lugarSeleccionado ? 160 : 34,
+              height: l.id == lugarSeleccionado ? 46 : 34,
               alignment: Alignment.topCenter,
               child: _Pin(
                 lugar: l,
@@ -107,9 +107,8 @@ class MapaWidget extends StatelessWidget {
               ),
             ),
         ]),
-        const SimpleAttributionWidget(
-          source: Text('© colaboradores de OpenStreetMap'),
-        ),
+        // El widget ya antepone «©».
+        const SimpleAttributionWidget(source: Text('colaboradores de OpenStreetMap')),
       ],
     );
   }
@@ -125,7 +124,21 @@ class _Pin extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = seleccionado ? MapaWidget._esmeralda : MapaWidget._azul;
+    // Solo el destino elegido lleva etiqueta: los edificios del campus están a
+    // ~20 m entre sí y las etiquetas de todos se superponen. El nombre de los
+    // demás aparece al pasar el cursor y en la lista de destinos.
+    if (!seleccionado) {
+      return Tooltip(
+        key: Key('pin_${lugar.id}'),
+        message: lugar.etiqueta,
+        child: GestureDetector(
+          onTap: onTap,
+          child: Icon(Icons.location_on, color: color, size: 30, semanticLabel: lugar.etiqueta),
+        ),
+      );
+    }
     return GestureDetector(
+      key: Key('pin_${lugar.id}'),
       onTap: onTap,
       child: Column(
         mainAxisSize: MainAxisSize.min,

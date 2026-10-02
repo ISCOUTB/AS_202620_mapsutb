@@ -1,8 +1,11 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mapsutb/adapters/analytics_adapter.dart';
+import 'package:mapsutb/adapters/mapa_widget.dart';
+import 'package:mapsutb/core/log.dart';
 import 'package:mapsutb/features/mapas_ruteo/presentation/screens/mapa_screen.dart';
 import 'package:mapsutb/features/zonas/presentation/screens/zona_detalle_screen.dart';
 import 'package:mapsutb/models/evento_analitica.dart';
@@ -88,6 +91,19 @@ Future<_UbicacionFalsa> _montar(WidgetTester tester,
 String _resumen(WidgetTester tester) => tester.widget<Text>(find.byKey(const Key('resumen_ruta'))).data!;
 
 void main() {
+  late List<String> logs;
+  setUp(() {
+    logs = [];
+    Log.salida = logs.add;
+  });
+  tearDown(() => Log.salida = debugPrint);
+
+  List<Map<String, dynamic>> eventos(String nombre) => [
+        for (final l in logs)
+          if ((jsonDecode(l) as Map<String, dynamic>)['evento'] == nombre)
+            jsonDecode(l) as Map<String, dynamic>,
+      ];
+
   testWidgets('sin destino pide elegir uno y muestra solo zonas con coordenadas', (tester) async {
     await _montar(tester);
     expect(_resumen(tester), contains('Elige un destino'));
@@ -177,5 +193,52 @@ void main() {
     final zona = Zona(id: 'contenedores', nombre: 'Contenedores', tipo: 'servicio', lat: 0, lng: 0);
     await tester.pumpWidget(MaterialApp(home: ZonaDetalleScreen(zona: zona, onComoLlegar: (_) {})));
     expect(find.text('Cómo llegar'), findsNothing);
+  });
+
+  testWidgets('mide la parte de pantalla del Escenario 2 una vez por destino', (tester) async {
+    final ubicacion = await _montar(tester, destino: 'a1');
+    ubicacion.controller.add(Ubicacion(lat: 10.36901, lng: -75.46601, timestamp: DateTime(2026)));
+    await tester.pumpAndSettle();
+
+    final medidas = eventos('ruta_mostrada');
+    expect(medidas, hasLength(1));
+    expect(medidas.single['zona_destino'], 'a1');
+    expect(medidas.single['metros'], 120);
+    expect(medidas.single['duracion_ms'], isA<int>());
+    // El umbral del Escenario 2 es 5 s; aquí se comprueba que la medida existe
+    // y es razonable en el entorno de pruebas.
+    expect(medidas.single['duracion_ms'] as int, lessThan(5000));
+
+    // Nuevas posiciones del GPS no vuelven a medir el mismo destino.
+    ubicacion.controller.add(Ubicacion(lat: 10.36902, lng: -75.46602, timestamp: DateTime(2026)));
+    await tester.pumpAndSettle();
+    expect(eventos('ruta_mostrada'), hasLength(1));
+
+    // Cambiar de destino sí produce una medida nueva.
+    await tester.tap(find.byKey(const Key('pin_a2')));
+    await tester.pumpAndSettle();
+    expect(eventos('ruta_mostrada'), hasLength(2));
+    expect(eventos('ruta_mostrada').last['zona_destino'], 'a2');
+  });
+
+  testWidgets('el Adapter del mapa recibe la ruta y el destino elegido', (tester) async {
+    // Se prueba el contrato de MapaWidget, no el interior de flutter_map: el
+    // aislamiento del Adapter (ADR 0012) exige que esos tipos no salgan de él.
+    final ubicacion = await _montar(tester, destino: 'a1');
+    MapaWidget mapa() => tester.widget<MapaWidget>(find.byType(MapaWidget));
+    expect(mapa().lugarSeleccionado, 'a1');
+    expect(mapa().ruta, isEmpty); // todavía sin posición
+    expect(mapa().latCentro, closeTo(10.3701, 0.0001)); // centrado en el destino
+
+    ubicacion.controller.add(Ubicacion(lat: 10.36901, lng: -75.46601, timestamp: DateTime(2026)));
+    await tester.pumpAndSettle();
+    expect(mapa().ruta.first, [10.3690, -75.4660]); // arranca en el nodo P
+    expect(mapa().ruta.last, [10.3701, -75.4660]); // termina en la entrada de A1
+    expect(mapa().posicion, [10.36901, -75.46601]);
+
+    await tester.tap(find.byKey(const Key('pin_a2')));
+    await tester.pumpAndSettle();
+    expect(mapa().lugarSeleccionado, 'a2');
+    expect(mapa().latCentro, closeTo(10.3690, 0.0001)); // la cámara sigue al destino
   });
 }

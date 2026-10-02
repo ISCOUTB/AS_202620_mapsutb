@@ -20,7 +20,7 @@ class LugarEnMapa {
 /// Adapter del mapa base (ADR 0002, ADR 0012): aísla al resto de la app de
 /// flutter_map y de las teselas de OpenStreetMap. Fuera de este archivo nadie
 /// usa tipos de flutter_map ni de latlong2; solo coordenadas como números.
-class MapaWidget extends StatelessWidget {
+class MapaWidget extends StatefulWidget {
   const MapaWidget({
     super.key,
     required this.latCentro,
@@ -54,42 +54,81 @@ class MapaWidget extends StatelessWidget {
   final bool mostrarTeselas;
 
   @override
+  State<MapaWidget> createState() => _MapaWidgetState();
+}
+
+class _MapaWidgetState extends State<MapaWidget> {
+  final _controlador = MapController();
+
+  /// Identifica una ruta por su tamaño y sus extremos, para no reencuadrar en
+  /// cada actualización del GPS cuando la ruta no cambió.
+  static String _firma(List<List<double>> ruta) =>
+      ruta.isEmpty ? '' : '${ruta.length}:${ruta.first}:${ruta.last}';
+
+  @override
+  void didUpdateWidget(MapaWidget anterior) {
+    super.didUpdateWidget(anterior);
+    final cambioRuta = _firma(widget.ruta) != _firma(anterior.ruta);
+    final cambioCentro =
+        widget.latCentro != anterior.latCentro || widget.lngCentro != anterior.lngCentro;
+    if (cambioRuta || cambioCentro) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _encuadrar());
+    }
+  }
+
+  /// Con ruta, encuadra toda la ruta; sin ella, centra en el destino. El
+  /// relleno deja libres las tarjetas de arriba y de abajo.
+  void _encuadrar() {
+    if (!mounted) return;
+    if (widget.ruta.length >= 2) {
+      _controlador.fitCamera(CameraFit.bounds(
+        bounds: LatLngBounds.fromPoints([for (final p in widget.ruta) LatLng(p[0], p[1])]),
+        padding: const EdgeInsets.fromLTRB(48, 130, 48, 110),
+        maxZoom: 18.5,
+      ));
+    } else {
+      _controlador.move(LatLng(widget.latCentro, widget.lngCentro), 17.5);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final pos = posicion;
+    final pos = widget.posicion;
     return FlutterMap(
+      mapController: _controlador,
       options: MapOptions(
-        initialCenter: LatLng(latCentro, lngCentro),
+        initialCenter: LatLng(widget.latCentro, widget.lngCentro),
         initialZoom: 17.5,
         minZoom: 15,
         maxZoom: 19.5,
       ),
       children: [
-        if (mostrarTeselas)
+        if (widget.mostrarTeselas)
           TileLayer(
             urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
             userAgentPackageName: 'com.example.mapsutb',
           ),
-        if (ruta.length >= 2)
+        if (widget.ruta.length >= 2)
           PolylineLayer(polylines: [
             Polyline(
-              points: [for (final p in ruta) LatLng(p[0], p[1])],
+              points: [for (final p in widget.ruta) LatLng(p[0], p[1])],
               strokeWidth: 6,
-              color: _esmeralda,
+              color: MapaWidget._esmeralda,
               borderStrokeWidth: 2,
               borderColor: Colors.white,
             ),
           ]),
         MarkerLayer(markers: [
-          for (final l in lugares)
+          for (final l in widget.lugares)
             Marker(
               point: LatLng(l.lat, l.lng),
-              width: l.id == lugarSeleccionado ? 160 : 34,
-              height: l.id == lugarSeleccionado ? 46 : 34,
+              width: l.id == widget.lugarSeleccionado ? 160 : 34,
+              height: l.id == widget.lugarSeleccionado ? 46 : 34,
               alignment: Alignment.topCenter,
               child: _Pin(
                 lugar: l,
-                seleccionado: l.id == lugarSeleccionado,
-                onTap: onLugarTocado == null ? null : () => onLugarTocado!(l.id),
+                seleccionado: l.id == widget.lugarSeleccionado,
+                onTap: widget.onLugarTocado == null ? null : () => widget.onLugarTocado!(l.id),
               ),
             ),
           if (pos != null)
@@ -100,9 +139,9 @@ class MapaWidget extends StatelessWidget {
               child: Container(
                 key: const Key('posicion_usuario'),
                 decoration: BoxDecoration(
-                  color: _lima,
+                  color: MapaWidget._lima,
                   shape: BoxShape.circle,
-                  border: Border.all(color: _navy, width: 3),
+                  border: Border.all(color: MapaWidget._navy, width: 3),
                 ),
               ),
             ),

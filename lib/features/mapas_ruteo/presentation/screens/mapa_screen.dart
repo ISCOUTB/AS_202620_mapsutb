@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:mapsutb/adapters/analytics_adapter.dart';
 import 'package:mapsutb/adapters/mapa_widget.dart';
+import 'package:mapsutb/core/log.dart';
 import 'package:mapsutb/models/evento_analitica.dart';
 import 'package:mapsutb/models/ubicacion.dart';
 import 'package:mapsutb/models/zona.dart';
@@ -46,6 +47,10 @@ class _MapaScreenState extends State<MapaScreen> {
   String? _destino;
   bool _evitarEscaleras = false;
 
+  /// Último destino cuya ruta ya se midió, para registrar una muestra por
+  /// destino y no en cada actualización del GPS.
+  String? _destinoMedido;
+
   @override
   void initState() {
     super.initState();
@@ -71,7 +76,10 @@ class _MapaScreenState extends State<MapaScreen> {
   }
 
   void _elegirDestino(String? id) {
-    setState(() => _destino = id);
+    setState(() {
+      _destino = id;
+      _destinoMedido = null; // vuelve a medir para el destino nuevo
+    });
     if (id != null) {
       widget.analytics.registrarEvento(EventoAnalitica(nombre: 'solicitud_ruta', parametros: {'zona_destino': id})).ignore();
     }
@@ -103,9 +111,25 @@ class _MapaScreenState extends State<MapaScreen> {
   }
 
   Widget _contenido(List<Zona> todas, GrafoPeatonal grafo) {
+    // Medición de la parte de pantalla del Escenario 2: desde que la pantalla
+    // tiene destino y posición hasta que el frame con la ruta está presentado.
+    // No incluye la espera del sensor GPS, que el escenario mide aparte.
+    final reloj = Stopwatch()..start();
     final zonas = todas.where((z) => z.tieneCoordenadas && grafo.entradas.containsKey(z.id)).toList();
     final destino = zonas.any((z) => z.id == _destino) ? _destino : null;
     final estado = _calcularRuta(grafo, destino);
+    final ruta = estado.ruta;
+    if (ruta != null && destino != _destinoMedido) {
+      _destinoMedido = destino;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Log.info('ruta_mostrada', {
+          'zona_destino': destino,
+          'metros': ruta.metros.round(),
+          'evitar_escaleras': _evitarEscaleras,
+          'duracion_ms': reloj.elapsedMilliseconds,
+        });
+      });
+    }
     final pos = _posicion;
     Zona? centro;
     if (destino != null) {
@@ -120,7 +144,7 @@ class _MapaScreenState extends State<MapaScreen> {
           latCentro: centro?.lat ?? 10.3700,
           lngCentro: centro?.lng ?? -75.4655,
           lugares: [for (final z in zonas) LugarEnMapa(id: z.id, etiqueta: z.nombre, lat: z.lat, lng: z.lng)],
-          ruta: estado.ruta?.geometria ?? const [],
+          ruta: ruta?.geometria ?? const [],
           posicion: pos == null ? null : [pos.lat, pos.lng],
           lugarSeleccionado: destino,
           onLugarTocado: _elegirDestino,

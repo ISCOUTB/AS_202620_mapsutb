@@ -2,8 +2,8 @@
 
 ## Estado
 
-- **Estado**: Propuesto — pendiente de confirmación del equipo
-- **Fecha**: 2026-10-01
+- **Estado**: Aceptado
+- **Fecha**: 2026-10-01 (propuesto) · 2026-10-02 (aceptado por el equipo)
 - **Decisores**: Equipo MAPSUTB
 
 ## Contexto
@@ -17,9 +17,10 @@ pregunta aquí es si la **app** debe llevar un componente generativo en ejecuci�
 posibles: búsqueda en lenguaje natural ("¿dónde queda el laboratorio de química?"), indicaciones
 de ruta redactadas o un asistente conversacional para visitantes.
 
-## Decisión propuesta
+## Decisión
 
-**No incorporar un componente generativo en esta versión.**
+**No incorporar un componente generativo en esta versión.** El equipo revisó la propuesta el
+2026-10-02 y la confirmó con los motivos de abajo.
 
 ## Motivos, contra las restricciones del proyecto
 

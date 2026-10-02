@@ -22,9 +22,13 @@ artefacto, ambiente, respuesta, medida de respuesta), igual que el escenario de 
 - **Ambiente:** operación normal, en exteriores del campus, con señal GPS disponible.
 - **Respuesta:** el sistema calcula la ruta y refleja la posición del usuario sobre el mapa.
 - **Medida de respuesta:** menos de 5 segundos, con margen de error de ubicación menor a 10 metros.
-- **Medición (cálculo de la ruta):** 100 rutas sobre el grafo real del campus, p95 0,92 ms y
-  máximo 3,6 ms en CI ([run](https://github.com/ISCOUTB/AS_202620_mapsutb/actions/runs/36913480665)); la parte de mostrarla en pantalla se mide cuando exista
-  el mapa (ADR 0012). Ver `docs/evidencia-s9.md`.
+- **Medición, cálculo de la ruta:** 100 rutas sobre el grafo real del campus, **p95 0,68 ms**
+  y máximo 1,85 ms.
+- **Medición, parte de pantalla:** desde que la pantalla tiene destino y posición hasta que el
+  frame con la ruta está presentado, **19 ms** (evento `ruta_mostrada` de los logs
+  estructurados). No incluye la espera del sensor GPS, que este escenario mide aparte con su
+  margen de 10 m.
+- Ambas en CI, [run](https://github.com/ISCOUTB/AS_202620_mapsutb/actions/runs/37042248426); umbral del escenario: 5 s. Ver `docs/evidencia-s9.md`.
 
 ## Escenario 3 — Disponibilidad / confiabilidad
 

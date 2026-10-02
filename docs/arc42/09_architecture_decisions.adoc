@@ -108,7 +108,12 @@ Las decisiones de diseño del proyecto se documentan como Registros de Decisione
 | ADR-0014
 | link:../adr/0014-sin-componente-generativo.md[No incorporar un componente generativo en la app]
 | Propuesto (2026-10-01)
-| Pendiente de confirmación del equipo: costo y tarjeta, funcionamiento sin conexión y resultados verificables.
+| Decisión del equipo (2026-10-02): costo y tarjeta, funcionamiento sin conexión y resultados verificables.
+
+| ADR-0015
+| link:../adr/0015-cache-del-sitio-revalidar.md[El sitio revalida HTML, JS y JSON en lugar de servirlos desde la caché]
+| Aceptado (2026-10-02)
+| Sin esto, un despliegue o una reversión no llegaban al usuario hasta una hora después.
 |===
 
 Nuevas decisiones de diseño relevantes que surjan durante el desarrollo deben agregarse como un nuevo ADR

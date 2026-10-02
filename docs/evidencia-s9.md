@@ -49,11 +49,17 @@ ruteo y `MapaRepository`) → ADR **0013** (decisión de ruteo), **0011** (fuent
 
 ## 5. Medición del escenario
 
-**Escenario 2:** la ruta se muestra en ≤ 5 s. Medido en CI sobre el grafo real: **100 rutas
-(todas las parejas de zonas), p95 0,92 ms, máximo 3,6 ms** (run
-[36913480665](https://github.com/ISCOUTB/AS_202620_mapsutb/actions/runs/36913480665), salida
-de la prueba "Escenario 2"). Cumple con amplio margen la parte de cálculo; falta medir la parte
-de pantalla cuando exista el mapa (ADR 0012).
+**Escenario 2:** la ruta se muestra en ≤ 5 s. Medido en CI, [run](https://github.com/ISCOUTB/AS_202620_mapsutb/actions/runs/37042248426):
+
+| Parte | Qué mide | Resultado |
+|---|---|---|
+| Cálculo | 100 rutas (todas las parejas de zonas) sobre el grafo real | **p95 0,68 ms**, máximo 1,85 ms |
+| Pantalla | Desde que la pantalla tiene destino y posición hasta que el frame con la ruta está presentado (evento `ruta_mostrada`) | **19 ms** |
+
+Juntas quedan tres órdenes de magnitud por debajo del umbral de 5 s. La medida de pantalla no
+incluye la espera del sensor GPS: el escenario mide esa parte aparte, con su margen de 10 m. En
+la app publicada el mismo evento `ruta_mostrada` queda en los logs estructurados, así que la
+medición se puede repetir en un dispositivo real.
 
 ## 6. Uso de IA: aceptado, corregido y rechazado
 
@@ -104,6 +110,8 @@ Ninguna credencial real.
 
 ## 10. Componente generativo
 
-La app no incorpora uno: **ADR 0014** (estado *Propuesto*, pendiente de confirmación del
-equipo) lo justifica por costo y tarjeta, funcionamiento sin conexión y porque la búsqueda y el
-grafo resuelven los casos de uso con resultados verificables.
+La app no incorpora uno. **ADR 0014**, *Aceptado por el equipo el 2026-10-02*, justifica la
+decisión por costo y tarjeta (arc42 §2), funcionamiento sin conexión y porque la búsqueda de
+texto y el grafo resuelven los casos de uso con resultados verificables. El ADR fija también
+cuándo se reevaluaría: si aparece un caso de uso que esas dos piezas no cubran, con evaluación,
+costo por operación, latencia y comportamiento ante fallo del proveedor.

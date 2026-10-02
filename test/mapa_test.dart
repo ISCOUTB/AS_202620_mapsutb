@@ -202,6 +202,9 @@ void main() {
 
     final medidas = eventos('ruta_mostrada');
     expect(medidas, hasLength(1));
+    // ignore: avoid_print
+    print('Escenario 2 · parte de pantalla: ruta dibujada en '
+        '${medidas.single['duracion_ms']} ms (destino ${medidas.single['zona_destino']})');
     expect(medidas.single['zona_destino'], 'a1');
     expect(medidas.single['metros'], 120);
     expect(medidas.single['duracion_ms'], isA<int>());

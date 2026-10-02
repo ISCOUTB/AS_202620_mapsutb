@@ -214,8 +214,11 @@ void main() {
     await tester.pumpAndSettle();
     expect(eventos('ruta_mostrada'), hasLength(1));
 
-    // Cambiar de destino sí produce una medida nueva.
-    await tester.tap(find.byKey(const Key('pin_a2')));
+    // Cambiar de destino sí produce una medida nueva. Se usa el desplegable:
+    // con la ruta dibujada la cámara se reencuadra y los pines se mueven.
+    await tester.tap(find.byKey(const Key('destino')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('A2'));
     await tester.pumpAndSettle();
     expect(eventos('ruta_mostrada'), hasLength(2));
     expect(eventos('ruta_mostrada').last['zona_destino'], 'a2');
@@ -236,7 +239,9 @@ void main() {
     expect(mapa().ruta.last, [10.3701, -75.4660]); // termina en la entrada de A1
     expect(mapa().posicion, [10.36901, -75.46601]);
 
-    await tester.tap(find.byKey(const Key('pin_a2')));
+    await tester.tap(find.byKey(const Key('destino')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('A2'));
     await tester.pumpAndSettle();
     expect(mapa().lugarSeleccionado, 'a2');
     expect(mapa().latCentro, closeTo(10.3690, 0.0001)); // la cámara sigue al destino

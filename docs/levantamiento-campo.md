@@ -58,7 +58,10 @@ Cada procesamiento relee **toda** la carpeta, así que agregar datos de una nuev
 exige copiarlos y volver a ejecutarlo:
 
 1. Unir recorridos, puntos y marcas SYNC de todas las exportaciones, por hora UTC y sin duplicados.
-2. Sincronizar cada video con su par de marcas SYNC (destello visible en el video + hora
+2. Emparejar los registros del mismo lugar hechos con herramientas distintas (menos de 90 s y
+   40 m de diferencia): se conserva el de la herramienta web, que trae tipo y zona, y la distancia
+   entre ambos queda como medida del error del GPS.
+3. Sincronizar cada video con su par de marcas SYNC (destello visible en el video + hora
    registrada) y asignar a cada instante su coordenada, zona y piso.
 3. Descargar de OSM el área del campus y compararla con los recorridos y los videos: tramos
    confirmados, tramos caminados que no están trazados, tramos trazados que nadie recorrió.
@@ -104,4 +107,5 @@ python scripts/campo/analizar_campo.py "C:\mapsutb-campo" --escribir-repo  # ade
 |---|---|---|
 | 2026-09-30 | Trazado en OSM (changeset 189774414) | 47 andenes y escaleras (~2,3 km); edificios A1–A5, Zona T y biblioteca con nombre; 0 entradas etiquetadas; 14 extremos de andén sin conexión; sin nombre en OSM: EDA2, Contenedores, Quid, Alcatraz |
 | 2026-10-01 | Recorrido con gafas, herramientas web y GPS Logger | 74 puntos (salida de la mañana) y una sesión de 21 min con 828 muestras, 6 marcas SYNC y 5 videos (2,3 GB). Desfase de las gafas medido con el destello: −0,48 s |
+| 2026-10-02 | Segundo procesamiento (traza de GPS Logger del recorrido de la mañana) | 2.549 muestras y 112 lugares. **25 lugares quedaron medidos dos veces** (herramienta web y GPS Logger a la vez): diferencia mediana 5,8 m en exterior y 16,5 m dentro de edificios (máxima 38,4 m), lo que confirma con datos que el GPS no sirve para ubicar espacios interiores. De 13 tramos fuera de lo trazado, 8 son deriva dentro del A2 y 5 son posibles caminos por trazar en exterior |
 | 2026-10-01 | Primer procesamiento | 91 % del recorrido a ≤ 10 m de lo trazado; 28 de 47 andenes recorridos; 3 tramos fuera de lo trazado (bajada interior por escaleras, cruce por parqueadero, corredor techado). Grafo: 78 nodos, 90 tramos, 3,33 km; 10 de 11 zonas con coordenada y entrada provisional conectada. Pendiente: Contenedores, entradas reales de cada edificio, pisos declarados y confirmar si el polígono de Alcatraz incluye a EDA2 |

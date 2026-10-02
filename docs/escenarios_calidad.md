@@ -29,6 +29,19 @@ artefacto, ambiente, respuesta, medida de respuesta), igual que el escenario de 
   estructurados). No incluye la espera del sensor GPS, que este escenario mide aparte con su
   margen de 10 m.
 - Ambas en CI, [run](https://github.com/ISCOUTB/AS_202620_mapsutb/actions/runs/37042248426); umbral del escenario: 5 s. Ver `docs/evidencia-s9.md`.
+- **Medición del margen de ubicación (umbral: 10 m).** 25 lugares del campus se midieron a la vez
+  con dos aplicaciones distintas (la herramienta web y GPS Logger); la diferencia entre ambas
+  mediciones estima el error real del GPS:
+
+  | Dónde | Lugares | Mediana | Máxima | Umbral de 10 m |
+  |---|---:|---:|---:|---|
+  | Exterior o planta baja | 11 | 5,8 m | 31,2 m | cumple |
+  | Dentro de un edificio | 14 | 16,5 m | 38,4 m | **no cumple** |
+
+  El escenario se cumple en exteriores, que es su alcance declarado (arc42 §2). Dentro de los
+  edificios el GPS no alcanza para ubicar un espacio: por eso la ruta termina en la entrada y el
+  piso se declara a mano (ADR 0013). Medido el 2026-10-02 con los datos de
+  `C:\mapsutb-campo`; procedimiento en `docs/levantamiento-campo.md`.
 
 ## Escenario 3 — Disponibilidad / confiabilidad
 

@@ -169,6 +169,49 @@ def leer_exportaciones(carpeta):
     return m, p, s, fuentes
 
 
+MAX_SEG_EMPAREJA = 90     # dos registros del mismo lugar no se toman con más diferencia
+MAX_DIST_EMPAREJA = 40.0  # ni más lejos que esto
+
+
+def emparejar(puntos):
+    """Une registros del MISMO lugar hechos con herramientas distintas.
+
+    El equipo marcó varios puntos a la vez en la herramienta web y en GPS
+    Logger: son dos mediciones independientes del mismo sitio. Se conserva la
+    de la herramienta web (trae tipo, zona y promediado) y la otra queda como
+    confirmación, con la distancia entre ambas como medida del error del GPS.
+    """
+    def hora(p):
+        try:
+            return iso(p["t"]) if p.get("t") else None
+        except ValueError:
+            return None
+
+    principales, sueltos = [], []
+    for p in sorted(puntos, key=lambda x: (x.get("tipo") == "gpx", x.get("t") or "")):
+        (sueltos if p.get("tipo") == "gpx" else principales).append(p)
+    usados = set()
+    for p in principales:
+        tp = hora(p)
+        mejor = None
+        for i, q in enumerate(sueltos):
+            if i in usados:
+                continue
+            tq = hora(q)
+            if not tp or not tq or abs((tp - tq).total_seconds()) > MAX_SEG_EMPAREJA:
+                continue
+            d = metros_geo((p["lat"], p["lng"]), (q["lat"], q["lng"]))
+            if d <= MAX_DIST_EMPAREJA and (mejor is None or d < mejor[0]):
+                mejor = (d, i, q)
+        if mejor:
+            d, i, q = mejor
+            usados.add(i)
+            p["confirmado_por"] = q["origen"]
+            p["discrepancia_m"] = round(d, 1)
+    restantes = [q for i, q in enumerate(sueltos) if i not in usados]
+    return principales + restantes
+
+
 def leer_videos(carpeta, sync):
     videos = []
     if not shutil.which("ffprobe"):
@@ -233,6 +276,7 @@ def analizar(carpeta, sin_descarga=False):
         z = correccion.get(str(p.get("n")))
         if z and p.get("zona") != z:
             p["zona_declarada"], p["zona"] = p.get("zona"), z
+    puntos = emparejar(puntos)
     videos = leer_videos(carpeta, sync)
     pos, ways, nodos_tag = osm(carpeta, sin_descarga)
     zonas = json.load(open(ZONAS_JSON, encoding="utf-8"))
@@ -297,8 +341,15 @@ def analizar(carpeta, sin_descarga=False):
     w("## Datos leídos\n")
     w(f"- Muestras de recorrido: **{len(muestras)}**"
       + (f" ({muestras[0]['t'][:16]} → {muestras[-1]['t'][:16]} UTC)" if muestras else ""))
+    dobles = [p for p in puntos if p.get("discrepancia_m") is not None]
     w(f"- Puntos registrados: **{len(puntos)}** · tipos: "
       + ", ".join(f"{k} {v}" for k, v in Counter(p.get("tipo") for p in puntos).most_common()))
+    if dobles:
+        difs = sorted(p["discrepancia_m"] for p in dobles)
+        w(f"- **{len(dobles)} lugares medidos dos veces** (herramienta web y GPS Logger): "
+          f"diferencia mediana {difs[len(difs)//2]:.1f} m, p90 {difs[int(len(difs)*0.9)]:.1f} m, "
+          f"máxima {difs[-1]:.1f} m. "
+          "Es una medida del error real del GPS en el campus.")
     w(f"- Marcas SYNC: **{len(sync)}** · videos: **{len(videos)}** · fuentes: "
       + ", ".join(f"{k} ×{v}" for k, v in fuentes.items()))
     if muestras:
@@ -325,12 +376,53 @@ def analizar(carpeta, sin_descarga=False):
         for lim in (5, 10, 20):
             w(f"- A ≤ {lim} m de un camino trazado: {sum(d <= lim for d, _ in ds) / len(ds) * 100:.0f} %")
         w(f"- Andenes y escaleras de OSM recorridos: {len(foot) - len(no_recorridos)} de {len(foot)}")
-        w(f"\n**Tramos caminados lejos (> {LEJOS_M} m) de lo trazado:** {len(tramos)}\n")
-        for t in tramos:
-            a, b = t[0][0], t[-1][0]
-            w(f"- {a['t'][11:19]}–{b['t'][11:19]} UTC · hasta {max(d for _, d in t):.0f} m · "
-              f"[{a['lat']:.6f}, {a['lng']:.6f}](https://www.openstreetmap.org/?mlat={a['lat']:.6f}&mlon={a['lng']:.6f}#map=20/{a['lat']:.6f}/{a['lng']:.6f})"
-              f" · video: {video_en(videos, a['t']) or 'sin video'}")
+        # Un tramo que transcurre dentro de un edificio no es un camino que
+        # falte en OSM: es el interior, donde además el GPS deriva.
+        def interior(t):
+            dentro = sum(1 for m, _ in t if edificio(m["lat"], m["lng"])[2] == 0)
+            return dentro > len(t) / 2
+
+        interiores = [t for t in tramos if interior(t)]
+        exteriores = [t for t in tramos if not interior(t)]
+        w(f"\n**Tramos caminados lejos (> {LEJOS_M} m) de lo trazado:** {len(tramos)} "
+          f"({len(exteriores)} en exterior, {len(interiores)} dentro de edificios)\n")
+        if exteriores:
+            w("Posibles caminos que faltan por trazar en OSM:\n")
+            for t in exteriores:
+                a, b = t[0][0], t[-1][0]
+                w(f"- {a['t'][11:19]}–{b['t'][11:19]} UTC · hasta {max(d for _, d in t):.0f} m · "
+                  f"[{a['lat']:.6f}, {a['lng']:.6f}](https://www.openstreetmap.org/?mlat={a['lat']:.6f}&mlon={a['lng']:.6f}#map=20/{a['lat']:.6f}/{a['lng']:.6f})"
+                  f" · video: {video_en(videos, a['t']) or 'sin video'}")
+        if interiores:
+            nombres = Counter(edificio(t[0][0]["lat"], t[0][0]["lng"])[1] for t in interiores)
+            w("\nDentro de edificios (no hay nada que trazar; el GPS deriva en interiores): "
+              + ", ".join(f"{k} ×{v}" for k, v in nombres.most_common()))
+    # Calidad de las coordenadas: lugares medidos dos veces por dos apps. Se
+    # separan por la zona que declaró quien midió (un edificio) o ninguna
+    # (exterior); clasificar por el polígono de OSM no sirve, porque un punto
+    # interior con error grande cae fuera del edificio.
+    dentro = sorted(p["discrepancia_m"] for p in puntos
+                    if p.get("discrepancia_m") is not None and p.get("zona"))
+    fuera = sorted(p["discrepancia_m"] for p in puntos
+                   if p.get("discrepancia_m") is not None and not p.get("zona"))
+    if dentro or fuera:
+        w("\n## Calidad de las coordenadas\n")
+        w("Diferencia entre las dos mediciones del mismo lugar, tomadas a la vez con la "
+          "herramienta web y con GPS Logger. El Escenario 2 exige un margen de ubicación "
+          "menor a 10 m.\n")
+        w("| Dónde se declaró el punto | Lugares | Mediana | Máxima | Umbral de 10 m |")
+        w("|---|---:|---:|---:|---|")
+        for nombre, v in (("Sin zona: exterior o planta baja", fuera),
+                          ("Dentro de un edificio (zona declarada)", dentro)):
+            if v:
+                med = v[len(v) // 2]
+                w(f"| {nombre} | {len(v)} | {med:.1f} m | {v[-1]:.1f} m | "
+                  f"{'cumple' if med < 10 else '**no cumple**'} |")
+        w("\nLa precisión que informan las herramientas (±1 a ±5 m) es la que reporta el sistema "
+          "operativo y resulta optimista frente a esta comparación entre dos mediciones reales. "
+          "Para ubicar un espacio dentro de un edificio el GPS no alcanza: el ruteo termina en la "
+          "entrada y el piso se declara a mano (ADR 0011, ADR 0013).")
+
     w("\n## Puntos frente a los edificios de OSM\n")
     w("Cada punto se asigna al edificio de OSM que lo contiene o al más cercano (< 15 m). "
       "Si la zona declarada no coincide con el edificio, se marca ⚠.\n")
@@ -398,8 +490,20 @@ def dibujar(ruta, pos, ways, muestras, puntos, tramos):
             cx = sum(P(*pos[n])[0] for n in nd) / len(nd)
             cy = sum(P(*pos[n])[1] for n in nd) / len(nd)
             o.append(f'<text x="{cx:.0f}" y="{cy:.0f}" font-size="13" font-weight="bold" fill="#032742" text-anchor="middle">{t["name"]}</text>')
-    if muestras:
-        pts = " ".join("%.1f,%.1f" % P(m["lat"], m["lng"]) for m in muestras)
+    # Una polilínea por tramo continuo: cambiar de archivo o un hueco de más de
+    # dos minutos no es un trayecto caminado, así que no se dibuja una recta.
+    trozo = []
+    for i, m in enumerate(muestras):
+        corta = i > 0 and (m["origen"] != muestras[i - 1]["origen"]
+                           or (iso(m["t"]) - iso(muestras[i - 1]["t"])).total_seconds() > 120)
+        if corta and len(trozo) > 1:
+            pts = " ".join("%.1f,%.1f" % P(x["lat"], x["lng"]) for x in trozo)
+            o.append(f'<polyline points="{pts}" fill="none" stroke="#093AD8" stroke-width="2.5" stroke-opacity=".75"/>')
+        if corta:
+            trozo = []
+        trozo.append(m)
+    if len(trozo) > 1:
+        pts = " ".join("%.1f,%.1f" % P(x["lat"], x["lng"]) for x in trozo)
         o.append(f'<polyline points="{pts}" fill="none" stroke="#093AD8" stroke-width="2.5" stroke-opacity=".75"/>')
     for t in tramos:
         pts = " ".join("%.1f,%.1f" % P(m["lat"], m["lng"]) for m, _ in t)

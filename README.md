@@ -11,7 +11,8 @@ arquitectura ya montada, en lugar de perder tiempo armando el proyecto.
 El patrón arquitectural es **monolito** (una sola app Flutter, sin
 backend propio por ahora). El mapa del campus se resuelve superponiendo
 un plano propio (grafo peatonal y geometría del campus, empaquetados
-localmente) sobre **Google Maps SDK**, que renderiza el mapa base; el
+localmente) sobre **teselas de OpenStreetMap** dibujadas con `flutter_map`
+([ADR 0012](./docs/adr/0012-mapa-base-flutter-map-osm.md)), que forman el mapa base; el
 ruteo interno se calcula con **Dijkstra sobre el grafo peatonal propio**,
 sin depender de un servicio externo de ruteo. Por eso las dependencias
 externas del sistema son dos APIs de Google: **Maps SDK** (mapa base) y
@@ -20,7 +21,7 @@ ambas consumidas vía HTTPS — la app requiere conexión a internet para
 funcionar. Dentro de ese monolito se adoptan tres patrones de diseño,
 cada uno para un problema puntual: **Repository** (servir el plano del
 campus, los datos de zonas/puntos de interés y el contenido panorámico
-local), **Adapter** (aislar Google Maps SDK y Google Geocoding API) y
+local), **Adapter** (aislar el mapa base y Google Geocoding API) y
 **Observer** (ubicación en tiempo real vía `Stream`). El razonamiento
 completo, la matriz comparativa por problema y las consecuencias de cada
 decisión están en:
@@ -31,7 +32,7 @@ decisión están en:
 
 ```
 lib/
-  adapters/            # Adapter: MapaWidget (Google Maps SDK) y GeocodingAdapter (Geocoding API)
+  adapters/            # Adapter: MapaWidget (flutter_map + OSM) y GeocodingAdapter (Geocoding API)
   repositories/         # Repository: plano del campus, datos de zonas/puntos de interés, contenido panorámico
   routing/                # Servicio de ruteo: Dijkstra sobre el grafo peatonal propio
   services/               # Observer: servicios que exponen Stream (p. ej. ubicación en tiempo real)
@@ -61,9 +62,9 @@ como molde (solo `.gitkeep`), pendientes para el corte 2.
   estable) instalado y en el `PATH`.
 - Un dispositivo, emulador o navegador configurado para `flutter run`
   (para solo compilar y correr las pruebas no hace falta dispositivo).
-- Conexión a internet y una API key válida de Google Maps SDK / Geocoding
-  API (el mapa base y la geocodificación no funcionan sin ella; ver
-  "Credenciales de APIs externas" más abajo).
+- Conexión a internet para las teselas del mapa base (OpenStreetMap, sin key).
+  La geocodificación y las miniaturas de Google son opcionales y requieren
+  key (ver "Credenciales de APIs externas" más abajo).
 ## Arranque con un solo comando
 
 ```bash

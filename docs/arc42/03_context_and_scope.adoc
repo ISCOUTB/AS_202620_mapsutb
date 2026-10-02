@@ -12,7 +12,7 @@ ifndef::imagesdir[:imagesdir: ../images]
 |Estudiante actual|Interacción táctil|Ubicación en tiempo real, ruta más corta hacia un punto de interés del campus
 |Estudiante de intercambio extranjero|Interacción táctil, selección de idioma (inglés)|Interfaz en inglés, ubicación y recorrido panorámico
 |Invitado |Interacción táctil|Ubicación en el mapa, recorrido panorámico de zonas del campus
-|Google Maps SDK|Solicitud de renderizado del mapa base|Mapa base con coordenadas GPS reales, sobre el cual la app superpone el plano propio del campus
+|Teselas de OpenStreetMap|Solicitud de teselas del mapa base|Mapa base sobre el cual la app dibuja zonas, posición y rutas (ADR 0012, reemplaza a Google Maps SDK)
 |Google Geocoding API|Coordenadas GPS o direcciones a convertir|Dirección legible o coordenadas correspondientes
 |===
 
@@ -32,13 +32,13 @@ y <<section-architecture-constraints>>).
 |Canal técnico|Entrada/salida que transporta
 |GPS del dispositivo (a través de servicios de localización del sistema operativo)|Posición del usuario en tiempo real (latitud/longitud), consumida vía el paquete `geolocator`
 |Almacenamiento local del dispositivo (activos empaquetados con la app)|Plano del campus (grafo peatonal y geometría propia), imágenes panorámicas 360° (capturadas por el equipo), datos de zonas y puntos de interés
-|Google Maps SDK (HTTPS)|Solicitud de mapa base ↔ mapa renderizado con coordenadas GPS reales, sobre el que se superpone el plano propio del campus
+|Teselas de OpenStreetMap (HTTPS, PNG)|Coordenadas de tesela (z/x/y) ↔ imagen del mapa base, sobre la que se dibujan zonas, posición y rutas
 |Google Geocoding API (HTTPS)|Coordenadas GPS ↔ dirección legible
 |===
 
 El mapa base, la geocodificación y, por lo tanto, buena parte de la
 experiencia de ubicación y ruteo de MAPSUTB **requieren conexión a
-internet**: la app consulta directamente Google Maps SDK y Google
+internet**: la app pide las teselas de OpenStreetMap y consulta Google
 Geocoding API en tiempo de ejecución. Lo que sí se resuelve sin red son
 el ruteo interno (calculado sobre el grafo peatonal propio, empaquetado
 localmente) y el contenido del tour panorámico y de zonas/puntos de

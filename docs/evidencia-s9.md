@@ -82,10 +82,18 @@ Contrastada sobre el código el 2026-10-01:
 
 ## 8. Dependencias
 
-`git diff 7048021..HEAD -- pubspec.yaml`: **ninguna dependencia nueva**; el único cambio es
-registrar el asset `assets/data/grafo.json`. El análisis de campo usa `defusedxml` (fuera de la
-app) y se verificó en PyPI. `flutter_map` se agregará con la pantalla del mapa y se verificará
-en pub.dev en ese momento.
+El ruteo no agregó dependencias (montículo propio, ADR 0013). La pantalla de mapa (ADR 0012)
+agregó dos, verificadas en su registro oficial el 2026-10-01:
+
+| Dependencia | Versión | Registro | Publicador | Repositorio |
+|---|---|---|---|---|
+| `flutter_map` | 8.3.2 | [pub.dev](https://pub.dev/packages/flutter_map) | `fleaflet.dev` (verificado) | github.com/fleaflet/flutter_map |
+| `latlong2` | 0.10.1 | [pub.dev](https://pub.dev/packages/latlong2) | `femtopedia.de` | github.com/ThexXTURBOXx/dart-latlong |
+
+Las transitivas (`path_provider`, `proj4dart`, `dart_earcut`, `uuid`, `logging`, entre otras)
+las declara `flutter_map` y quedaron fijadas en `pubspec.lock`. El análisis de campo usa
+`defusedxml` 0.7.1 (fuera de la app), verificado en [PyPI](https://pypi.org/project/defusedxml/)
+(repositorio github.com/tiran/defusedxml).
 
 ## 9. Credenciales
 

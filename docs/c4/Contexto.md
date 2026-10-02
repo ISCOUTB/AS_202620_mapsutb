@@ -10,7 +10,7 @@ El sistema de MAPSUTB interactúa con cuatro tipos de actores humanos y con dos 
 | Estudiante actual | Actor (persona) | Usa geolocalización y ruteo para ubicarse y desplazarse dentro del campus. |
 | Estudiante de intercambio | Actor (persona) | Usa la app en su interfaz en inglés para orientarse en un campus desconocido. |
 | Invitado | Actor (persona) | Usa la app para ubicarse y desplazarse en el campus. |
-| Google Maps SDK | Sistema externo (clave) | Renderiza el mapa base sobre el cual se superpone el plano propio del campus. |
+| OpenStreetMap (teselas) | Sistema externo (clave) | Mapa base sobre el cual la app dibuja zonas, posición y rutas con `flutter_map` (ADR 0012; reemplaza a Google Maps SDK). |
 | Google Geocoding API | Sistema externo | Convierte coordenadas GPS en direcciones legibles y viceversa. |
 
 ## Contexto técnico

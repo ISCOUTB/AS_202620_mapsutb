@@ -258,8 +258,8 @@ C4Component
   entrada de la interacción del usuario.
 - **Servicio de ubicación** (patrón Observer, `Stream<Ubicacion>`): escucha el sensor de ubicación del dispositivo y
   emite la posición en tiempo real a quien se suscriba.
-- **MapaWidget** (patrón Adapter): renderiza Google Maps SDK como mapa base y superpone sobre él el plano propio del
-  campus y las rutas calculadas.
+- **MapaWidget** (patrón Adapter, `lib/adapters/mapa_widget.dart`): dibuja con `flutter_map` las teselas de
+  OpenStreetMap como mapa base (ADR 0012) y superpone las zonas, la posición del usuario y las rutas calculadas.
 - **Servicio de ruteo** (Dijkstra sobre grafo propio): calcula la ruta más corta dentro del campus a partir del grafo
   peatonal; no depende de ningún servicio externo.
 - **MapaRepository** (patrón Repository): sirve el grafo peatonal y la geometría del plano propio sin exponer su

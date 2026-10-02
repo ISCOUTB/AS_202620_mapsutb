@@ -51,8 +51,11 @@ de servidor de teselas sin tocar el resto de la app.
 
 ## Consecuencias
 
-- La pantalla de mapa usará `flutter_map`; la dependencia se agrega cuando se construya esa
-  pantalla y se verifica en pub.dev (criterio de S9).
+- Pantalla de mapa construida el 2026-10-01 (`lib/adapters/mapa_widget.dart`,
+  `lib/features/mapas_ruteo/presentation/screens/mapa_screen.dart`). Dependencias agregadas y
+  verificadas en pub.dev: `flutter_map` 8.3.2 (publicador verificado `fleaflet.dev`, repositorio
+  `github.com/fleaflet/flutter_map`) y `latlong2` 0.10.1 (publicador `femtopedia.de`, repositorio
+  `github.com/ThexXTURBOXx/dart-latlong`). Ningún tipo de esos paquetes sale de `MapaWidget`.
 - Static Maps y Geocoding (ADR 0005) dejan de ser necesarios para el mapa; se reevalúan cuando
   se construya la pantalla.
 - La atribución a OpenStreetMap debe verse en la pantalla del mapa.

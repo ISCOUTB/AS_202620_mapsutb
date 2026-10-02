@@ -11,7 +11,8 @@
         "headers": [{ "key": "Cache-Control", "value": "no-store" }]
       },
       {
-        "source": "/index.html",
+        "comment": "Flutter web no pone hash en el nombre de main.dart.js, así que sin esto el navegador sigue usando la copia vieja y un despliegue (o una reversión, ADR 0010) no llega a quien ya abrió la app. Con no-cache se revalida contra el ETag: si no cambió, responde 304 y no se vuelve a descargar.",
+        "source": "**/*.@(html|js|json)",
         "headers": [{ "key": "Cache-Control", "value": "no-cache" }]
       }
     ]

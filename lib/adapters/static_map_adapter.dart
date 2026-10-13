@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:http/http.dart' as http;
 
 import '../core/log.dart';
@@ -26,8 +28,11 @@ abstract class StaticMapAdapter {
 }
 
 class StaticMapAdapterHttp implements StaticMapAdapter {
-  StaticMapAdapterHttp({required String apiKey, http.Client? client})
-      : _apiKey = apiKey,
+  StaticMapAdapterHttp({
+    required String apiKey,
+    http.Client? client,
+    this.tiempoLimite = const Duration(seconds: 5),
+  })  : _apiKey = apiKey,
         _client = client ?? http.Client();
 
   static const _baseUrl = 'https://maps.googleapis.com/maps/api/staticmap';
@@ -35,6 +40,10 @@ class StaticMapAdapterHttp implements StaticMapAdapter {
 
   final String _apiKey;
   final http.Client _client;
+
+  /// Pasado este tiempo sin respuesta, la miniatura se da por no disponible
+  /// (arc42 §11). Sin reintento automático, como Geocoding (ADR 0016).
+  final Duration tiempoLimite;
 
   @override
   Future<ImagenMapa> obtenerImagenMapa({
@@ -53,7 +62,16 @@ class StaticMapAdapterHttp implements StaticMapAdapter {
     });
 
     final reloj = Stopwatch()..start();
-    final respuesta = await _client.get(uri);
+    final http.Response respuesta;
+    try {
+      respuesta = await _client.get(uri).timeout(tiempoLimite);
+    } on TimeoutException {
+      Log.error('static_map_error', {'motivo': 'tiempo_agotado', 'duracion_ms': reloj.elapsedMilliseconds});
+      throw StaticMapException(0, null);
+    } on http.ClientException {
+      Log.error('static_map_error', {'motivo': 'sin_conexion', 'duracion_ms': reloj.elapsedMilliseconds});
+      throw StaticMapException(0, null);
+    }
     final duracionMs = reloj.elapsedMilliseconds;
 
     // Contrato esperado (docs/api/apis-externas.openapi.yaml): 200 con

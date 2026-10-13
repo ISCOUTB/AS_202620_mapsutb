@@ -249,4 +249,22 @@ void main() {
     expect(mapa().lugarSeleccionado, 'a2');
     expect(mapa().latCentro, closeTo(10.3690, 0.0001)); // la cámara sigue al destino
   });
+
+  testWidgets('MF-01 sin mapa base: la ruta se sigue mostrando y se avisa una sola vez (arc42 §11)',
+      (tester) async {
+    final ubicacion = await _montar(tester, destino: 'a1');
+    ubicacion.controller.add(Ubicacion(lat: 10.36901, lng: -75.46601, timestamp: DateTime(2026)));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('aviso_sin_mapa_base')), findsNothing);
+
+    // flutter_map llama una vez por cada tesela que no carga.
+    final falla = tester.widget<MapaWidget>(find.byType(MapaWidget)).onMapaBaseFalla!;
+    falla();
+    falla();
+    await tester.pump();
+
+    expect(find.byKey(const Key('aviso_sin_mapa_base')), findsOneWidget);
+    expect(_resumen(tester), contains('min'));
+    expect(eventos('mapa_base_sin_teselas'), hasLength(1));
+  });
 }

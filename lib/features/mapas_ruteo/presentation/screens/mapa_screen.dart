@@ -47,6 +47,9 @@ class _MapaScreenState extends State<MapaScreen> {
   String? _destino;
   bool _evitarEscaleras = false;
 
+  /// Alguna tesela del mapa base no cargó (arc42 §11, MF-01/MF-02).
+  bool _sinMapaBase = false;
+
   /// Último destino cuya ruta ya se midió, para registrar una muestra por
   /// destino y no en cada actualización del GPS.
   String? _destinoMedido;
@@ -148,6 +151,7 @@ class _MapaScreenState extends State<MapaScreen> {
           posicion: pos == null ? null : [pos.lat, pos.lng],
           lugarSeleccionado: destino,
           onLugarTocado: _elegirDestino,
+          onMapaBaseFalla: _avisarSinMapaBase,
           mostrarTeselas: widget.mostrarTeselas,
         ),
       ),
@@ -185,11 +189,25 @@ class _MapaScreenState extends State<MapaScreen> {
         child: Card(
           child: Padding(
             padding: const EdgeInsets.all(14),
-            child: Text(estado.mensaje, key: const Key('resumen_ruta'), style: Theme.of(context).textTheme.titleMedium),
+            child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(estado.mensaje, key: const Key('resumen_ruta'), style: Theme.of(context).textTheme.titleMedium),
+              if (_sinMapaBase)
+                const Text(
+                  'Sin conexión al mapa base: la ruta sigue siendo válida, sale de los caminos guardados en la app.',
+                  key: Key('aviso_sin_mapa_base'),
+                ),
+            ]),
           ),
         ),
       ),
     ]);
+  }
+
+  /// Llega una vez por tesela fallida: solo el primer aviso redibuja.
+  void _avisarSinMapaBase() {
+    if (_sinMapaBase || !mounted) return;
+    Log.warn('mapa_base_sin_teselas');
+    setState(() => _sinMapaBase = true);
   }
 
   _EstadoRuta _calcularRuta(GrafoPeatonal grafo, String? destino) {

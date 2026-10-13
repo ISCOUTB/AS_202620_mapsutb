@@ -30,6 +30,7 @@ class MapaWidget extends StatefulWidget {
     this.posicion,
     this.lugarSeleccionado,
     this.onLugarTocado,
+    this.onMapaBaseFalla,
     this.mostrarTeselas = true,
   });
 
@@ -49,6 +50,11 @@ class MapaWidget extends StatefulWidget {
   final List<double>? posicion;
   final String? lugarSeleccionado;
   final ValueChanged<String>? onLugarTocado;
+
+  /// Se llama cuando una tesela del mapa base no carga (sin red, servidor
+  /// caído o tiempo agotado; arc42 §11, MF-01 y MF-02). Puede llamarse una
+  /// vez por tesela.
+  final VoidCallback? onMapaBaseFalla;
 
   /// Las pruebas lo apagan para no pedir teselas por red.
   final bool mostrarTeselas;
@@ -107,6 +113,11 @@ class _MapaWidgetState extends State<MapaWidget> {
           TileLayer(
             urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
             userAgentPackageName: 'com.example.mapsutb',
+            // flutter_map ya reintenta cada tesela con espera creciente
+            // (RetryClient por defecto); si aun así falla, se avisa a la
+            // pantalla. La ruta no depende de las teselas: sale del grafo
+            // empaquetado en la app.
+            errorTileCallback: (tile, error, stackTrace) => widget.onMapaBaseFalla?.call(),
           ),
         if (widget.ruta.length >= 2)
           PolylineLayer(polylines: [

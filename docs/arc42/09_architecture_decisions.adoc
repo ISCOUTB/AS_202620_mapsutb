@@ -119,6 +119,11 @@ Las decisiones de diseño del proyecto se documentan como Registros de Decisione
 | link:../adr/0016-no-extraer-modulos-por-ahora.md[No extraer ningún módulo de la app por ahora; los fallos de integración se manejan dentro del monolito]
 | Aceptado (2026-10-13)
 | Extraer exigiría el plan Blaze (tarjeta) y agregaría modos de fallo al flujo principal; tiempo límite de 5 s y analítica como máximo una vez.
+
+| ADR-0017
+| link:../adr/0017-gps-real-geolocator-filtro.md[Posición real con `geolocator`, filtrada, y punto de partida marcado a mano cuando el GPS no sirve]
+| Aceptado (2026-10-13)
+| Reemplaza el simulador de ±33 m y cierra MF-04 a MF-06; la app sigue usable sin GPS o fuera del campus.
 |===
 
 Nuevas decisiones de diseño relevantes que surjan durante el desarrollo deben agregarse como un nuevo ADR

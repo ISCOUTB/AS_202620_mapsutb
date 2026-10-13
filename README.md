@@ -79,6 +79,17 @@ prueba pasa en verde, sin levantar la app:
 flutter pub get && flutter test
 ```
 
+### Ubicación
+
+La app usa el GPS del dispositivo (`geolocator`, [ADR 0017](./docs/adr/0017-gps-real-geolocator-filtro.md));
+en el navegador pide permiso de ubicación. Si no hay GPS o se está fuera del campus, en la pestaña
+Mapa se toca el mapa para marcar el punto de partida. Para una demostración con una posición fija
+del campus:
+
+```bash
+flutter run -d chrome --dart-define=UBICACION_SIMULADA=true
+```
+
 ### Credenciales de APIs externas
 
 Las credenciales se pasan en tiempo de compilación con `--dart-define`

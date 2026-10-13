@@ -69,7 +69,7 @@ calculadas (ver <<esc-precision>>).
 | Sin conexión, el mapa base se queda sin teselas y Geocoding no responde. Una vez cargada la app, la ruta sí
 funciona: el grafo y las zonas viajan dentro de ella (ADR 0013).
 | Media
-| Implementado: aviso «Sin conexión al mapa base» en la pantalla de mapa (MF-01) y mensaje controlado en
+| Implementado: aviso «Sin conexión al mapa base» en la pantalla de mapa (MF-01), motivo cuando no hay GPS (MF-04) y mensaje controlado en
 «¿Dónde estoy?» (MF-07, MF-08). Ver <<modos-de-fallo>>.
 
 | RT-07
@@ -79,11 +79,11 @@ funciona: el grafo y las zonas viajan dentro de ella (ADR 0013).
 evaluadores del proyecto.
 
 | RT-08
-| La posición del usuario es simulada (`UbicacionServiceSimulado`): cada segundo emite un punto aleatorio a ±33 m
-de un punto base. El punto salta en el mapa y la ruta se recalcula con cada lectura (MF-06).
-| Alta
-| Integrar el GPS real (`geolocator`) con filtro por precisión y por distancia mínima, y un tiempo límite sin
-señal (MF-04 a MF-06).
+| Hasta el 2026-10-13 la posición era simulada: un punto aleatorio a ±33 m que saltaba en el mapa cada segundo.
+Resuelto con GPS real (link:../adr/0017-gps-real-geolocator-filtro.md[ADR 0017]). Lo que sigue abierto es que el
+margen de 10 m del Escenario 2 no se ha medido con la app en el campus.
+| Media
+| Medir en campo con la app publicada, en los mismos lugares del levantamiento, y comparar con el margen de 10 m.
 |===
 
 [[modos-de-fallo]]
@@ -130,27 +130,30 @@ hay tiempo límite propio: el de la librería y el navegador.
 | MF-04
 | Sensor de posición (`ubicacion_service.dart`)
 | No responde
-| Sin señal, la pantalla queda en «Esperando tu ubicación…» sin límite.
-| *Pendiente con plan:* al integrar el GPS real, a los 15 s sin lectura mostrar «No hay señal GPS» y ofrecer
-elegir el punto de partida en el mapa.
-| El mensaje de espera está probado (`test/mapa_test.dart`, «con destino espera la ubicación»); el límite no
-está implementado.
+| Sin permiso, con la ubicación apagada o sin señal, antes la pantalla quedaba en «Esperando tu ubicación…» sin
+límite.
+| `UbicacionServiceGps` emite `UbicacionNoDisponible` con el motivo: permiso, servicio apagado o 15 s sin una
+lectura válida (estar quieto con buena señal no cuenta). La pantalla dice el motivo y deja tocar el mapa para
+marcar la partida (ADR 0017).
+| *Implementado y probado*: `test/ubicacion_gps_test.dart` («MF-04»), `test/mapa_test.dart` y
+`test/ubicacion_test.dart` («MF-04»).
 
 | MF-05
 | Sensor de posición
 | Responde tarde
-| Una lectura vieja se usaría como posición actual.
-| *Pendiente con plan:* descartar lecturas con `timestamp` de más de 10 s.
-| Sin implementar (el simulador siempre entrega lecturas nuevas).
+| Una lectura vieja (por ejemplo, la última posición guardada por el navegador) se usaría como actual.
+| `FiltroUbicacion` descarta lecturas de más de 10 s.
+| *Implementado y probado*: `test/ubicacion_gps_test.dart` («MF-05»).
 
 | MF-06
 | Sensor de posición
 | Responde dos veces / con ruido
-| Hoy cada lectura mueve el punto y recalcula la ruta. Con el simulador (±33 m aleatorios) el punto salta cada
-segundo.
-| Ya implementado: la medición `ruta_mostrada` se registra una vez por destino, no por lectura. *Pendiente con
-plan:* ignorar lecturas a menos de 5 m de la anterior o con precisión peor que 20 m (Escenario 2: margen de 10 m).
-| La medición única tiene prueba (`test/mapa_test.dart`, «una vez por destino»); el filtro no está implementado.
+| Cada lectura movía el punto y recalculaba la ruta; con el simulador (±33 m aleatorios) el punto saltaba cada
+segundo y la cámara se reencuadraba.
+| `FiltroUbicacion` no emite lecturas a menos de 5 m de la anterior y descarta las de precisión peor que 30 m;
+la cámara se reencuadra solo al cambiar el destino; `ruta_mostrada` se registra una vez por destino.
+| *Implementado y probado*: `test/ubicacion_gps_test.dart` («MF-06») y `test/mapa_test.dart` («una vez por
+destino»).
 
 | MF-07
 | Google Geocoding (`geocoding_adapter.dart`)
@@ -224,9 +227,9 @@ empaquetados): GET sin efectos, idempotentes sin clave propia. La única escritu
 no es idempotente y por eso se envía como máximo una vez. No hay saga: ninguna operación escribe en más de un
 sistema ni tiene pasos que compensar (ADR 0016).
 
-*Resumen para el proyecto final:* con prueba automatizada MF-01, MF-07 a MF-11 y MF-13 a MF-15. Solo descritos:
-MF-02, MF-03 y MF-12, que son comportamiento de la librería o idempotentes por naturaleza. Pendientes con plan:
-MF-04 a MF-06, que dependen del GPS real (RT-08).
+*Resumen para el proyecto final:* con prueba automatizada MF-01, MF-04 a MF-11 y MF-13 a MF-15. Solo descritos:
+MF-02, MF-03 y MF-12, que son comportamiento de la librería o idempotentes por naturaleza. MF-04 a MF-06 se
+cerraron el 2026-10-13 con el GPS real (ADR 0017); falta medirlos en campo (RT-08).
 
 ifdef::arc42help[]
 [role="arc42help"]

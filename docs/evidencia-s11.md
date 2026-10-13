@@ -12,7 +12,7 @@ público hay una sola llamada de red en ese flujo, que por eso es la integració
 | Integración | Dónde ocurre la llamada | En producción |
 |---|---|---|
 | **Teselas de OpenStreetMap** (principal) | `lib/adapters/mapa_widget.dart`, `TileLayer` (`urlTemplate: https://tile.openstreetmap.org/...`) | Sí |
-| Sensor de posición | `lib/services/ubicacion_service.dart` | Sí, **simulado** (RT-08) |
+| Sensor de posición | `lib/services/ubicacion_service_gps.dart` (`geolocator`) | Sí, GPS real desde el 2026-10-13 (ADR 0017) |
 | Google Geocoding | `lib/adapters/geocoding_adapter.dart`, `_client.get(uri)` | No: sin key (ADR 0009) |
 | Google Static Maps | `lib/adapters/static_map_adapter.dart`, `_client.get(uri)` | No: sin key (ADR 0009) |
 | Measurement Protocol | `lib/adapters/analytics_adapter.dart`, `_client.post(...)` | Según los secretos del despliegue |
@@ -35,7 +35,8 @@ la mitigación asignada y si tiene prueba, si solo está descrita o si está pen
 | Analítica como máximo una vez (MF-15) | `analytics_adapter.dart`: ningún reenvío | «MF-15» |
 | Reintento de teselas con espera creciente (MF-01) | Lo hace `flutter_map` (`RetryClient` por defecto en `NetworkTileProvider`) | De la librería, sin prueba propia |
 | Aviso «Sin conexión al mapa base» (MF-01) | `mapa_widget.dart` `errorTileCallback` → `mapa_screen.dart` `_avisarSinMapaBase` | `test/mapa_test.dart` «MF-01» |
-| Límite sin señal GPS, lecturas viejas y filtro de ruido (MF-04 a MF-06) | **Pendiente, con plan**, al integrar el GPS real (RT-08) | — |
+| Sin permiso o sin señal en 15 s → motivo en pantalla y partida a mano (MF-04) | `ubicacion_service_gps.dart`: vigía y `UbicacionNoDisponible`; `mapa_screen.dart`: `_marcarOrigen` | `test/ubicacion_gps_test.dart`, `test/mapa_test.dart`, `test/ubicacion_test.dart` «MF-04» |
+| Lecturas viejas (> 10 s), imprecisas (> 30 m) o sin movimiento (< 5 m) (MF-05, MF-06) | `ubicacion_service.dart`: `FiltroUbicacion` | `test/ubicacion_gps_test.dart` «MF-05», «MF-06» |
 
 **Antes de esta semana ninguna llamada HTTP tenía tiempo límite.** Si Geocoding no contestaba, el
 botón «¿Dónde estoy?» quedaba deshabilitado sin fin, y la miniatura de Static Maps giraba sin
@@ -66,6 +67,6 @@ revisa la decisión.
 
 ## 7. Para el proyecto final (calidad y resiliencia)
 
-- **Con prueba automatizada:** MF-01, MF-07 a MF-11, MF-13 a MF-15.
+- **Con prueba automatizada:** MF-01, MF-04 a MF-11, MF-13 a MF-15.
 - **Solo descritos:** MF-02, MF-03 y MF-12 (comportamiento de la librería, o lecturas idempotentes).
-- **Pendientes con plan:** MF-04 a MF-06, que dependen del GPS real.
+- **Pendiente:** medir en el campus, con la app y el GPS real, el margen de 10 m del Escenario 2 (RT-08).

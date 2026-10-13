@@ -114,6 +114,11 @@ Las decisiones de diseño del proyecto se documentan como Registros de Decisione
 | link:../adr/0015-cache-del-sitio-revalidar.md[El sitio revalida HTML, JS y JSON en lugar de servirlos desde la caché]
 | Aceptado (2026-10-02)
 | Sin esto, un despliegue o una reversión no llegaban al usuario hasta una hora después.
+
+| ADR-0016
+| link:../adr/0016-no-extraer-modulos-por-ahora.md[No extraer ningún módulo de la app por ahora; los fallos de integración se manejan dentro del monolito]
+| Aceptado (2026-10-13)
+| Extraer exigiría el plan Blaze (tarjeta) y agregaría modos de fallo al flujo principal; tiempo límite de 5 s y analítica como máximo una vez.
 |===
 
 Nuevas decisiones de diseño relevantes que surjan durante el desarrollo deben agregarse como un nuevo ADR

@@ -10,12 +10,13 @@ C4Container
  
     System_Boundary(mapsutb, "MAPSUTB") {
         Container(app, "App móvil", "Flutter / Dart", "Interfaz, ruteo interno, tour panorámico y mapa base. Único artefacto desplegable")
-        ContainerDb(plano, "Plano del campus", "Archivos empaquetados", "Grafo peatonal y geometría propia del campus, superpuesta sobre Maps SDK")
+        ContainerDb(plano, "Plano del campus", "Archivos empaquetados", "Grafo peatonal y geometría propia del campus, dibujada sobre el mapa base de OSM")
         ContainerDb(panoramas, "Contenido panorámico 360°", "Imágenes equirectangulares", "Capturas esféricas vía smartphone para el tour virtual")
         ContainerDb(datos, "Datos de zonas y puntos de interés", "JSON local", "Clasificación manual de zonas y coordenadas de puntos de interés")
     }
  
-    System_Ext(mapsSdk, "Google Maps Platform", "Renderiza el mapa base interactivo (SDK embebido) y genera miniaturas estáticas (Static Maps API)")
+    System_Ext(osm, "OpenStreetMap (teselas)", "Mapa base interactivo dibujado con flutter_map (ADR 0012)")
+    System_Ext(mapsSdk, "Google Maps Platform", "Miniaturas estáticas (Static Maps API); opcional, requiere key")
     System_Ext(geocoding, "Google Geocoding API", "Convierte coordenadas y direcciones")
     System_Ext(analytics, "Measurement Protocol (Firebase/GA4)", "Registra eventos de uso de la app")
  
@@ -23,7 +24,7 @@ C4Container
     Rel(app, plano, "Lee el grafo peatonal y la geometría del campus", "Sistema de archivos, JSON")
     Rel(app, panoramas, "Lee el contenido del tour", "Sistema de archivos, imagen equirectangular (JPEG)")
     Rel(app, datos, "Consulta zonas y puntos de interés", "Sistema de archivos, JSON")
-    Rel(app, mapsSdk, "Renderiza el mapa base interactivo", "SDK embebido (nativo), tiles/vectores")
+    Rel(app, osm, "Pide teselas del mapa base", "HTTPS, PNG 256x256")
     Rel(app, mapsSdk, "Genera miniatura estática de una ubicación", "HTTPS, PNG (Static Maps API)")
     Rel(app, geocoding, "Solicita geocodificación", "HTTPS, JSON (REST)")
     Rel(app, analytics, "Registra evento de analítica", "HTTPS, JSON (Measurement Protocol)")
@@ -43,15 +44,17 @@ cargo del equipo pero introduce una dependencia fuerte de la disponibilidad de e
 | **Nombre** | **Responsabilidad** |
 |---|---|
 | App móvil | Único artefacto desplegable. Contiene toda la lógica de interfaz, ubicación, ruteo interno, mapa base y tour panorámico. |
-| Plano del campus | Empaqueta el grafo peatonal y la geometría propia del campus, usados para el ruteo interno y para superponerse sobre Maps SDK. |
+| Plano del campus | Empaqueta el grafo peatonal y la geometría propia del campus, usados para el ruteo interno y para dibujarse sobre el mapa base de OSM. |
 | Contenido panorámico 360° | Empaqueta las imágenes equirectangulares capturadas vía smartphone para el módulo de tour virtual. |
 | Datos de zonas y puntos de interés | Empaqueta el JSON con la clasificación manual de zonas (salones, laboratorios, oficinas) y sus coordenadas. |
 
 **Interfases importantes:**
 
-- **Google Maps Platform** — SDK embebido (nativo) para el mapa base interactivo, y HTTPS/PNG (Static Maps API) para
-  miniaturas estáticas de una ubicación. Solo la segunda tiene contrato ejecutable (ver más abajo); la primera no
-  expone una llamada REST que el código propio de MAPSUTB construya.
+- **OpenStreetMap (teselas)** — HTTPS/PNG, pedidas por `flutter_map` para el mapa base (ADR 0012). No tienen
+  contrato propio: las pide la librería, no una llamada REST que el código de MAPSUTB construya. Modos de fallo en
+  [arc42 §11](11_technical_risks.adoc#modos-de-fallo).
+- **Google Maps Platform** — HTTPS/PNG (Static Maps API) para miniaturas estáticas de una ubicación, con contrato
+  ejecutable (ver más abajo). Opcional: el despliegue público corre sin key (ADR 0009).
 - **Google Geocoding API** (HTTPS, JSON/REST — contrato en [`docs/api/apis-externas.openapi.yaml`](../api/apis-externas.openapi.yaml)): usada por la App móvil para convertir coordenadas GPS en direcciones legibles y viceversa. Integración síncrona request/response (ver [ADR 0005](../adr/0005-integracion-apis-externas.md)).
 - **Measurement Protocol (Firebase/GA4)** (HTTPS, JSON — mismo contrato): usado por la App móvil para registrar eventos de uso (consulta de zonas, solicitud de rutas, tour 360°) sin agregar el SDK nativo de Firebase (ver [ADR 0005](../adr/0005-integracion-apis-externas.md)).
 
@@ -61,14 +64,14 @@ _Propósito/Responsabilidad_
 
 Único artefacto desplegable del sistema. Provee la interfaz de usuario (pantallas de tour, mapas/ruteo y zonas),
 gestiona la ubicación en tiempo real del usuario, calcula rutas dentro del campus sobre el grafo peatonal propio,
-renderiza el mapa base (Maps SDK) con el plano propio superpuesto, muestra el tour panorámico 360° y registra
+dibuja el mapa base de OpenStreetMap con el plano propio superpuesto, muestra el tour panorámico 360° y registra
 eventos de uso para analítica.
 
 _Interfase(s)_
 
 - Consume el sensor de ubicación del dispositivo.
-- Consume Google Maps Platform: SDK embebido (nativo) para el mapa base, y Static Maps API (HTTPS, PNG) para
-  miniaturas estáticas.
+- Consume las teselas de OpenStreetMap (HTTPS, PNG) para el mapa base, vía `flutter_map`.
+- Consume Google Maps Platform: Static Maps API (HTTPS, PNG) para miniaturas estáticas, si hay key.
 - Consume Google Geocoding API (HTTPS, JSON/REST, síncrona) para geocodificación.
 - Consume Measurement Protocol (HTTPS, JSON, síncrona, de mejor esfuerzo) para registrar eventos de uso.
 - Lee los tres contenedores de datos empaquetados localmente (plano, panoramas, datos de zonas) vía sistema de archivos, JSON o imagen equirectangular (JPEG) según el contenedor.
@@ -97,8 +100,8 @@ fuera del alcance inicial.
 _Propósito/Responsabilidad_
 
 Almacena, empaquetado dentro de la app, el grafo peatonal (nodos y conexiones entre entradas, plazoletas y bloques)
-y la geometría propia del campus, usados para el ruteo interno y para superponerse visualmente sobre el mapa base
-de Maps SDK.
+y la geometría propia del campus, usados para el ruteo interno y para dibujarse sobre el mapa base de
+OpenStreetMap. Implementado: `lib/routing/mapa_repository.dart` sobre `assets/data/grafo.json` (ADR 0011, 0013).
 
 _Interfase(s)_
 
@@ -146,13 +149,12 @@ La clasificación es cargada manualmente por el equipo; no se actualiza dinámic
 
 _Propósito/Responsabilidad_
 
-Servicio externo de Google con dos usos distintos en MAPSUTB: (1) renderiza el mapa base interactivo (con
-coordenadas GPS reales) sobre el cual la App móvil superpone el plano propio del campus, vía SDK nativo embebido;
-(2) genera miniaturas estáticas de una ubicación (p. ej. para una tarjeta de punto de interés) vía Static Maps API.
+Servicio externo de Google que en MAPSUTB solo genera miniaturas estáticas de una ubicación (p. ej. para el detalle
+de una zona) vía Static Maps API. El mapa base interactivo dejó de ser Maps SDK: es OpenStreetMap con `flutter_map`
+(ADR 0012).
 
 _Interfase(s)_
 
-- Mapa base interactivo: SDK nativo embebido (no HTTP propio de MAPSUTB).
 - Miniaturas estáticas: HTTPS / REST, PNG. Contrato en [`docs/api/apis-externas.openapi.yaml`](../api/apis-externas.openapi.yaml)
   (ver [ADR 0005](../adr/0005-integracion-apis-externas.md)).
 
@@ -211,7 +213,7 @@ C4Component
     Container_Boundary(app, "App móvil (Flutter)") {
         Component(ui, "Pantallas de features", "Widgets Flutter", "tour, mapas_ruteo, zonas")
         Component(ubicacion, "Servicio de ubicación", "Observer - Stream<Ubicacion>", "Emite la posición en tiempo real a quien se suscriba")
-        Component(widget, "MapaWidget", "Adapter", "Renderiza Maps SDK como mapa base y superpone el plano propio y las rutas")
+        Component(widget, "MapaWidget", "Adapter", "Dibuja el mapa base de OSM con flutter_map y superpone zonas, posición y rutas")
         Component(ruteo, "Servicio de ruteo", "Dijkstra sobre grafo propio", "Calcula la ruta más corta dentro del campus")
         Component(mapaRepo, "MapaRepository", "Repository", "Sirve el grafo peatonal y la geometría del plano propio sin exponer su formato")
         Component(zonaRepo, "ZonaRepository", "Repository", "Clasificación manual de zonas y puntos de interés (Zona y Espacio, ver ADR 0006)")
@@ -224,7 +226,8 @@ C4Component
     ContainerDb(datos, "Datos de zonas y puntos de interés", "JSON local", "Clasificación manual")
     ContainerDb(plano, "Plano del campus", "Archivos empaquetados", "Grafo peatonal y geometría propia")
     ContainerDb(panoramas, "Contenido panorámico 360°", "Imágenes equirectangulares", "Capturas esféricas propias")
-    System_Ext(mapssdk, "Google Maps Platform", "Mapa base interactivo (SDK) y miniaturas estáticas (Static Maps API)")
+    System_Ext(osm, "OpenStreetMap (teselas)", "Mapa base (ADR 0012)")
+    System_Ext(mapssdk, "Google Maps Platform", "Miniaturas estáticas (Static Maps API)")
     System_Ext(geocoding, "Google Geocoding API", "Coordenadas y direcciones")
     System_Ext(analytics, "Measurement Protocol (Firebase/GA4)", "Eventos de uso")
     System_Ext(sensor, "Sensor de ubicación del dispositivo", "Capacidad de la plataforma")
@@ -244,7 +247,7 @@ C4Component
  
     Rel(ruteo, mapaRepo, "Lee el grafo peatonal", "Llamada a método (in-process)")
     Rel(widget, mapaRepo, "Lee la geometría del plano propio", "Llamada a método (in-process)")
-    Rel(widget, mapssdk, "Renderiza el mapa base", "SDK embebido (nativo), tiles/vectores")
+    Rel(widget, osm, "Pide teselas del mapa base", "HTTPS, PNG")
     Rel(geocodingAdap, geocoding, "Solicita geocodificación", "HTTPS, JSON (REST)")
     Rel(staticMapAdap, mapssdk, "Solicita miniatura estática", "HTTPS, PNG (Static Maps API)")
     Rel(analyticsAdap, analytics, "Envía evento de uso", "HTTPS, JSON (Measurement Protocol)")

@@ -15,7 +15,7 @@ El sistema de MAPSUTB interactúa con cuatro tipos de actores humanos y con dos 
 
 ## Contexto técnico
 
-Técnicamente, la aplicación (cliente Flutter para Android/iOS) se comunica de forma directa con las dos APIs de Google mencionadas mediante HTTPS/REST. No existe backend propio: la lógica de mapas y geolocalización se apoya en estos servicios de terceros, mientras que el ruteo (sobre un grafo peatonal propio) y la clasificación de zonas y puntos de interés se resuelven completamente con datos locales, empaquetados dentro de la app. Esto reduce la complejidad de infraestructura a cargo del equipo pero introduce una dependencia fuerte de la disponibilidad de Maps SDK y Geocoding API (ver [restricciones](../arc42/restricciones.md)).
+Técnicamente, la aplicación (Flutter, publicada como sitio web en Firebase Hosting) pide las teselas del mapa base a OpenStreetMap con `flutter_map` y, cuando hay key, se comunica de forma directa con las APIs de Google mediante HTTPS/REST. No existe backend propio, mientras que el ruteo (sobre un grafo peatonal propio) y la clasificación de zonas y puntos de interés se resuelven completamente con datos locales, empaquetados dentro de la app. Esto reduce la complejidad de infraestructura a cargo del equipo pero introduce una dependencia de la disponibilidad del servidor de teselas y de Geocoding API; sus modos de fallo y mitigaciones están en [arc42 §11](../arc42/11_technical_risks.adoc#modos-de-fallo).
 
 El contenido panorámico (capturado vía smartphone) se gestiona como asset propio del proyecto, independiente de las APIs externas, y se muestra mediante el motor de renderizado 360° que el equipo defina dentro de Flutter (pendiente de selección al momento de este documento).
 

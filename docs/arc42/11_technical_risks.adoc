@@ -28,13 +28,13 @@ endif::arc42help[]
 | ID | Riesgo / Deuda técnica | Prioridad | Medida sugerida
 
 | RT-01
-| Dependencia fuerte de servicios externos de Google (Maps SDK y Geocoding API). El sistema no tiene backend propio,
-por lo que la disponibilidad de la app depende directamente de la disponibilidad, cuotas y condiciones de uso de
-estos servicios de terceros.
+| Dependencia de servicios externos: teselas de OpenStreetMap para el mapa base (ADR 0012) y, cuando hay key,
+Google Geocoding y Static Maps. El sistema no tiene backend propio, así que la disponibilidad de esas funciones
+depende de la disponibilidad, las cuotas y las condiciones de uso de terceros.
 | Alta
-| Aislar el consumo de cada API detrás de un adaptador propio (`GeocodingAdapter`, `MapaWidget`), como ya está
-contemplado en el diseño, para poder reaccionar a cambios de la API sin modificar el resto de la app. Definir un
-mensaje claro al usuario cuando el servicio no responda.
+| Cada API está detrás de un adaptador propio (`MapaWidget`, `GeocodingAdapter`, `StaticMapAdapter`,
+`AnalyticsAdapter`). Desde 2026-10-13 cada modo de fallo tiene su mitigación asignada: ver
+<<modos-de-fallo>> y link:../adr/0016-no-extraer-modulos-por-ahora.md[ADR 0016].
 
 | RT-02
 | Motor/librería para renderizar panorámicas 360° en Flutter aún no definido. El equipo no ha decidido con qué
@@ -66,18 +66,167 @@ calculadas (ver <<esc-precision>>).
 | Igual que RT-04: documentar el proceso de edición del grafo y asignar responsable de mantenerlo actualizado.
 
 | RT-06
-| La app requiere conexión a internet en todo momento (no funciona offline), ya que tanto el mapa base como la
-geocodificación dependen de servicios externos de Google.
+| Sin conexión, el mapa base se queda sin teselas y Geocoding no responde. Una vez cargada la app, la ruta sí
+funciona: el grafo y las zonas viajan dentro de ella (ADR 0013).
 | Media
-| Comunicar esta limitación claramente en la app (por ejemplo, un aviso si se detecta pérdida de conexión) para
-evitar que el usuario interprete un fallo de red como un error de la app.
+| Implementado: aviso «Sin conexión al mapa base» en la pantalla de mapa (MF-01) y mensaje controlado en
+«¿Dónde estoy?» (MF-07, MF-08). Ver <<modos-de-fallo>>.
 
 | RT-07
 | La navegación en interiores queda fuera del alcance inicial del proyecto (limitación ya declarada).
 | Baja
 | Documentar explícitamente esta limitación en el alcance del producto para gestionar expectativas de usuarios y
 evaluadores del proyecto.
+
+| RT-08
+| La posición del usuario es simulada (`UbicacionServiceSimulado`): cada segundo emite un punto aleatorio a ±33 m
+de un punto base. El punto salta en el mapa y la ruta se recalcula con cada lectura (MF-06).
+| Alta
+| Integrar el GPS real (`geolocator`) con filtro por precisión y por distancia mínima, y un tiempo límite sin
+señal (MF-04 a MF-06).
 |===
+
+[[modos-de-fallo]]
+=== Modos de fallo de las integraciones
+
+Revisión de la semana 11: para cada integración, qué pasa si el otro lado **no responde**, **responde tarde**
+o **responde dos veces**. La decisión que los enmarca (no extraer módulos, tiempo límite sin reintento propio,
+analítica como máximo una vez) está en link:../adr/0016-no-extraer-modulos-por-ahora.md[ADR 0016].
+
+*Integración principal: mapa base de OpenStreetMap.* Es la única llamada de red del flujo principal (A-01, pedir
+una ruta) en el despliegue público. La hace `flutter_map` desde `TileLayer` en `lib/adapters/mapa_widget.dart`.
+Geocoding y Static Maps tienen el mismo análisis, pero en producción están apagados por falta de key (ADR 0009).
+
+[cols="1,2,1,4,4,3" options="header"]
+|===
+| ID | Integración | Modo | Qué pasa | Mitigación asignada | Prueba / estado
+
+| MF-01
+| Teselas OSM (`mapa_widget.dart`, `TileLayer`)
+| No responde
+| Sin red o servidor caído: los cuadros del mapa quedan vacíos. La ruta, los pines y la posición se dibujan igual,
+porque salen del grafo empaquetado.
+| `flutter_map` reintenta cada tesela con espera creciente (`RetryClient` por defecto). Si aun así falla,
+`errorTileCallback` avisa a `MapaScreen`, que muestra una vez «Sin conexión al mapa base: la ruta sigue siendo
+válida…» y registra `mapa_base_sin_teselas`.
+| *Implementado y probado*: `test/mapa_test.dart` «MF-01». La prueba simula el aviso de la librería; la petición
+real a OSM no se ejecuta en CI.
+
+| MF-02
+| Teselas OSM
+| Responde tarde
+| Las teselas aparecen a medida que llegan; nada espera por ellas. Si el reintento se agota, se cae en MF-01.
+| `abortObsoleteRequests` (por defecto en `flutter_map`) descarta los pedidos de teselas que ya no se ven. No
+hay tiempo límite propio: el de la librería y el navegador.
+| *Solo descrito.* Comportamiento de la librería, sin prueba propia.
+
+| MF-03
+| Teselas OSM
+| Responde dos veces
+| Pedir la misma tesela dos veces es un GET de una imagen que no cambia.
+| Idempotente por naturaleza; el navegador la sirve de su caché.
+| *Solo descrito.* No requiere mitigación.
+
+| MF-04
+| Sensor de posición (`ubicacion_service.dart`)
+| No responde
+| Sin señal, la pantalla queda en «Esperando tu ubicación…» sin límite.
+| *Pendiente con plan:* al integrar el GPS real, a los 15 s sin lectura mostrar «No hay señal GPS» y ofrecer
+elegir el punto de partida en el mapa.
+| El mensaje de espera está probado (`test/mapa_test.dart`, «con destino espera la ubicación»); el límite no
+está implementado.
+
+| MF-05
+| Sensor de posición
+| Responde tarde
+| Una lectura vieja se usaría como posición actual.
+| *Pendiente con plan:* descartar lecturas con `timestamp` de más de 10 s.
+| Sin implementar (el simulador siempre entrega lecturas nuevas).
+
+| MF-06
+| Sensor de posición
+| Responde dos veces / con ruido
+| Hoy cada lectura mueve el punto y recalcula la ruta. Con el simulador (±33 m aleatorios) el punto salta cada
+segundo.
+| Ya implementado: la medición `ruta_mostrada` se registra una vez por destino, no por lectura. *Pendiente con
+plan:* ignorar lecturas a menos de 5 m de la anterior o con precisión peor que 20 m (Escenario 2: margen de 10 m).
+| La medición única tiene prueba (`test/mapa_test.dart`, «una vez por destino»); el filtro no está implementado.
+
+| MF-07
+| Google Geocoding (`geocoding_adapter.dart`)
+| No responde
+| Sin red: antes salía una `ClientException` cruda.
+| Se traduce a `GeocodingException('SIN_CONEXION')`; la pantalla muestra «No se pudo obtener la dirección».
+| *Implementado y probado*: `test/modos_de_fallo_test.dart` «MF-07».
+
+| MF-08
+| Google Geocoding
+| Responde tarde
+| Antes no había tiempo límite: el botón «¿Dónde estoy?» quedaba deshabilitado sin fin.
+| Tiempo límite de 5 s → `GeocodingException('TIEMPO_AGOTADO')` y mensaje controlado. Sin reintento automático:
+el usuario repite con el botón, y cada intento consume cuota (`docs/costos.md`).
+| *Implementado y probado*: «MF-08» (adaptador, una sola petición y mensaje en pantalla).
+
+| MF-09
+| Google Geocoding
+| Responde dos veces
+| Un doble toque podría lanzar dos consultas y pagar dos.
+| El botón se deshabilita mientras hay una consulta en curso. La consulta es un GET sin efectos (idempotente),
+y tras salir de la pantalla la respuesta se descarta (`mounted`).
+| *Implementado y probado*: «MF-09».
+
+| MF-10
+| Google Static Maps (`static_map_adapter.dart`)
+| No responde
+| Sin red: antes salía una `ClientException` cruda.
+| `StaticMapException` → «Mapa no disponible.» en el detalle de zona.
+| *Implementado y probado*: «MF-10».
+
+| MF-11
+| Google Static Maps
+| Responde tarde
+| Antes el indicador de carga giraba sin fin.
+| Tiempo límite de 5 s → `StaticMapException`.
+| *Implementado y probado*: «MF-11».
+
+| MF-12
+| Google Static Maps
+| Responde dos veces
+| Redibujar el detalle podría pedir la imagen otra vez.
+| La petición se hace una vez en `initState`, no en cada `build`; además es un GET idempotente.
+| *Solo descrito.*
+
+| MF-13
+| Measurement Protocol (`analytics_adapter.dart`)
+| No responde
+| El evento se pierde.
+| Mejor esfuerzo: se registra `analitica_fallo_red` y no se interrumpe la navegación (Escenario 3).
+| *Probado*: `test/analytics_adapter_contract_test.dart` («un fallo de red no interrumpe…»).
+
+| MF-14
+| Measurement Protocol
+| Responde tarde
+| Antes la petición podía quedar abierta sin fin.
+| Tiempo límite de 5 s; se trata como MF-13.
+| *Implementado y probado*: «MF-14».
+
+| MF-15
+| Measurement Protocol
+| Responde dos veces
+| Un reintento tras un tiempo agotado contaría el evento dos veces si el primero sí llegó: el Measurement
+Protocol no deduplica.
+| *Como máximo una vez*: nunca se reenvía un evento. Se acepta perder eventos sin red antes que duplicarlos.
+| *Implementado y probado*: «MF-15».
+|===
+
+*Idempotencia y saga.* Las operaciones que se repiten son lecturas (teselas, Geocoding, Static Maps, JSON
+empaquetados): GET sin efectos, idempotentes sin clave propia. La única escritura es el evento de analítica, que
+no es idempotente y por eso se envía como máximo una vez. No hay saga: ninguna operación escribe en más de un
+sistema ni tiene pasos que compensar (ADR 0016).
+
+*Resumen para el proyecto final:* con prueba automatizada MF-01, MF-07 a MF-11 y MF-13 a MF-15. Solo descritos:
+MF-02, MF-03 y MF-12, que son comportamiento de la librería o idempotentes por naturaleza. Pendientes con plan:
+MF-04 a MF-06, que dependen del GPS real (RT-08).
 
 ifdef::arc42help[]
 [role="arc42help"]

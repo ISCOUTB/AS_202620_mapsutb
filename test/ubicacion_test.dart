@@ -121,4 +121,26 @@ void main() {
       );
     });
   });
+
+  group('UbicacionScreen con GPS real', () {
+    testWidgets('muestra la precisión que declara el sensor', (tester) async {
+      final service = await _montar(tester);
+      service.controller.add(Ubicacion(lat: 10.37, lng: -75.46, timestamp: DateTime(2026), precisionM: 7.6));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Precisión: ± 8 m'), findsOneWidget);
+      expect(find.textContaining('simulada'), findsNothing);
+    });
+
+    testWidgets('MF-04 sin señal lo explica, y una lectura nueva lo quita', (tester) async {
+      final service = await _montar(tester);
+      service.controller.addError(const UbicacionNoDisponible(MotivoSinUbicacion.sinSenal));
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('sin_ubicacion')), findsOneWidget);
+
+      service.controller.add(_ubicacion);
+      await tester.pumpAndSettle();
+      expect(find.byKey(const Key('sin_ubicacion')), findsNothing);
+    });
+  });
 }

@@ -31,6 +31,7 @@ class MapaWidget extends StatefulWidget {
     this.lugarSeleccionado,
     this.onLugarTocado,
     this.onMapaBaseFalla,
+    this.onMapaTocado,
     this.mostrarTeselas = true,
   });
 
@@ -56,6 +57,10 @@ class MapaWidget extends StatefulWidget {
   /// vez por tesela.
   final VoidCallback? onMapaBaseFalla;
 
+  /// Toque en el mapa fuera de los pines, con su lat y lng. Si es null,
+  /// tocar el mapa no hace nada.
+  final void Function(double lat, double lng)? onMapaTocado;
+
   /// Las pruebas lo apagan para no pedir teselas por red.
   final bool mostrarTeselas;
 
@@ -66,10 +71,10 @@ class MapaWidget extends StatefulWidget {
 class _MapaWidgetState extends State<MapaWidget> {
   final _controlador = MapController();
 
-  /// Identifica una ruta por su tamaño y sus extremos, para no reencuadrar en
-  /// cada actualización del GPS cuando la ruta no cambió.
-  static String _firma(List<List<double>> ruta) =>
-      ruta.isEmpty ? '' : '${ruta.length}:${ruta.first}:${ruta.last}';
+  /// Identifica una ruta por su destino, para reencuadrar cuando aparece o
+  /// cambia de destino, pero no cada vez que el usuario camina y la ruta
+  /// empieza en otro nodo (con GPS real eso movería la cámara a cada paso).
+  static String _firma(List<List<double>> ruta) => ruta.isEmpty ? '' : '${ruta.last}';
 
   @override
   void didUpdateWidget(MapaWidget anterior) {
@@ -97,6 +102,8 @@ class _MapaWidgetState extends State<MapaWidget> {
     }
   }
 
+  void _alTocar(TapPosition _, LatLng punto) => widget.onMapaTocado?.call(punto.latitude, punto.longitude);
+
   @override
   Widget build(BuildContext context) {
     final pos = widget.posicion;
@@ -105,6 +112,7 @@ class _MapaWidgetState extends State<MapaWidget> {
       options: MapOptions(
         initialCenter: LatLng(widget.latCentro, widget.lngCentro),
         initialZoom: 17.5,
+        onTap: _alTocar,
         minZoom: 15,
         maxZoom: 19.5,
       ),

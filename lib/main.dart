@@ -11,8 +11,13 @@ import 'features/mapas_ruteo/presentation/screens/ubicacion_screen.dart';
 import 'repositories/zona_repository.dart';
 import 'routing/mapa_repository.dart';
 import 'services/ubicacion_service.dart';
+import 'services/ubicacion_service_gps.dart';
 
 void main() => runApp(const MapsUtbApp());
+
+/// `--dart-define=UBICACION_SIMULADA=true` usa una posición fija del campus
+/// en lugar del GPS, para demostraciones fuera de la universidad.
+const _ubicacionSimulada = bool.fromEnvironment('UBICACION_SIMULADA');
 
 class MapsUtbApp extends StatelessWidget {
   const MapsUtbApp({super.key});
@@ -46,7 +51,7 @@ class _RaizNavegacionState extends State<_RaizNavegacion> {
   @override
   void initState() {
     super.initState();
-    _ubicacionService = UbicacionServiceSimulado();
+    _ubicacionService = _ubicacionSimulada ? UbicacionServiceSimulado() : UbicacionServiceGps();
     _zonaRepository = ZonaRepositoryLocal();
     _mapaRepository = MapaRepositoryLocal();
 

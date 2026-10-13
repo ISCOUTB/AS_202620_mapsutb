@@ -267,4 +267,39 @@ void main() {
     expect(_resumen(tester), contains('min'));
     expect(eventos('mapa_base_sin_teselas'), hasLength(1));
   });
+
+  testWidgets('MF-04 sin permiso de ubicación lo dice y deja marcar la partida en el mapa', (tester) async {
+    final ubicacion = await _montar(tester, destino: 'a1');
+    ubicacion.controller.addError(const UbicacionNoDisponible(MotivoSinUbicacion.permisoDenegado));
+    await tester.pumpAndSettle();
+    expect(_resumen(tester), startsWith('Sin permiso de ubicación. Toca el mapa'));
+
+    final mapa = tester.widget<MapaWidget>(find.byType(MapaWidget));
+    mapa.onMapaTocado!(10.36901, -75.46601); // junto a P
+    await tester.pumpAndSettle();
+    expect(_resumen(tester), '2 min · 120 m · 1 tramo con escaleras');
+
+    await tester.tap(find.byKey(const Key('usar_gps')));
+    await tester.pumpAndSettle();
+    expect(_resumen(tester), startsWith('Sin permiso'));
+  });
+
+  testWidgets('con GPS útil en el campus, tocar el mapa no mueve la partida', (tester) async {
+    final ubicacion = await _montar(tester, destino: 'a1');
+    ubicacion.controller.add(Ubicacion(lat: 10.36901, lng: -75.46601, timestamp: DateTime(2026)));
+    await tester.pumpAndSettle();
+
+    expect(tester.widget<MapaWidget>(find.byType(MapaWidget)).onMapaTocado, isNull);
+  });
+
+  testWidgets('fuera del campus se puede marcar la partida tocando el mapa', (tester) async {
+    final ubicacion = await _montar(tester, destino: 'a1');
+    ubicacion.controller.add(Ubicacion(lat: 10.4254, lng: -75.5077, timestamp: DateTime(2026))); // sede Manga
+    await tester.pumpAndSettle();
+    expect(_resumen(tester), endsWith('Toca el mapa para marcar tu punto de partida.'));
+
+    tester.widget<MapaWidget>(find.byType(MapaWidget)).onMapaTocado!(10.36901, -75.46601);
+    await tester.pumpAndSettle();
+    expect(_resumen(tester), '2 min · 120 m · 1 tramo con escaleras');
+  });
 }

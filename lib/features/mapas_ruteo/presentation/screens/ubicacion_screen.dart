@@ -19,16 +19,21 @@ class _UbicacionScreenState extends State<UbicacionScreen> {
   int _actualizaciones = 0;
   String? _direccion;
   bool _geocodificando = false;
+  MotivoSinUbicacion? _sinUbicacion;
 
   @override
   void initState() {
     super.initState();
-    _subscription = widget.service.ubicacionStream.listen((ubicacion) {
-      setState(() {
+    _subscription = widget.service.ubicacionStream.listen(
+      (ubicacion) => setState(() {
         _ubicacionActual = ubicacion;
         _actualizaciones++;
-      });
-    });
+        _sinUbicacion = null;
+      }),
+      onError: (Object e) {
+        if (e is UbicacionNoDisponible) setState(() => _sinUbicacion = e.motivo);
+      },
+    );
   }
 
   Future<void> _geocodificar(GeocodingAdapter geocoding) async {
@@ -54,6 +59,13 @@ class _UbicacionScreenState extends State<UbicacionScreen> {
     });
   }
 
+  static String _textoSinUbicacion(MotivoSinUbicacion motivo) => switch (motivo) {
+        MotivoSinUbicacion.permisoDenegado =>
+          'Sin permiso de ubicación: actívalo para este sitio en el navegador.',
+        MotivoSinUbicacion.servicioApagado => 'La ubicación del dispositivo está apagada.',
+        MotivoSinUbicacion.sinSenal => 'No hay señal GPS suficiente (sal a un espacio abierto).',
+      };
+
   @override
   void dispose() {
     _subscription?.cancel();
@@ -76,6 +88,13 @@ class _UbicacionScreenState extends State<UbicacionScreen> {
           ),
           const SizedBox(height: 8),
           Text('Actualizaciones recibidas: $_actualizaciones'),
+          if (ubicacion?.precisionM case final precision?)
+            Text('Precisión: ± ${precision.round()} m', key: const Key('precision')),
+          if (_sinUbicacion case final motivo?)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(32, 8, 32, 0),
+              child: Text(_textoSinUbicacion(motivo), key: const Key('sin_ubicacion'), textAlign: TextAlign.center),
+            ),
           if (geocoding != null) ...[
             const SizedBox(height: 16),
             FilledButton.icon(
@@ -91,16 +110,17 @@ class _UbicacionScreenState extends State<UbicacionScreen> {
                 child: Text(_direccion!, textAlign: TextAlign.center),
               ),
           ],
-          const SizedBox(height: 24),
-          const Padding(
-            padding: EdgeInsets.symmetric(horizontal: 32),
-            child: Text(
-              '(Servicio de ubicación simulado — patrón Observer, '
-              'Stream<Ubicacion>, sin GPS real todavía)',
-              textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey),
+          if (widget.service is UbicacionServiceSimulado) ...[
+            const SizedBox(height: 24),
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 32),
+              child: Text(
+                '(Ubicación simulada para demostración: no es tu posición real)',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey),
+              ),
             ),
-          ),
+          ],
         ],
       ),
     );

@@ -50,6 +50,14 @@ class _MapaScreenState extends State<MapaScreen> {
   /// Alguna tesela del mapa base no cargó (arc42 §11, MF-01/MF-02).
   bool _sinMapaBase = false;
 
+  /// Por qué el sensor no da posición (MF-04); null si la está dando.
+  MotivoSinUbicacion? _sinUbicacion;
+
+  /// Punto de partida que el usuario marcó tocando el mapa, cuando el GPS no
+  /// sirve: sin permiso, sin señal o fuera del campus. Tiene prioridad sobre
+  /// el GPS hasta que el usuario vuelva a «Usar mi GPS».
+  Ubicacion? _origenManual;
+
   /// Último destino cuya ruta ya se midió, para registrar una muestra por
   /// destino y no en cada actualización del GPS.
   String? _destinoMedido;
@@ -59,11 +67,15 @@ class _MapaScreenState extends State<MapaScreen> {
     super.initState();
     _destino = widget.destinoInicial;
     _datos = _cargar();
-    _sub = widget.ubicacionService.ubicacionStream.listen((u) {
-      setState(() {
+    _sub = widget.ubicacionService.ubicacionStream.listen(
+      (u) => setState(() {
         _posicion = u;
-      });
-    });
+        _sinUbicacion = null;
+      }),
+      onError: (Object e) {
+        if (e is UbicacionNoDisponible) setState(() => _sinUbicacion = e.motivo);
+      },
+    );
   }
 
   Future<(List<Zona>, GrafoPeatonal)> _cargar() async {
@@ -133,7 +145,9 @@ class _MapaScreenState extends State<MapaScreen> {
         });
       });
     }
-    final pos = _posicion;
+    final pos = _origenManual ?? _posicion;
+    final gps = _posicion;
+    final gpsUtil = gps != null && _enCampus(grafo, gps);
     Zona? centro;
     if (destino != null) {
       centro = zonas.firstWhere((z) => z.id == destino);
@@ -152,6 +166,7 @@ class _MapaScreenState extends State<MapaScreen> {
           lugarSeleccionado: destino,
           onLugarTocado: _elegirDestino,
           onMapaBaseFalla: _avisarSinMapaBase,
+          onMapaTocado: gpsUtil && _origenManual == null ? null : _marcarOrigen,
           mostrarTeselas: widget.mostrarTeselas,
         ),
       ),
@@ -191,6 +206,13 @@ class _MapaScreenState extends State<MapaScreen> {
             padding: const EdgeInsets.all(14),
             child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
               Text(estado.mensaje, key: const Key('resumen_ruta'), style: Theme.of(context).textTheme.titleMedium),
+              if (_origenManual != null)
+                TextButton.icon(
+                  key: const Key('usar_gps'),
+                  onPressed: () => setState(() => _origenManual = null),
+                  icon: const Icon(Icons.my_location),
+                  label: const Text('Partida marcada a mano · Usar mi GPS'),
+                ),
               if (_sinMapaBase)
                 const Text(
                   'Sin conexión al mapa base: la ruta sigue siendo válida, sale de los caminos guardados en la app.',
@@ -210,13 +232,30 @@ class _MapaScreenState extends State<MapaScreen> {
     setState(() => _sinMapaBase = true);
   }
 
+  bool _enCampus(GrafoPeatonal grafo, Ubicacion u) {
+    final cercano = grafo.nodoMasCercano(u.lat, u.lng);
+    return cercano != null && cercano.$2 <= MapaScreen.maxDistanciaAlCampusM;
+  }
+
+  void _marcarOrigen(double lat, double lng) {
+    setState(() => _origenManual = Ubicacion(lat: lat, lng: lng, timestamp: DateTime.now()));
+  }
+
+  static const _tocaElMapa = 'Toca el mapa para marcar tu punto de partida.';
+
   _EstadoRuta _calcularRuta(GrafoPeatonal grafo, String? destino) {
-    final pos = _posicion;
+    final pos = _origenManual ?? _posicion;
     if (destino == null) return const _EstadoRuta(null, 'Elige un destino o toca una zona del mapa.');
-    if (pos == null) return const _EstadoRuta(null, 'Esperando tu ubicación…');
-    final cercano = grafo.nodoMasCercano(pos.lat, pos.lng);
-    if (cercano == null || cercano.$2 > MapaScreen.maxDistanciaAlCampusM) {
-      return const _EstadoRuta(null, 'Estás fuera del campus: la ruta se calcula desde los caminos del campus.');
+    if (pos == null) {
+      return switch (_sinUbicacion) {
+        MotivoSinUbicacion.permisoDenegado => const _EstadoRuta(null, 'Sin permiso de ubicación. $_tocaElMapa'),
+        MotivoSinUbicacion.servicioApagado => const _EstadoRuta(null, 'La ubicación del dispositivo está apagada. $_tocaElMapa'),
+        MotivoSinUbicacion.sinSenal => const _EstadoRuta(null, 'No hay señal GPS suficiente. $_tocaElMapa'),
+        null => const _EstadoRuta(null, 'Esperando tu ubicación…'),
+      };
+    }
+    if (!_enCampus(grafo, pos)) {
+      return const _EstadoRuta(null, 'Estás fuera del campus: la ruta se calcula desde los caminos del campus. $_tocaElMapa');
     }
     final ruta = ServicioRuteo(grafo).rutaDesdePosicion(pos.lat, pos.lng, destino, evitarEscaleras: _evitarEscaleras);
     if (ruta == null) {

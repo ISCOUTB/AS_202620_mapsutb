@@ -6,19 +6,84 @@ import '../models/ubicacion.dart';
 ///
 /// Expone un Stream<Ubicacion> al que cualquier parte de la app puede
 /// suscribirse para reaccionar a cambios de posición en tiempo real,
-/// sin hacer polling manual (ver ADR 0001/0002).
+/// sin hacer polling manual (ver ADR 0001/0002). Cuando no hay posición
+/// utilizable, el Stream emite un error [UbicacionNoDisponible] y sigue
+/// abierto: si la señal vuelve, vuelven las posiciones.
 abstract class UbicacionService {
   Stream<Ubicacion> get ubicacionStream;
   void dispose();
 }
 
-/// Implementación simulada: todavía no usa GPS real ni el paquete
-/// `geolocator`. Emite una posición nueva cada segundo, con un pequeño
-/// desplazamiento aleatorio alrededor de un punto fijo del campus UTB,
-/// para demostrar el patrón Observer sin depender de hardware ni
-/// permisos de ubicación. El día que se integre `geolocator`, solo se
-/// reemplaza esta clase por una que escuche el sensor real — el resto
-/// de la app (que solo conoce `UbicacionService`) no cambia.
+/// Por qué no hay posición (arc42 §11, MF-04).
+enum MotivoSinUbicacion { permisoDenegado, servicioApagado, sinSenal }
+
+class UbicacionNoDisponible implements Exception {
+  const UbicacionNoDisponible(this.motivo);
+  final MotivoSinUbicacion motivo;
+
+  @override
+  String toString() => 'UbicacionNoDisponible: ${motivo.name}';
+}
+
+enum ResultadoFiltro {
+  /// Válida y en otro lugar: se emite.
+  nueva,
+
+  /// Válida pero a menos de [FiltroUbicacion.minDesplazamientoM]: prueba que
+  /// hay señal, pero no se emite.
+  sinMovimiento,
+
+  /// Vieja o imprecisa: como si no hubiera llegado.
+  descartada,
+}
+
+/// Decide qué lecturas del sensor se usan (arc42 §11, MF-05 y MF-06).
+///
+/// - Descarta las viejas: más de [maxAntiguedad] desde que se tomaron.
+/// - Descarta las imprecisas: radio de error mayor que [maxPrecisionM]. Los
+///   edificios del campus están a unos 20 m entre sí; con más error la
+///   ruta empezaría en otro edificio.
+/// - Descarta las que se movieron menos de [minDesplazamientoM] desde la
+///   última aceptada: es ruido del GPS, no el usuario caminando, y cada una
+///   movería el punto y recalcularía la ruta.
+class FiltroUbicacion {
+  FiltroUbicacion({
+    this.maxAntiguedad = const Duration(seconds: 10),
+    this.maxPrecisionM = 30,
+    this.minDesplazamientoM = 5,
+  });
+
+  final Duration maxAntiguedad;
+  final double maxPrecisionM;
+  final double minDesplazamientoM;
+
+  Ubicacion? _ultima;
+
+  ResultadoFiltro evaluar(Ubicacion u, DateTime ahora) {
+    if (ahora.difference(u.timestamp) > maxAntiguedad) return ResultadoFiltro.descartada;
+    final precision = u.precisionM;
+    if (precision != null && precision > maxPrecisionM) return ResultadoFiltro.descartada;
+    final ultima = _ultima;
+    if (ultima != null && distanciaM(ultima.lat, ultima.lng, u.lat, u.lng) < minDesplazamientoM) {
+      return ResultadoFiltro.sinMovimiento;
+    }
+    _ultima = u;
+    return ResultadoFiltro.nueva;
+  }
+
+  /// Distancia en metros (equirectangular: sobra a escala de un campus).
+  static double distanciaM(double lat1, double lng1, double lat2, double lng2) {
+    const radioTierraM = 6371000.0;
+    final x = (lng2 - lng1) * pi / 180 * cos((lat1 + lat2) / 2 * pi / 180);
+    final y = (lat2 - lat1) * pi / 180;
+    return sqrt(x * x + y * y) * radioTierraM;
+  }
+}
+
+/// Implementación simulada, para demostraciones y pruebas: no usa el GPS.
+/// Se activa con `--dart-define=UBICACION_SIMULADA=true` (ver `main.dart`).
+/// Emite cada segundo un punto fijo del campus con un ruido de ±1 m, para
+/// que el punto no salte por el mapa como antes (±33 m, arc42 §11 MF-06).
 class UbicacionServiceSimulado implements UbicacionService {
   // Campus Tecnológico de la UTB (Ternera), entre los edificios A1 y Alcatraz.
   static const double _latBase = 10.37005;
@@ -40,13 +105,14 @@ class UbicacionServiceSimulado implements UbicacionService {
 
   void _start() {
     _timer ??= Timer.periodic(const Duration(seconds: 1), (_) {
-      final offsetLat = (_random.nextDouble() - 0.5) * 0.0006;
-      final offsetLng = (_random.nextDouble() - 0.5) * 0.0006;
+      final offsetLat = (_random.nextDouble() - 0.5) * 0.00002;
+      final offsetLng = (_random.nextDouble() - 0.5) * 0.00002;
       _controller.add(
         Ubicacion(
           lat: _latBase + offsetLat,
           lng: _lngBase + offsetLng,
           timestamp: DateTime.now(),
+          precisionM: 5,
         ),
       );
     });

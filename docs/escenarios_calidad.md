@@ -7,6 +7,9 @@ artefacto, ambiente, respuesta, medida de respuesta), igual que el escenario de 
 
 ## Escenario 1 — Rendimiento
 
+> **Diferido (no implementado):** depende del tour panorámico 360°, que no existe en la app
+> (no hay `TourRepository` ni panorámicas). Se conserva el escenario para cuando se retome.
+
 - **Fuente del estímulo:** un usuario dentro de la app, en el módulo de tour panorámico.
 - **Estímulo:** el usuario abre un punto del tour con conexión 4G.
 - **Artefacto:** el módulo de tour (`TourRepository` + visor de panorámicas).
@@ -40,8 +43,8 @@ artefacto, ambiente, respuesta, medida de respuesta), igual que el escenario de 
 
   El escenario se cumple en exteriores, que es su alcance declarado (arc42 §2). Dentro de los
   edificios el GPS no alcanza para ubicar un espacio: por eso la ruta termina en la entrada y el
-  piso se declara a mano (ADR 0013). Medido el 2026-10-02 con los datos de
-  `C:\mapsutb-campo`; procedimiento en `docs/levantamiento-campo.md`.
+  piso se declara a mano (ADR 0013). Medido el 2026-10-02 con los datos del levantamiento de
+  campo; procedimiento y resultados en [`levantamiento-campo.md`](./levantamiento-campo.md).
 
 ## Escenario 3 — Disponibilidad / confiabilidad
 
@@ -54,6 +57,12 @@ artefacto, ambiente, respuesta, medida de respuesta), igual que el escenario de 
   forma silenciosa.
 - **Medida de respuesta:** 0% de caídas de la app; 100% de los casos con mensaje de error
   controlado.
+- **Medición:** cada modo de fallo de las integraciones tiene su prueba automatizada en CI: MF-01
+  (sin teselas → aviso «Sin conexión al mapa base», [`test/mapa_test.dart`](../test/mapa_test.dart)),
+  MF-04 a MF-06 (sensor de posición, [`test/ubicacion_gps_test.dart`](../test/ubicacion_gps_test.dart))
+  y MF-07 a MF-15 (Geocoding, Static Maps y analítica: sin red, tiempo agotado y doble respuesta,
+  [`test/modos_de_fallo_test.dart`](../test/modos_de_fallo_test.dart)). Tabla completa en
+  [arc42 §11](./arc42/11_technical_risks.adoc#modos-de-fallo).
 
 ## Escenario 4 — Usabilidad
 
@@ -66,6 +75,9 @@ artefacto, ambiente, respuesta, medida de respuesta), igual que el escenario de 
 - **Medida de respuesta:** menos de 2 minutos.
 
 ## Escenario 5 — Fidelidad de contenido
+
+> **Diferido (no implementado):** depende del contenido panorámico 360°, que no existe todavía.
+> Se conserva el escenario para cuando se retome el tour.
 
 - **Fuente del estímulo:** el equipo del proyecto, durante la validación de contenido.
 - **Estímulo:** se revisa un punto capturado (panorámica) contra el espacio real correspondiente.

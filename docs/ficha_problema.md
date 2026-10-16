@@ -17,16 +17,16 @@ Desarrollar una aplicación móvil que combine un mapa interactivo del campus co
 
 - Ubicar al usuario en tiempo real dentro del campus.
 - Mostrar rutas hacia un destino específico sobre el plano del campus.
-- Ofrecer un recorrido panorámico 360° de puntos de interés del campus.
+- Ofrecer un recorrido panorámico 360° de puntos de interés del campus (diferido, no implementado).
 - Registrar puntos de interés del campus.
 
 ## Alcance
 
-El proyecto cubre navegación en exteriores mediante geolocalización sobre un plano propio del campus superpuesto a un mapa base (Google Maps SDK), y un recorrido panorámico 360° de puntos de interés. La navegación en interiores queda limitada en su alcance, pero sigue siendo funcional. No se implementa guiado por realidad aumentada sobre cámara: se evaluó ARCore Geospatial API y se descartó por completo — ver ADR 0003 para el razonamiento.
+El proyecto cubre navegación en exteriores mediante geolocalización sobre un plano propio del campus superpuesto a un mapa base (teselas de OpenStreetMap con `flutter_map`, ADR 0012, que reemplazó a Google Maps SDK). El recorrido panorámico 360° de puntos de interés está diferido (no implementado). La navegación en interiores queda fuera de alcance: la ruta termina en la entrada del edificio, porque dentro de los edificios el GPS midió 16,5 m de error mediano. No se implementa guiado por realidad aumentada sobre cámara: se evaluó ARCore Geospatial API y se descartó por completo — ver ADR 0003 para el razonamiento.
 
 ## APIs de Google consideradas
 
-Maps SDK (mapa base) y Geocoding API (conversión de coordenadas y direcciones) son las dos que el proyecto usa. Se evaluaron también ARCore Geospatial API, Places API y Directions API, pero se descartaron por el cambio de alcance documentado en el ADR 0003.
+Geocoding API (conversión de coordenadas y direcciones) y Static Maps API (miniaturas) están integradas, pero son opcionales y en producción están apagadas por falta de key (exigen tarjeta, ADR 0009). Maps SDK fue el mapa base inicial y se reemplazó por OpenStreetMap (ADR 0012). Se evaluaron también ARCore Geospatial API, Places API y Directions API, pero se descartaron por el cambio de alcance documentado en el ADR 0003.
 
 ## Arquitectura propuesta
 

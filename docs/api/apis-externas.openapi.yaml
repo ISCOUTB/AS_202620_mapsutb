@@ -15,11 +15,11 @@ info:
          (lib/adapters/static_map_adapter.dart).
       3. Measurement Protocol (Firebase/Google Analytics) — registro de
          eventos de uso (lib/adapters/analytics_adapter.dart).
-    Google Maps SDK (el mapa interactivo embebido en MapaWidget) queda
-    fuera de este contrato a propósito: se consume como SDK nativo
-    embebido, no mediante llamadas REST propias, así que no hay
-    implementación de MAPSUTB con la que un contrato HTTP pueda
-    corresponder.
+    El mapa base (teselas de OpenStreetMap dibujadas con flutter_map en
+    MapaWidget, ADR 0012) queda fuera de este contrato a propósito: las
+    teselas las pide la librería, no una llamada REST que el código de
+    MAPSUTB construya, así que no hay implementación propia con la que un
+    contrato HTTP pueda corresponder.
 
 paths:
   /maps/api/geocode/json:

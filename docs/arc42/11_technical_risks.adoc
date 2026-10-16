@@ -3,26 +3,6 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-technical-risks]]
 == Riesgos y deuda técnica
 
-
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contenido
-Una lista de los riesgos técnicos o deuda técnica identificada, ordenada por prioridad.
-
-.Motivación
-"El manejo de riesgos es administración de proyectos para gente adulta" (Tim Lister, Atlantic Systems Guild.)
-
-Esto debiera ser el lema para la detección sistemática y la evaluación de riesgos y deuda técnica en la arquitectura,
-que será requerida por las partes relacionadas administrativas (por ejemplo, administradores de proyectoes, propietarios
-de producto) como parte de la planeación y medición de riesgos en general.
-
-.Forma
-Lista de riesgos y/o deuda técnica, que podría incluir una medidas sugeridas para minimizar, mitigar o evitar riesgos
-o reducir la deuda técnica.
-****
-endif::arc42help[]
-
 [cols="1,3,1,3" options="header"]
 |===
 | ID | Riesgo / Deuda técnica | Prioridad | Medida sugerida
@@ -37,16 +17,17 @@ depende de la disponibilidad, las cuotas y las condiciones de uso de terceros.
 <<modos-de-fallo>> y link:../adr/0016-no-extraer-modulos-por-ahora.md[ADR 0016].
 
 | RT-02
-| Motor/librería para renderizar panorámicas 360° en Flutter aún no definido. El equipo no ha decidido con qué
-herramienta se mostrará el tour panorámico.
-| Alta
-| Priorizar un spike técnico corto para evaluar y decidir la librería antes de construir el módulo de tour, ya que
-esta decisión condiciona el formato de captura y el `TourRepository`.
+| Motor/librería para renderizar panorámicas 360° en Flutter aún no definido. El tour panorámico está diferido (no
+implementado), así que hoy el riesgo no afecta a la app publicada.
+| Baja
+| Si se retoma el tour, hacer primero un spike técnico corto para evaluar y decidir la librería, ya que esta
+decisión condiciona el formato de captura y el `TourRepository`.
 
 | RT-03
 | El equipo no cuenta con cámaras 360° dedicadas; el contenido panorámico se captura vía smartphone (captura
 esférica manual, tipo Google Street View App). Esto puede afectar la fidelidad y consistencia del contenido frente
-a la meta de calidad de "Fidelidad de contenido" (ver <<esc-fidelidad>>).
+a la meta de calidad de "Fidelidad de contenido" (ver <<esc-fidelidad>>). Aplica solo si se retoma el tour, hoy
+diferido.
 | Media
 | Definir un protocolo de captura (altura, condiciones de luz, puntos fijos) para minimizar inconsistencias entre
 capturas hechas por distintos integrantes del equipo.
@@ -132,9 +113,11 @@ hay tiempo límite propio: el de la librería y el navegador.
 | No responde
 | Sin permiso, con la ubicación apagada o sin señal, antes la pantalla quedaba en «Esperando tu ubicación…» sin
 límite.
-| `UbicacionServiceGps` emite `UbicacionNoDisponible` con el motivo: permiso, servicio apagado o 15 s sin una
-lectura válida (estar quieto con buena señal no cuenta). La pantalla dice el motivo y deja tocar el mapa para
-marcar la partida (ADR 0017).
+| `UbicacionServiceGps` emite `UbicacionNoDisponible` con el motivo: permiso, servicio apagado o falta de una
+lectura válida (45 s para la primera, que incluye el aviso de permiso del navegador; 15 s después; estar quieto
+con buena señal no cuenta). La pantalla dice el motivo y deja tocar el mapa para marcar la partida (ADR 0017). Si
+se pierde la señal con una ruta en pantalla, la ruta avisa que parte de la última posición conocida. Una pantalla
+que se abre después recibe de inmediato la última posición o el último fallo. Desde el 2026-10-16.
 | *Implementado y probado*: `test/ubicacion_gps_test.dart` («MF-04»), `test/mapa_test.dart` y
 `test/ubicacion_test.dart` («MF-04»).
 
@@ -151,7 +134,8 @@ marcar la partida (ADR 0017).
 | Cada lectura movía el punto y recalculaba la ruta; con el simulador (±33 m aleatorios) el punto saltaba cada
 segundo y la cámara se reencuadraba.
 | `FiltroUbicacion` no emite lecturas a menos de 5 m de la anterior y descarta las de precisión peor que 30 m;
-la cámara se reencuadra solo al cambiar el destino; `ruta_mostrada` se registra una vez por destino.
+si solo llegan imprecisas, el motivo es «precisión baja», con el error medido (típico de un computador ubicado
+por Wi-Fi). La cámara se reencuadra solo al cambiar el destino; `ruta_mostrada` se registra una vez por destino.
 | *Implementado y probado*: `test/ubicacion_gps_test.dart` («MF-06») y `test/mapa_test.dart` («una vez por
 destino»).
 
@@ -231,12 +215,7 @@ sistema ni tiene pasos que compensar (ADR 0016).
 MF-02, MF-03 y MF-12, que son comportamiento de la librería o idempotentes por naturaleza. MF-04 a MF-06 se
 cerraron el 2026-10-13 con el GPS real (ADR 0017); falta medirlos en campo (RT-08).
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
 Esta lista cubre los riesgos y deuda técnica que ya se han identificado explícitamente a lo largo de las decisiones
 de arquitectura del proyecto (ver vista de bloques y requerimientos de calidad). Si el equipo identifica riesgos
-adicionales — por ejemplo, precisión del GPS dentro de edificios, experiencia previa del equipo con Flutter/patrones
-usados, o riesgos de cronograma — deben agregarse aquí con el mismo formato.
-****
-endif::arc42help[]
+adicionales — por ejemplo, experiencia previa del equipo con Flutter/patrones usados, o riesgos de cronograma —
+deben agregarse aquí con el mismo formato.

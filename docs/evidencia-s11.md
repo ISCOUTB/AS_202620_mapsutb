@@ -62,8 +62,15 @@ revisa la decisión.
 
 - `docs/aspectos.md`: A-01 suma ADR 0016, la prueba MF-01 y la tabla de §11, con enlaces
   navegables; A-02 suma las pruebas MF-07 a MF-15.
-- C4 al día con el código: el «Plano del campus» figura como implementado en
-  [`C2.md`](./c4/C2.md), y C1, C3 y arc42 §5 ya no describen Google Maps SDK como mapa base.
+- C4 y arc42 al día con el código: el «Plano del campus» figura como implementado en
+  [`C2.md`](./c4/C2.md), y ni arc42 (§1 a §12) ni C4 (C1, C2, C3) describen ya Google Maps SDK
+  como mapa base: es OpenStreetMap con `flutter_map` (ADR 0012). C3 y arc42 §5 muestran que la
+  pantalla de mapa lee `MapaRepository` y le pasa el grafo a `ServicioRuteo`, e incluyen
+  `StaticMapAdapter` y `AnalyticsAdapter`. El tour 360° figura como diferido en todos.
+- CI en verde sobre el commit `e8f2995`:
+  [run 38439161941](https://github.com/ISCOUTB/AS_202620_mapsutb/actions/runs/38439161941).
+  Análisis estático en SonarCloud, Quality Gate OK:
+  https://sonarcloud.io/summary/new_code?id=ISCOUTB_AS_202620_mapsutb.
 
 ## 7. Para el proyecto final (calidad y resiliencia)
 

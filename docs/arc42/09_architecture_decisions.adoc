@@ -3,33 +3,6 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-design-decisions]]
 == Decisiones de Diseño
 
-
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contenido
-Decisiones arquitectónicas importantes, costosas, a larga escala o riesgosas incluyendo sus razonamientos.
-Con "Decisiones" nos referimos a la elección de una alternativa basada en cierto criterio.
-
-Se debe usar el juicio para decidir si una decisión arquitectónica debe ser documentada en esta sección
-central o si sería preferible documentarla localmente (Por ejemplo, dentro de una plantilla de caja blanca
-de un bloque de construcción).
-
-Evite la redundancia. Tomar de referencia la sección 4, donde ya se capturaron las decisiones más importantes 
-para la arquitectura.
-
-.Motivación
-Las partes relacionadas del sistema deben comprender y trazar las decisiones.
-
-.Forma
-Varias opciones:
-
-* Lista o tabla, ordenada por importancia y consecuencias o:
-* Mayor detalle en secciones separadas por cada sección.
-* Registro de Decisiones de Arquitectura (ADR por sus siglas en inglés) para cada decisión importante.
-****
-endif::arc42help[]
-
 Las decisiones de diseño del proyecto se documentan como Registros de Decisiones de Arquitectura (ADR) en
 `docs/adr/`, para evitar duplicar aquí el razonamiento y las alternativas descartadas ya capturadas en cada uno.
 
@@ -48,7 +21,7 @@ Las decisiones de diseño del proyecto se documentan como Registros de Decisione
 | ADR-0002
 | link:../adr/0002-patrones-de-diseno-sin-realidad-aumentada.md[Patrones de diseño para navegación sin realidad aumentada]
 | Aceptado (2026-08-30)
-| Decisión vigente de patrones: Adapter para Maps SDK y Geocoding, Repository para datos locales, Observer para ubicación.
+| Decisión vigente de patrones: Adapter para Maps SDK y Geocoding, Repository para datos locales, Observer para ubicación. El mapa base fue reemplazado por ADR-0012 (`flutter_map` + OpenStreetMap); el Adapter sigue en `MapaWidget`.
 
 | ADR-0003
 | link:../adr/0003-descartar-realidad-aumentada.md[Descartar guiado por realidad aumentada]
@@ -103,11 +76,11 @@ Las decisiones de diseño del proyecto se documentan como Registros de Decisione
 | ADR-0013
 | link:../adr/0013-ruteo-dijkstra-grafo-propio.md[Ruteo a pie con Dijkstra sobre el grafo propio]
 | Aceptado (2026-10-01)
-| Dijkstra con montículo propio, sin dependencias nuevas; p95 de 0,92 ms por ruta (Escenario 2).
+| Dijkstra con montículo propio, sin dependencias nuevas. El ADR registró un p95 de 0,92 ms por ruta; la última medición en CI es de 0,68 ms (https://github.com/ISCOUTB/AS_202620_mapsutb/actions/runs/37042248426[run 37042248426], Escenario 2).
 
 | ADR-0014
 | link:../adr/0014-sin-componente-generativo.md[No incorporar un componente generativo en la app]
-| Propuesto (2026-10-01)
+| Aceptado (2026-10-02)
 | Decisión del equipo (2026-10-02): costo y tarjeta, funcionamiento sin conexión y resultados verificables.
 
 | ADR-0015
@@ -126,5 +99,5 @@ Las decisiones de diseño del proyecto se documentan como Registros de Decisione
 | Reemplaza el simulador de ±33 m y cierra MF-04 a MF-06; la app sigue usable sin GPS o fuera del campus.
 |===
 
-Nuevas decisiones de diseño relevantes que surjan durante el desarrollo deben agregarse como un nuevo ADR
-(`0002-...`, `0003-...`) y sumarse a esta tabla, en vez de editar retroactivamente el ADR-0001.
+Nuevas decisiones de diseño relevantes que surjan durante el desarrollo deben agregarse como un nuevo ADR, con el
+siguiente número libre (hoy, `0018-...`), y sumarse a esta tabla, en vez de editar retroactivamente un ADR aceptado.

@@ -5,23 +5,25 @@ ifndef::imagesdir[:imagesdir: ../images]
 
 === Vista de Requerimientos
 
-**MAPSUTB** es una aplicación móvil desarrollada en Flutter que permite a
-distintos tipos de usuarios explorar el campus de la *Universidad
-Tecnológica de Bolívar* (UTB) mediante recorridos panorámicos 360°
-anclados a ubicaciones reales del campus. El proyecto se desarrolla
-dentro de la organización de GitHub ISCOUTB, como parte del curso
-académico de *Arquitectura de Software*.
+**MAPSUTB** es una aplicación desarrollada en Flutter, publicada como
+sitio web en Firebase Hosting, que permite a distintos tipos de usuarios
+ubicarse en el campus de la *Universidad Tecnológica de Bolívar* (UTB) y
+trazar rutas a pie hacia sus zonas. El proyecto se desarrolla dentro de
+la organización de GitHub ISCOUTB, como parte del curso académico de
+*Arquitectura de Software*.
 
-El sistema utiliza un sistema de recorridos en 360° y un mapa de la
-universidad para mostrar la ubicación de los puntos de interés de la
-misma, permitiéndole al usuario no perderse a la hora de llegar a la
-universidad y poder encontrar el lugar que busca.
+El sistema utiliza un mapa de la universidad (teselas de OpenStreetMap
+con el plano propio del campus superpuesto) para mostrar la ubicación de
+sus zonas y puntos de interés, permitiéndole al usuario no perderse a la
+hora de llegar a la universidad y poder encontrar el lugar que busca. El
+recorrido panorámico 360° de la propuesta inicial está diferido (no
+implementado).
 
 Objetivos específicos del sistema:
 
 * Ubicar al usuario en tiempo real dentro del campus.
 * Mostrar rutas hacia un destino específico.
-* Ofrecer un recorrido panorámico 360° navegable de los puntos de interés.
+* Ofrecer un recorrido panorámico 360° navegable de los puntos de interés — diferido (no implementado).
 * Registrar puntos de interés del campus.
 
 === Metas de Calidad
@@ -29,13 +31,13 @@ Objetivos específicos del sistema:
 [options="header",cols="2,4"]
 |===
 |Atributo de calidad|Motivación / prioridad
-|Rendimiento|La experiencia de tour panorámico depende de cargas rápidas y de mantener FPS estables en dispositivos de gama media.
+|Rendimiento|La ruta debe aparecer pocos segundos después de elegir el destino, también en celulares de gama media (Escenario 2). La carga rápida del tour panorámico (Escenario 1) queda diferida con el tour.
 |Precisión de geolocalización y ruteo|Es el diferenciador central del producto (posición del usuario en tiempo real vía GPS); errores de precisión degradan directamente el valor de la app.
-|Disponibilidad / confiabilidad|El ruteo interno, el tour panorámico y la clasificación de zonas funcionan sin conexión a internet (activos locales); el mapa base y la geocodificación dependen de la disponibilidad de Google Maps SDK/Geocoding API. Mientras tenga acceso a la ubicación GPS, la app debería seguir siendo utilizable aunque estas dos funciones específicas fallen.
+|Disponibilidad / confiabilidad|El ruteo interno y la clasificación de zonas funcionan sin conexión una vez cargada la app (activos locales); el mapa base depende de las teselas de OpenStreetMap (ADR 0012) y la geocodificación de Google Geocoding API, que en producción está apagada por falta de key (ADR 0009). Con GPS, o con el punto de partida marcado a mano (ADR 0017), la app sigue siendo utilizable aunque estas dos funciones fallen.
 |Usabilidad|El público incluye aspirantes que usan la app por primera vez e invitados a la universidad, sin guía previa.
-|Fidelidad de contenido|El tour debe representar fielmente los espacios reales, dado su uso institucional potencial.
+|Fidelidad de contenido|Las zonas y el grafo peatonal deben representar fielmente los espacios reales, dado su uso institucional potencial (10 de las 11 zonas tienen coordenadas medidas en campo). La fidelidad del tour 360° queda diferida con el tour.
 |Mantenibilidad|La clasificación de zonas es manual; debe ser sencilla de actualizar por el equipo.
-|Portabilidad|Debe funcionar en distintas versiones y tamaños de pantalla de Android/iOS.
+|Portabilidad|Debe funcionar en navegadores de computador y de celular, con distintos tamaños de pantalla. Hoy se publica solo como web en Firebase Hosting; la compilación móvil (Android/iOS) no está configurada.
 |===
 
 NOTE: El detalle del árbol de utilidad se encuentra en
@@ -51,11 +53,11 @@ link:../arc42/10_quality_requirements.adoc[10_quality_requirements.adoc].
 |Aspirantes / futuros estudiantes|Usuario final primario|Conocer las ubicaciones importantes del campus antes de matricularse; experiencia fluida.
 |Invitados|Usuario final secundario|Poder explorar el campus y ubicarse.
 |Estudiantes actuales|Usuario final secundario|Ubicarse y trazar rutas dentro del campus.
-|Estudiantes de intercambio extranjeros|Usuario final secundario|Interfaz en inglés; orientarse en un campus desconocido sin barrera de idioma.
+|Estudiantes de intercambio extranjeros|Usuario final secundario|Interfaz en inglés (pendiente: solo español hoy); orientarse en un campus desconocido sin barrera de idioma.
 |UTB (Admisiones / Bienestar Universitario)|Cliente institucional|Representación fiel del campus; herramienta de inclusión de estudiantes.
 |Docente(s) del curso|Evaluador académico|Cumplimiento de la metodología arc42/C4 y de los entregables definidos.
 |Equipo de desarrollo|Desarrolladores|Arquitectura mantenible; cumplir los plazos del semestre.
 |Organización ISCOUTB (GitHub)|Repositorio / comunidad técnica|Buenas prácticas y documentación clara para dar continuidad al proyecto.
 |Futuros mantenedores (próximos semestres)|Interesados indirectos|Código y arquitectura entendibles para continuar el desarrollo.
-|APIs públicas de Google (terceros)|Proveedor de servicios|Disponibilidad y estabilidad de los servicios consumidos por la app.
+|OpenStreetMap y APIs públicas de Google (terceros)|Proveedor de servicios|Disponibilidad de las teselas del mapa base (OSM) y, si se activan con key, de Geocoding y Static Maps.
 |===

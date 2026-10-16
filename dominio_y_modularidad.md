@@ -140,11 +140,11 @@ canónica ya vive en `docs/arc42/`.
 
 ## Referencias
 
-- [`docs/c4/C2.md`](./c4/C2.md) — declara `MapaRepository` y `TourRepository` como
+- [`docs/c4/C2.md`](./docs/c4/C2.md) — declara `MapaRepository` y `TourRepository` como
   contenedores pendientes.
-- [`docs/arc42/05_building_block_view.md`](./arc42/05_building_block_view.md) — diagrama
+- [`docs/arc42/05_building_block_view.md`](./docs/arc42/05_building_block_view.md) — diagrama
   C4 de componentes referenciado en las no conformidades #2 y #4.
-- [`docs/arc42/12_glossary.adoc`](./arc42/12_glossary.adoc) — glosario referenciado en las
+- [`docs/arc42/12_glossary.adoc`](./docs/arc42/12_glossary.adoc) — glosario referenciado en las
   no conformidades #1 y #2.
-- [`docs/adr/0001-patrones-de-diseno.md`](./adr/0001-patrones-de-diseno.md) — Repository,
+- [`docs/adr/0001-patrones-de-diseno.md`](./docs/adr/0001-patrones-de-diseno.md) — Repository,
   Adapter y Observer ya adoptados; base de los contextos descritos arriba.

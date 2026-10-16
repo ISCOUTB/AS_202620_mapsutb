@@ -3,72 +3,16 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-concepts]]
 == Conceptos Transversales (Cross-cutting)
 
-
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contenido
-Esta sección describe de manera general, las principales ideas de solución y regulación que 
-son relevantes en multiples partes (-> cross-cutting/transversales) del sistema.
-Dichos conceptos están relacionados usualmente a múltiples bloques de construcción.
-Pueden incluir diversos temas, tales como:
-
-* Modelos de dominio
-* Patrones de arquitectura o patrones de diseño
-* Reglas de uso para alguna tecnología específica.
-* Decisiones técnicas principales o generales
-* Reglas de implementación
-
-.Motivación
-Conceptos que forman la base para la _integridad conceptual_ (consistencia, homogeneidad) de la
-arquitectura. Entonces, son una contribución importante para alcanzar la calidad interna del sistema.
-
-Algunos de estos conceptos no pueden ser asignados a bloques de construcción individuales (por ejemplo
-seguridad). Este es el lugar en la plantilla provisto para una especificación cohesiva de dichos conceptos.
-
-.Forma
-La forma puede ser variada:
-
-* Papeles conceptuales con cualquier tipo de estructura
-* Modelo transversal (cross-cutting) de fragmentos o escenarios usando notación de las vistas arquitectónicas
-* Implementaciones de muestra, especialmente para conceptos técnicos.
-* Referencias a uso típico en frameworks estándar (por ejemplo, el uso de Hibernate para mapeo Objeto/Relacional)
-The form can be varied:
-
-.Estructura
-La estructura potencial (pero no obligatoria) para esta sección podría ser:
-
-* Conceptos de dominio
-* Conceptos de experiencia de usuario (UX)
-* Conceptos de seguridad
-* Patrones de diseño y arquitectura
-* 
-A potential (but not mandatory) structure for this section could be:
-
-* Domain concepts
-* User Experience concepts (UX)
-* Safety and security concepts
-* Architecture and design patterns
-* "Bajo el capó"
-* Conceptos de desarrollo
-* Conceptos de operación
-
-Nota: Puede ser difícil asignar conceptos individuales a un tema específico de la lista
-
-image:08-concepts-EN.drawio.png["Posibles temas para conceptos transversales"]
-****
-endif::arc42help[]
-
 === Conceptos de dominio: mapa de contextos
 
 MAPSUTB no tiene varios equipos ni varios sistemas heredados — es un cliente único
-Flutter. Aun así, el código ya distingue (y el corte 2 va a terminar de separar) cuatro
-contextos delimitados, con vocabulario y ciclo de vida propios:
+Flutter. Aun así, el código distingue cuatro contextos delimitados, con vocabulario y ciclo
+de vida propios; tres están implementados y el Tour 360° está diferido (no implementado):
 
 [mermaid]
 ....
 flowchart LR
-    UI["Pantallas de features<br/>(zonas, mapas_ruteo, tour)"]
+    UI["Pantallas de features<br/>(zonas, mapas_ruteo)"]
 
     subgraph CAT["Catálogo de lugares"]
         direction TB
@@ -77,15 +21,15 @@ flowchart LR
 
     subgraph POS["Posicionamiento"]
         direction TB
-        POSM["Ubicación (Observer, Stream)"]
+        POSM["Ubicación (Observer, Stream, GPS real)"]
     end
 
-    subgraph RUT["Ruteo — pendiente (corte 2)"]
+    subgraph RUT["Ruteo"]
         direction TB
         RUTM["Grafo peatonal + Dijkstra"]
     end
 
-    subgraph TUR["Tour 360° — pendiente (corte 2)"]
+    subgraph TUR["Tour 360° — diferido (no implementado)"]
         direction TB
         TURM["Contenido panorámico"]
     end
@@ -93,9 +37,9 @@ flowchart LR
     UI -->|consulta| CAT
     UI -->|se suscribe al stream| POS
     UI -->|solicita una ruta| RUT
-    UI -->|solicita panorámicas| TUR
+    UI -.->|solicitaría panorámicas| TUR
     RUT -->|lee destino por id<br/>customer/supplier, solo lectura| CAT
-    TUR -->|referencia por id<br/>customer/supplier, solo lectura| CAT
+    TUR -.->|referenciaría por id<br/>customer/supplier, solo lectura| CAT
 ....
 
 * **Catálogo de lugares** — qué existe en el campus y cómo se organiza
@@ -103,28 +47,31 @@ flowchart LR
   `ZonaRepository`, `lib/repositories/zona_repository.dart`). Es el contexto más maduro:
   ya implementado y con datos reales en `assets/data/zonas.json`. El nombre y los límites
   de "Zona", "Espacio" y "punto de interés" dentro de este contexto están fijados por el
-  link:../adr/0006-reajuste-limites-contexto.adoc[ADR 0006]. +
+  link:../adr/0006-reajuste-limites-contexto.md[ADR 0006]. +
   Aspecto relacionado: ninguno propio todavía — es un candidato no priorizado (ver
-  link:../../aspectos.md[docs/aspectos.md], sección de notas).
+  link:../aspectos.md[docs/aspectos.md], sección de notas).
 * **Posicionamiento** — dónde está el usuario ahora mismo (`lib/models/ubicacion.dart`,
-  `UbicacionService`, `lib/services/ubicacion_service.dart`). Hoy simulado con un timer;
-  el ADR 0001/0002 ya dejó el patrón Observer listo para el reemplazo por GPS real. +
-  Aspecto relacionado: link:../../aspectos.md[A-01] (localización y guiado en tiempo real).
+  `UbicacionService`, `lib/services/ubicacion_service.dart`). GPS real con `geolocator` en
+  `UbicacionServiceGps` (`lib/services/ubicacion_service_gps.dart`), filtrado por
+  `FiltroUbicacion`; sin GPS, el usuario marca la partida a mano
+  (link:../adr/0017-gps-real-geolocator-filtro.md[ADR 0017]). El simulador queda para
+  demostraciones. +
+  Aspecto relacionado: link:../aspectos.md[A-01] (localización y guiado en tiempo real).
 * **Ruteo** — cómo llegar de un punto a otro: `MapaRepository` + `ServicioRuteo` (Dijkstra)
   en `lib/routing/`, sobre `assets/data/grafo.json` (link:../adr/0013-ruteo-dijkstra-grafo-propio.md[ADR 0013]). +
-  Aspecto relacionado: link:../../aspectos.md[A-01] (localización y guiado en tiempo real).
-* **Tour 360°** — contenido panorámico de un punto (pendiente: `TourRepository`, también
-  declarado como pendiente en `docs/c4/C2.md`). +
-  Aspecto relacionado: ninguno propio todavía — candidato no priorizado (ver
-  link:../../aspectos.md[docs/aspectos.md], sección de notas).
+  Aspecto relacionado: link:../aspectos.md[A-01] (localización y guiado en tiempo real).
+* **Tour 360°** — contenido panorámico de un punto. **Diferido (no implementado):** no
+  existen `TourRepository`, `lib/features/tour/` ni panorámicas; declarado así también en
+  `docs/c4/C2.md`. +
+  Aspecto relacionado: link:../aspectos.md[A-04], declarado diferido de punta a punta.
 
-**Relación entre contextos:** Ruteo y Tour van a depender de Catálogo de lugares — pero
-como *customer/supplier* de solo lectura (necesitan el id de una `Zona`/`Espacio`/`Salon`
-para saber a qué punto corresponde una ruta o una foto), nunca como escritores de sus
-datos. No existe hoy ninguna capa anticorrupción porque no hay ningún modelo externo
-(Google Maps SDK, Geocoding) integrado directamente en el dominio — `MapaWidget` y
-`GeocodingAdapter` (patrón Adapter, ADR 0001) ya cumplen ese papel para las integraciones
-que sí están construidas (A-02).
+**Relación entre contextos:** Ruteo depende de Catálogo de lugares — y Tour dependería, si
+se retoma — como *customer/supplier* de solo lectura (necesitan el id de una
+`Zona`/`Espacio`/`Salon` para saber a qué punto corresponde una ruta o una foto), nunca como
+escritores de sus datos. No existe hoy ninguna capa anticorrupción porque no hay ningún
+modelo externo (teselas de OpenStreetMap, Geocoding, Static Maps) integrado directamente en
+el dominio — `MapaWidget`, `GeocodingAdapter` y `StaticMapAdapter` (patrón Adapter, ADR 0001)
+ya cumplen ese papel para las integraciones que sí están construidas (A-01, A-02).
 
 === Conceptos de dominio: módulo → datos (dueño único)
 
@@ -134,26 +81,26 @@ que sí están construidas (A-02).
 
 |`ZonaRepository` (`lib/repositories/zona_repository.dart`)
 |`Zona`, `Piso`, `Espacio`, `Salon` — cargados desde `assets/data/zonas.json`
-|`ZonasScreen`, `ZonaDetalleScreen` (solo lectura); en el corte 2, Ruteo y Tour lo
-consultarán por id, también solo lectura
+|`ZonasScreen`, `ZonaDetalleScreen` y `MapaScreen` (solo lectura); Ruteo solo conoce las
+zonas por id (`GrafoPeatonal.entradas`)
 
 |`UbicacionService` (`lib/services/ubicacion_service.dart`)
 |`Ubicacion` (posición en tiempo real, en memoria vía `Stream`, nunca persistida)
-|`UbicacionScreen`; en el corte 2, el servicio de ruteo y `MapaWidget` se suscribirán al
-mismo stream
+|`UbicacionScreen` y `MapaScreen`, que se suscriben al mismo stream y le pasan la
+posición a `ServicioRuteo` y a `MapaWidget`
 
 |`MapaRepository` (`lib/routing/mapa_repository.dart`)
-|Grafo peatonal (nodos/aristas) y las rutas que calcule Dijkstra sobre él
-|Servicio de ruteo y la UI de `mapas_ruteo`
+|Grafo peatonal (nodos/aristas, `assets/data/grafo.json`)
+|`MapaScreen`, que le pasa el grafo a `ServicioRuteo` (Dijkstra) para calcular la ruta
 
-|`TourRepository` — pendiente
+|`TourRepository` — diferido (no implementado)
 |Contenido panorámico 360° (imagen + id de referencia a un `Espacio`/`Salon`)
 |Pantalla de tour
 |===
 
 Hoy no hay ninguna violación de este tipo en el código: cada modelo tiene exactamente un
 repositorio/servicio que lo carga, y ninguno escribe sobre el archivo de otro. El riesgo
-real está en lo que todavía no se ha construido — la no conformidad #3 de
+real está en lo que todavía no se ha construido (el tour, diferido) — la no conformidad #3 de
 link:../../dominio_y_modularidad.md[dominio_y_modularidad.md] (que `TourRepository` no
 extienda `Espacio`/`Salon` y evite dos escritores sobre el mismo árbol de modelos).
 

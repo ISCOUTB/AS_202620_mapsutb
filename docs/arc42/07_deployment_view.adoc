@@ -13,8 +13,9 @@ comparten el mismo código y los mismos artefactos de build:
 * *Reproducible* — el mismo sitio en un contenedor nginx (`infra/`), para el servidor del
   laboratorio o cualquier máquina con Docker.
 
-La app móvil (Android/iOS) se instala desde el build local (`flutter run`); no se distribuye por
-tiendas.
+No hay versión móvil publicada: la compilación para Android/iOS no está configurada (faltan, entre
+otros, los permisos de ubicación en `AndroidManifest.xml` e `Info.plist`). En el celular, la app se usa
+desde el navegador, en el mismo sitio de Firebase Hosting.
 
 === Nivel de infraestructura 1
 
@@ -24,8 +25,8 @@ tiendas.
                              │ HTTPS
    ┌─────────────────────────▼──────────────────────────┐
    │ Firebase Hosting (Spark) · mapsutb.web.app         │
-   │  index.html, main.dart.js, assets/zonas.json,      │
-   │  health.json                                       │
+   │  index.html, main.dart.js, assets/data/zonas.json, │
+   │  assets/data/grafo.json, health.json               │
    └─────────────────────────▲──────────────────────────┘
                              │ action-hosting-deploy (push a master)
    ┌─────────────────────────┴──────────────────────────┐
@@ -36,8 +37,9 @@ tiendas.
    │  Secrets: GOOGLE_MAPS_API_KEY, GA_*, SONAR_TOKEN     │    (resumen.json)
    └─────────────────────────────────────────────────────┘
 
-   Navegador / dispositivo del usuario ── HTTPS ──► Google Maps Platform (Geocoding,
-   (ejecuta la app: Dart compilado a JS)            Static Maps) y GA4 Measurement Protocol
+   Navegador del usuario ──── HTTPS ────► teselas de OpenStreetMap (mapa base);
+   (ejecuta la app: Dart compilado a JS)  si hay key, Google Geocoding y Static Maps;
+                                          GA4 Measurement Protocol
 ----
 
 Una caja por pieza y dónde se ejecuta:
@@ -45,15 +47,16 @@ Una caja por pieza y dónde se ejecuta:
 [options="header",cols="2,2,3,2"]
 |===
 |Pieza |Dónde se ejecuta |Qué contiene / hace |Definida en
-|Sitio web (app Flutter compilada) |Firebase Hosting (CDN de Google), proyecto `mapsutb` |Estáticos de `flutter build web`, `zonas.json` y `health.json` |`.github/workflows/deploy.yml`, `firebase.json`, ADR 0007
+|Sitio web (app Flutter compilada) |Firebase Hosting (CDN de Google), proyecto `mapsutb` |Estáticos de `flutter build web`, `zonas.json`, `grafo.json` y `health.json` |`.github/workflows/deploy.yml`, `firebase.json`, ADR 0007
 |Health check |Firebase Hosting |`/health.json`: `status`, `commit`, `desplegado` |`.github/workflows/deploy.yml`
-|Lógica de la app (UI, Repository, Adapters, Observer) |Navegador del usuario (JS) o dispositivo Android/iOS |Todo el monolito; no hay código en servidor |`lib/`
+|Lógica de la app (UI, Repository, Adapters, Observer) |Navegador del usuario (JS), en computador o celular |Todo el monolito; no hay código en servidor |`lib/`
 |Pipeline de CI |GitHub Actions |`flutter analyze`, pruebas de contrato, cobertura, SonarCloud y Quality Gate |`.github/workflows/ci.yml`
 |Análisis estático |SonarCloud (organización `isco-utb`) |Quality Gate del proyecto `ISCOUTB_AS_202620_mapsutb` |`sonar-project.properties`
 |Sonda de disponibilidad |GitHub Actions (programado cada hora) |Mide sitio y health, publica la métrica |`.github/workflows/sonda-disponibilidad.yml`, ADR 0008
 |Métrica publicada |Rama `metricas` del repositorio (raw.githubusercontent.com) |`resumen.json`, `disponibilidad.jsonl` |`scripts/sonda_disponibilidad.py`
 |Almacén de secretos |GitHub Actions secrets |Cuenta de servicio de Firebase y credenciales de Google y GA4 para el build |ADR 0009, `.env.example`
-|APIs externas |Google Maps Platform y Google Analytics vinculado al proyecto de Firebase (terceros) |Geocoding, Static Maps, Measurement Protocol |ADR 0005, `docs/api/apis-externas.openapi.yaml`
+|Mapa base |Servidores de teselas de OpenStreetMap (terceros) |Teselas PNG pedidas por `flutter_map`; sin key ni contrato propio |ADR 0012
+|APIs externas |Google Maps Platform y Google Analytics vinculado al proyecto de Firebase (terceros) |Geocoding y Static Maps (apagados en producción, sin key), Measurement Protocol |ADR 0005, `docs/api/apis-externas.openapi.yaml`
 |Sitio en contenedor (alternativo) |Servidor del laboratorio o máquina con Docker |nginx con los mismos estáticos, `/health` y logs JSON |`infra/Dockerfile`, `infra/docker-compose.yml`, `infra/nginx.conf`
 |===
 
@@ -67,22 +70,21 @@ Características de Calidad/Rendimiento::
 * Disponibilidad y latencia del despliegue medidas por la sonda (Escenario 6: ≥ 99 % y p95 del
   health < 1 s en 7 días).
 * Ante fallos de red o de las APIs externas, la app muestra errores controlados (Escenario 3).
-* Logs estructurados en JSON: en la app (`lib/core/log.dart`, consola del navegador o logcat) y en
-  nginx para el entorno Docker (§8).
+* Logs estructurados en JSON: en la app (`lib/core/log.dart`, consola del navegador) y en nginx para
+  el entorno Docker (§8).
 
 Mapeo de los Bloques de Construcción a Infraestructura:::
 Todos los bloques de §5 (pantallas de `features/`, `ZonaRepository`, `UbicacionService`,
-adaptadores de `adapters/`) se empaquetan en un único artefacto (`build/web` o el APK/IPA) y se
-ejecutan en el cliente. Los datos del catálogo (`assets/data/zonas.json`) viajan dentro del mismo
-artefacto.
+adaptadores de `adapters/`, `routing/`) se empaquetan en un único artefacto (`build/web`) y se
+ejecutan en el cliente. Los datos del catálogo (`assets/data/zonas.json`) y el grafo peatonal
+(`assets/data/grafo.json`) viajan dentro del mismo artefacto.
 
 === Nivel de Infraestructura 2
 
 ==== Pipeline de despliegue (`deploy.yml`)
 
 . `flutter pub get --enforce-lockfile` y `flutter test`.
-. `flutter build web --base-href /AS_202620_mapsutb/` con las credenciales tomadas de los secrets
-  (vacías si no existen).
+. `flutter build web --release` con las credenciales tomadas de los secrets (vacías si no existen).
 . Genera `build/web/health.json` con el SHA del commit y la hora del despliegue.
 . Publica con `FirebaseExtended/action-hosting-deploy` (canal `live`) usando la cuenta de servicio
   del secret `FIREBASE_SERVICE_ACCOUNT`, y verifica que `health.json` responde 200 con el commit

@@ -9,10 +9,10 @@ ifndef::imagesdir[:imagesdir: ../images]
 |===
 |Restricción|Justificación
 |Dependencia del paquete `geolocator` (Flutter) para geolocalización|Es la vía estándar para obtener la posición GPS del usuario en tiempo real sin depender de infraestructura propia (beacons BLE, etc.).
-|La geolocalización solo es confiable en exteriores del campus|Limitación propia del GPS estándar: no hay cobertura confiable en interiores; la navegación en interiores no queda fuera de alcance, pero necesita ser creada manualmente.
-|No hay cámara 360° dedicada; captura vía panorámica de smartphone|Limitación de presupuesto y recursos del equipo; se complementa utilizando la cámara panorámica de smartphone para dar la posibilidad de uso.
-|El mapa base y la geocodificación dependen de conexión a internet, ya que se resuelven mediante Google Maps SDK y Google Geocoding API|El ruteo interno (Dijkstra sobre el grafo peatonal propio), el tour panorámico y la clasificación de zonas son activos locales y funcionan sin conexión; solo el mapa base y la geocodificación requieren que la app esté en línea.
-|Framework: Flutter|Permite un solo código base multiplataforma (Android/iOS), reduciendo el esfuerzo de desarrollo dado el tamaño del equipo.
+|La geolocalización solo es confiable en exteriores del campus|Limitación propia del GPS estándar: dentro de los edificios el error medido en campo fue de 16,5 m de mediana (link:../escenarios_calidad.md[Escenario 2]). La navegación en interiores queda fuera de alcance: la ruta termina en la entrada del edificio (RT-07).
+|No hay cámara 360° dedicada; captura vía panorámica de smartphone|Limitación de presupuesto y recursos del equipo; se complementa utilizando la cámara panorámica de smartphone para dar la posibilidad de uso. Aplica al tour 360°, hoy diferido (no implementado).
+|El mapa base y la geocodificación dependen de conexión a internet: las teselas vienen de OpenStreetMap (ADR 0012) y la geocodificación de Google Geocoding API, apagada en producción por falta de key (ADR 0009)|El ruteo interno (Dijkstra sobre el grafo peatonal propio) y la clasificación de zonas son activos locales y funcionan sin conexión una vez cargada la app; solo el mapa base y la geocodificación requieren red.
+|Framework: Flutter|Permite un solo código base para web y móvil, reduciendo el esfuerzo de desarrollo dado el tamaño del equipo. Hoy se publica solo como web en Firebase Hosting; la compilación móvil (Android/iOS) no está configurada (faltan, entre otros, los permisos de ubicación en `AndroidManifest.xml` e `Info.plist`).
 |Clasificación de zonas del campus manual (no dinámica)|Fuera de alcance un panel administrativo institucional; se prioriza tener un producto funcional dentro del tiempo del semestre.
 |Se descartaron Google Directions API y Google Places API de las dependencias externas del sistema; ARCore Geospatial API y Google Street View se descartaron después|Directions y Places: decisión registrada en link:../adr/0001-patrones-de-diseno.md[ADR 0001] (ruteo interno sobre el grafo peatonal propio, puntos de interés como datos propios). ARCore Geospatial API y Street View: descartados en link:../adr/0003-descartar-realidad-aumentada.md[ADR 0003], al abandonar el guiado por realidad aumentada.
 |===
@@ -34,6 +34,6 @@ ifndef::imagesdir[:imagesdir: ../images]
 |===
 |Restricción|Justificación
 |El contenido debe representar fielmente los espacios reales de la UTB|Es una herramienta con potencial uso institucional (admisiones); errores de representación afectan la imagen de la universidad.
-|Debe incluir interfaz en inglés|El público objetivo incluye estudiantes de intercambio extranjeros, identificados como interesados del proyecto.
-|La navegación en interiores del campus queda limitada en su alcance de forma explícita|Limitación técnica del GPS estándar en interiores; se documenta como decisión consciente, no como omisión.
+|Debe incluir interfaz en inglés|El público objetivo incluye estudiantes de intercambio extranjeros, identificados como interesados del proyecto. Pendiente: hoy la interfaz está solo en español (no hay internacionalización).
+|La navegación en interiores del campus queda fuera de alcance de forma explícita|Limitación técnica del GPS estándar en interiores: la ruta termina en la entrada del edificio. Se documenta como decisión consciente, no como omisión (RT-07).
 |===

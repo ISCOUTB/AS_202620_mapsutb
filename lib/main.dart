@@ -6,6 +6,7 @@ import 'adapters/geocoding_adapter.dart';
 import 'adapters/static_map_adapter.dart';
 import 'core/config_apis.dart';
 import 'features/zonas/presentation/screens/zonas_screen.dart';
+import 'features/zonas/presentation/tema_maps_utb.dart';
 import 'features/mapas_ruteo/presentation/screens/mapa_screen.dart';
 import 'features/mapas_ruteo/presentation/screens/ubicacion_screen.dart';
 import 'repositories/zona_repository.dart';
@@ -24,9 +25,10 @@ class MapsUtbApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
+    return MaterialApp(
       title: 'MAPSUTB',
-      home: _RaizNavegacion(),
+      theme: temaMapsUtb(),
+      home: const _RaizNavegacion(),
     );
   }
 }

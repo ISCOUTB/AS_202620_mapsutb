@@ -1,11 +1,11 @@
 {
-    "name": "mapsutb",
-    "short_name": "mapsutb",
+    "name": "MAPSUTB",
+    "short_name": "MAPSUTB",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#F3F5FB",
+    "theme_color": "#093AD8",
+    "description": "Mapa y rutas a pie del Campus Tecnológico de la UTB",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

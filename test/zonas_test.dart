@@ -172,8 +172,13 @@ void main() {
       await tester.tap(find.text('Piso 1'));
       await tester.pumpAndSettle();
       expect(find.text('Laboratorio de Sistemas'), findsOneWidget);
-      expect(find.text('laboratorio — Salones: 101, 102'), findsOneWidget);
-      expect(find.text('auditorio'), findsOneWidget);
+      // Tipos con etiqueta en español y salones como chips.
+      expect(find.text('Laboratorio'), findsOneWidget);
+      expect(find.text('101'), findsOneWidget);
+      expect(find.text('102'), findsOneWidget);
+      // El espacio "Auditorio" es de tipo auditorio: nombre y etiqueta.
+      expect(find.text('Auditorio'), findsNWidgets(2));
+      expect(find.text('auditorio'), findsNothing);
 
       await tester.tap(find.text('Piso 2'));
       await tester.pumpAndSettle();
@@ -261,17 +266,97 @@ void main() {
       expect(find.text('Mapa no disponible.'), findsNothing);
     });
 
-    testWidgets('avisa cuando la zona no tiene pisos', (tester) async {
-      final sinPisos = Zona(
+    testWidgets('avisa cuando la zona no tiene pisos ni espacios', (tester) async {
+      // El nombre no coincide con la etiqueta del tipo ("Cafetería"), que
+      // ahora aparece como subtítulo en la lista.
+      final vacia = Zona(
         id: 'cafe',
-        nombre: 'Cafetería',
+        nombre: 'Cafetería Central',
         tipo: 'cafeteria',
         lat: 0,
         lng: 0,
       );
-      await abrirDetalle(tester, sinPisos);
+      await abrirDetalle(tester, vacia);
 
-      expect(find.text('Esta zona no tiene pisos registrados.'), findsOneWidget);
+      expect(find.text('Esta zona no tiene espacios registrados.'), findsOneWidget);
+    });
+
+    testWidgets('una zona sin pisos muestra sus espacios en lugar de ocultarlos',
+        (tester) async {
+      await abrirDetalle(tester, _zonaSinPisos());
+
+      expect(find.text('Espacios'), findsOneWidget);
+      expect(find.text('Enfermería'), findsOneWidget);
+      expect(find.text('Bohíos Bakery'), findsOneWidget);
+      expect(find.text('Cafetería'), findsOneWidget); // etiqueta del tipo
+      expect(find.byType(ChoiceChip), findsNothing, reason: 'sin pisos no hay selector');
+      expect(find.textContaining('no tiene'), findsNothing);
+    });
+
+    testWidgets('los espacios con un piso inexistente quedan en "Otros espacios"',
+        (tester) async {
+      final zona = Zona.fromJson({
+        'id': 'b1',
+        'nombre': 'Bloque B1',
+        'tipo': 'edificio',
+        'lat': 0,
+        'lng': 0,
+        'pisos': [
+          {'id': 'p1', 'nombre': 'Piso 1'},
+        ],
+        'espacios': [
+          {'id': 'aula', 'nombre': 'Aula Máxima', 'tipo': 'salon', 'pisos': ['p1']},
+          {'id': 'kiosco', 'nombre': 'Kiosco', 'tipo': 'cafeteria', 'pisos': []},
+        ],
+      });
+      await abrirDetalle(tester, zona);
+
+      expect(find.text('Aula Máxima'), findsOneWidget);
+      expect(find.text('Kiosco'), findsNothing);
+
+      await tester.tap(find.text('Otros espacios'));
+      await tester.pumpAndSettle();
+      expect(find.text('Kiosco'), findsOneWidget);
+      expect(find.text('Aula Máxima'), findsNothing);
+    });
+
+    testWidgets('el selector de piso muestra solo los espacios del piso elegido',
+        (tester) async {
+      await abrirDetalle(tester, _zonaDePrueba());
+
+      ChoiceChip chip(String piso) =>
+          tester.widget<ChoiceChip>(find.widgetWithText(ChoiceChip, piso));
+      expect(chip('Piso 1').selected, isTrue);
+      expect(chip('Piso 2').selected, isFalse);
+      expect(find.text('Laboratorio de Sistemas'), findsOneWidget);
+
+      await tester.tap(find.text('Piso 2'));
+      await tester.pumpAndSettle();
+      expect(chip('Piso 2').selected, isTrue);
+      expect(find.text('Laboratorio de Sistemas'), findsNothing);
+    });
+
+    testWidgets('el resumen usa etiquetas en español, no el tipo crudo',
+        (tester) async {
+      await abrirDetalle(tester, _zonaSinPisos());
+
+      expect(find.text('Zona común · 3 espacios'), findsOneWidget);
+      expect(find.textContaining('zona_comun'), findsNothing);
     });
   });
 }
+
+/// Zona sin pisos, como Zona T en zonas.json: sus espacios no tienen piso.
+Zona _zonaSinPisos() => Zona.fromJson({
+      'id': 'zonat',
+      'nombre': 'Zona T',
+      'tipo': 'zona_comun',
+      'lat': 0,
+      'lng': 0,
+      'pisos': [],
+      'espacios': [
+        {'id': 'zonat-comedor', 'nombre': 'Comedor', 'tipo': 'servicio', 'pisos': []},
+        {'id': 'zonat-bohios', 'nombre': 'Bohíos Bakery', 'tipo': 'cafeteria', 'pisos': []},
+        {'id': 'zonat-enfermeria', 'nombre': 'Enfermería', 'tipo': 'servicio', 'pisos': []},
+      ],
+    });

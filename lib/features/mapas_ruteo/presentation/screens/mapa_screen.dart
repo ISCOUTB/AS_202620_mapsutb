@@ -51,7 +51,7 @@ class _MapaScreenState extends State<MapaScreen> {
   bool _sinMapaBase = false;
 
   /// Por qué el sensor no da posición (MF-04); null si la está dando.
-  MotivoSinUbicacion? _sinUbicacion;
+  UbicacionNoDisponible? _sinUbicacion;
 
   /// Punto de partida que el usuario marcó tocando el mapa, cuando el GPS no
   /// sirve: sin permiso, sin señal o fuera del campus. Tiene prioridad sobre
@@ -73,7 +73,7 @@ class _MapaScreenState extends State<MapaScreen> {
         _sinUbicacion = null;
       }),
       onError: (Object e) {
-        if (e is UbicacionNoDisponible) setState(() => _sinUbicacion = e.motivo);
+        if (e is UbicacionNoDisponible) setState(() => _sinUbicacion = e);
       },
     );
   }
@@ -147,7 +147,9 @@ class _MapaScreenState extends State<MapaScreen> {
     }
     final pos = _origenManual ?? _posicion;
     final gps = _posicion;
-    final gpsUtil = gps != null && _enCampus(grafo, gps);
+    // Tras un fallo, la última posición ya no es confiable: se deja marcar
+    // la partida a mano aunque el GPS haya dado una antes.
+    final gpsUtil = gps != null && _sinUbicacion == null && _enCampus(grafo, gps);
     Zona? centro;
     if (destino != null) {
       centro = zonas.firstWhere((z) => z.id == destino);
@@ -246,13 +248,9 @@ class _MapaScreenState extends State<MapaScreen> {
   _EstadoRuta _calcularRuta(GrafoPeatonal grafo, String? destino) {
     final pos = _origenManual ?? _posicion;
     if (destino == null) return const _EstadoRuta(null, 'Elige un destino o toca una zona del mapa.');
+    final fallo = _sinUbicacion;
     if (pos == null) {
-      return switch (_sinUbicacion) {
-        MotivoSinUbicacion.permisoDenegado => const _EstadoRuta(null, 'Sin permiso de ubicación. $_tocaElMapa'),
-        MotivoSinUbicacion.servicioApagado => const _EstadoRuta(null, 'La ubicación del dispositivo está apagada. $_tocaElMapa'),
-        MotivoSinUbicacion.sinSenal => const _EstadoRuta(null, 'No hay señal GPS suficiente. $_tocaElMapa'),
-        null => const _EstadoRuta(null, 'Esperando tu ubicación…'),
-      };
+      return _EstadoRuta(null, fallo == null ? 'Esperando tu ubicación…' : '${_textoFallo(fallo)} $_tocaElMapa');
     }
     if (!_enCampus(grafo, pos)) {
       return const _EstadoRuta(null, 'Estás fuera del campus: la ruta se calcula desde los caminos del campus. $_tocaElMapa');
@@ -267,8 +265,20 @@ class _MapaScreenState extends State<MapaScreen> {
     final n = ruta.tramosConEscaleras;
     final plural = n == 1 ? '' : 's';
     final escaleras = n == 0 ? 'sin escaleras' : '$n tramo$plural con escaleras';
-    return _EstadoRuta(ruta, '$minutos min · ${ruta.metros.round()} m · $escaleras');
+    final resumen = '$minutos min · ${ruta.metros.round()} m · $escaleras';
+    if (fallo != null && _origenManual == null) {
+      return _EstadoRuta(ruta, '$resumen\n${_textoFallo(fallo)} La ruta parte de tu última posición conocida. $_tocaElMapa');
+    }
+    return _EstadoRuta(ruta, resumen);
   }
+
+  static String _textoFallo(UbicacionNoDisponible fallo) => switch (fallo.motivo) {
+        MotivoSinUbicacion.permisoDenegado => 'Sin permiso de ubicación.',
+        MotivoSinUbicacion.servicioApagado => 'La ubicación del dispositivo está apagada.',
+        MotivoSinUbicacion.sinSenal => 'No hay señal GPS suficiente.',
+        MotivoSinUbicacion.precisionBaja =>
+          'Tu ubicación es demasiado imprecisa (± ${fallo.precisionM?.round() ?? '?'} m) para guiarte en el campus.',
+      };
 }
 
 class _EstadoRuta {

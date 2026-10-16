@@ -99,7 +99,7 @@ class _RaizNavegacionState extends State<_RaizNavegacion> {
           destinoInicial: _destino,
           analytics: _analytics,
         ),
-      _ => UbicacionScreen(service: _ubicacionService, geocoding: _geocoding),
+      _ => UbicacionScreen(service: _ubicacionService, geocoding: _geocoding, zonaRepository: _zonaRepository),
     };
 
     return Scaffold(

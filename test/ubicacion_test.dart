@@ -6,6 +6,8 @@ import 'package:mapsutb/adapters/geocoding_adapter.dart';
 import 'package:mapsutb/features/mapas_ruteo/presentation/screens/ubicacion_screen.dart';
 import 'package:mapsutb/models/direccion.dart';
 import 'package:mapsutb/models/ubicacion.dart';
+import 'package:mapsutb/models/zona.dart';
+import 'package:mapsutb/repositories/zona_repository.dart';
 import 'package:mapsutb/services/ubicacion_service.dart';
 
 /// Pruebas del servicio de ubicación (patrón Observer) y de su pantalla,
@@ -39,6 +41,15 @@ class _GeocodingFalso implements GeocodingAdapter {
   Future<Direccion> geocodificarDirecta({required String direccion}) {
     throw UnimplementedError();
   }
+}
+
+class _ZonasFalsas implements ZonaRepository {
+  @override
+  Future<List<Zona>> obtenerPuntos() async => [
+        Zona(id: 'a2', nombre: 'A2', tipo: 'edificio', lat: 10.3700, lng: -75.4660),
+        Zona(id: 'biblioteca', nombre: 'Biblioteca', tipo: 'edificio', lat: 10.3690, lng: -75.4650),
+        Zona(id: 'contenedores', nombre: 'Contenedores', tipo: 'servicio', lat: 0, lng: 0),
+      ];
 }
 
 final _ubicacion = Ubicacion(lat: 10.4254, lng: -75.5077, timestamp: DateTime(2026));
@@ -77,13 +88,13 @@ void main() {
     testWidgets('muestra cada ubicación que emite el Stream', (tester) async {
       final service = await _montar(tester);
 
-      expect(find.text('Esperando señal...'), findsOneWidget);
+      expect(find.text('Esperando tu ubicación…'), findsOneWidget);
 
       service.controller.add(_ubicacion);
       await tester.pump();
 
+      // Sin catálogo de zonas, muestra las coordenadas.
       expect(find.text(_ubicacion.toString()), findsOneWidget);
-      expect(find.text('Actualizaciones recibidas: 1'), findsOneWidget);
     });
 
     testWidgets('sin GeocodingAdapter no ofrece "¿Dónde estoy?"',
@@ -128,8 +139,34 @@ void main() {
       service.controller.add(Ubicacion(lat: 10.37, lng: -75.46, timestamp: DateTime(2026), precisionM: 7.6));
       await tester.pumpAndSettle();
 
-      expect(find.text('Precisión: ± 8 m'), findsOneWidget);
+      expect(find.text('± 8 m'), findsOneWidget);
       expect(find.textContaining('simulada'), findsNothing);
+    });
+
+    testWidgets('dice la zona más cercana en vez de coordenadas', (tester) async {
+      final service = _UbicacionServiceFalso();
+      addTearDown(service.dispose);
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(body: UbicacionScreen(service: service, zonaRepository: _ZonasFalsas())),
+      ));
+      await tester.pumpAndSettle();
+
+      // ~33 m al norte de A2.
+      service.controller.add(Ubicacion(lat: 10.3703, lng: -75.4660, timestamp: DateTime(2026), precisionM: 6));
+      await tester.pumpAndSettle();
+      expect(find.text('Estás cerca de A2'), findsOneWidget);
+      expect(find.text('a 33 m · ± 6 m'), findsOneWidget);
+
+      service.controller.add(Ubicacion(lat: 10.4254, lng: -75.5077, timestamp: DateTime(2026))); // sede Manga
+      await tester.pumpAndSettle();
+      expect(find.text('Estás fuera del campus'), findsOneWidget);
+    });
+
+    testWidgets('MF-06 con precisión baja explica por qué y qué hacer', (tester) async {
+      final service = await _montar(tester);
+      service.controller.addError(const UbicacionNoDisponible(MotivoSinUbicacion.precisionBaja, precisionM: 1200));
+      await tester.pumpAndSettle();
+      expect(find.textContaining('demasiado imprecisa (± 1200 m)'), findsOneWidget);
     });
 
     testWidgets('MF-04 sin señal lo explica, y una lectura nueva lo quita', (tester) async {

@@ -15,11 +15,22 @@ abstract class UbicacionService {
 }
 
 /// Por qué no hay posición (arc42 §11, MF-04).
-enum MotivoSinUbicacion { permisoDenegado, servicioApagado, sinSenal }
+enum MotivoSinUbicacion {
+  permisoDenegado,
+  servicioApagado,
+  sinSenal,
+
+  /// Llegan lecturas, pero todas con más error del que sirve en el campus
+  /// (típico de un computador que se ubica por Wi-Fi).
+  precisionBaja,
+}
 
 class UbicacionNoDisponible implements Exception {
-  const UbicacionNoDisponible(this.motivo);
+  const UbicacionNoDisponible(this.motivo, {this.precisionM});
   final MotivoSinUbicacion motivo;
+
+  /// Con [MotivoSinUbicacion.precisionBaja], el error de la última lectura.
+  final double? precisionM;
 
   @override
   String toString() => 'UbicacionNoDisponible: ${motivo.name}';
@@ -33,8 +44,13 @@ enum ResultadoFiltro {
   /// hay señal, pero no se emite.
   sinMovimiento,
 
-  /// Vieja o imprecisa: como si no hubiera llegado.
-  descartada,
+  /// Más vieja que [FiltroUbicacion.maxAntiguedad]: como si no hubiera llegado.
+  vieja,
+
+  /// Con más error que [FiltroUbicacion.maxPrecisionM]: como si no hubiera llegado.
+  imprecisa;
+
+  bool get valida => this == nueva || this == sinMovimiento;
 }
 
 /// Decide qué lecturas del sensor se usan (arc42 §11, MF-05 y MF-06).
@@ -59,10 +75,13 @@ class FiltroUbicacion {
 
   Ubicacion? _ultima;
 
+  /// Olvida la última lectura aceptada: la siguiente válida cuenta como nueva.
+  void reiniciar() => _ultima = null;
+
   ResultadoFiltro evaluar(Ubicacion u, DateTime ahora) {
-    if (ahora.difference(u.timestamp) > maxAntiguedad) return ResultadoFiltro.descartada;
+    if (ahora.difference(u.timestamp) > maxAntiguedad) return ResultadoFiltro.vieja;
     final precision = u.precisionM;
-    if (precision != null && precision > maxPrecisionM) return ResultadoFiltro.descartada;
+    if (precision != null && precision > maxPrecisionM) return ResultadoFiltro.imprecisa;
     final ultima = _ultima;
     if (ultima != null && distanciaM(ultima.lat, ultima.lng, u.lat, u.lng) < minDesplazamientoM) {
       return ResultadoFiltro.sinMovimiento;

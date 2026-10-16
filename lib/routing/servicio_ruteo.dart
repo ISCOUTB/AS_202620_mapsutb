@@ -44,13 +44,21 @@ class ServicioRuteo {
   }
 
   /// Ruta desde una posición (p. ej. la del GPS) hasta una zona: parte del
-  /// nodo del grafo más cercano a esa posición.
+  /// nodo del grafo más cercano a esa posición, y suma (y dibuja) el trecho
+  /// en línea recta desde la posición hasta ese nodo.
   Ruta? rutaDesdePosicion(double lat, double lng, String zonaDestino,
       {bool evitarEscaleras = false}) {
     final b = _grafo.entradas[zonaDestino];
     final cercano = _grafo.nodoMasCercano(lat, lng);
     if (b == null || cercano == null) return null;
-    return rutaEntreNodos(cercano.$1.id, b, evitarEscaleras: evitarEscaleras);
+    final ruta = rutaEntreNodos(cercano.$1.id, b, evitarEscaleras: evitarEscaleras);
+    if (ruta == null || cercano.$2 < 1) return ruta;
+    return Ruta(
+      nodos: ruta.nodos,
+      geometria: [[lat, lng], ...ruta.geometria],
+      metros: ruta.metros + cercano.$2,
+      tramosConEscaleras: ruta.tramosConEscaleras,
+    );
   }
 
   /// Dijkstra con montículo binario: camino de menor distancia en metros.

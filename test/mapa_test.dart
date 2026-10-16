@@ -117,7 +117,7 @@ void main() {
     final ubicacion = await _montar(tester, destino: 'a1');
     expect(_resumen(tester), contains('Esperando tu ubicación'));
 
-    ubicacion.controller.add(Ubicacion(lat: 10.36901, lng: -75.46601, timestamp: DateTime(2026)));
+    ubicacion.controller.add(Ubicacion(lat: 10.3690, lng: -75.4660, timestamp: DateTime(2026)));
     await tester.pumpAndSettle();
     // P → Q → R: 120 m con un tramo de escaleras; 120 / 1,2 = 100 s → 2 min
     expect(_resumen(tester), '2 min · 120 m · 1 tramo con escaleras');
@@ -126,7 +126,7 @@ void main() {
 
   testWidgets('evitar escaleras recalcula por el camino sin escaleras', (tester) async {
     final ubicacion = await _montar(tester, destino: 'a1');
-    ubicacion.controller.add(Ubicacion(lat: 10.36901, lng: -75.46601, timestamp: DateTime(2026)));
+    ubicacion.controller.add(Ubicacion(lat: 10.3690, lng: -75.4660, timestamp: DateTime(2026)));
     await tester.pumpAndSettle();
 
     await tester.tap(find.byKey(const Key('evitar_escaleras')));
@@ -197,7 +197,7 @@ void main() {
 
   testWidgets('mide la parte de pantalla del Escenario 2 una vez por destino', (tester) async {
     final ubicacion = await _montar(tester, destino: 'a1');
-    ubicacion.controller.add(Ubicacion(lat: 10.36901, lng: -75.46601, timestamp: DateTime(2026)));
+    ubicacion.controller.add(Ubicacion(lat: 10.3690, lng: -75.4660, timestamp: DateTime(2026)));
     await tester.pumpAndSettle();
 
     final medidas = eventos('ruta_mostrada');
@@ -236,11 +236,11 @@ void main() {
     expect(mapa().ruta, isEmpty); // todavía sin posición
     expect(mapa().latCentro, closeTo(10.3701, 0.0001)); // centrado en el destino
 
-    ubicacion.controller.add(Ubicacion(lat: 10.36901, lng: -75.46601, timestamp: DateTime(2026)));
+    ubicacion.controller.add(Ubicacion(lat: 10.3690, lng: -75.4660, timestamp: DateTime(2026)));
     await tester.pumpAndSettle();
     expect(mapa().ruta.first, [10.3690, -75.4660]); // arranca en el nodo P
     expect(mapa().ruta.last, [10.3701, -75.4660]); // termina en la entrada de A1
-    expect(mapa().posicion, [10.36901, -75.46601]);
+    expect(mapa().posicion, [10.3690, -75.4660]);
 
     await tester.tap(find.byKey(const Key('destino')));
     await tester.pumpAndSettle();
@@ -253,7 +253,7 @@ void main() {
   testWidgets('MF-01 sin mapa base: la ruta se sigue mostrando y se avisa una sola vez (arc42 §11)',
       (tester) async {
     final ubicacion = await _montar(tester, destino: 'a1');
-    ubicacion.controller.add(Ubicacion(lat: 10.36901, lng: -75.46601, timestamp: DateTime(2026)));
+    ubicacion.controller.add(Ubicacion(lat: 10.3690, lng: -75.4660, timestamp: DateTime(2026)));
     await tester.pumpAndSettle();
     expect(find.byKey(const Key('aviso_sin_mapa_base')), findsNothing);
 
@@ -275,7 +275,7 @@ void main() {
     expect(_resumen(tester), startsWith('Sin permiso de ubicación. Toca el mapa'));
 
     final mapa = tester.widget<MapaWidget>(find.byType(MapaWidget));
-    mapa.onMapaTocado!(10.36901, -75.46601); // junto a P
+    mapa.onMapaTocado!(10.3690, -75.4660); // junto a P
     await tester.pumpAndSettle();
     expect(_resumen(tester), '2 min · 120 m · 1 tramo con escaleras');
 
@@ -286,7 +286,7 @@ void main() {
 
   testWidgets('con GPS útil en el campus, tocar el mapa no mueve la partida', (tester) async {
     final ubicacion = await _montar(tester, destino: 'a1');
-    ubicacion.controller.add(Ubicacion(lat: 10.36901, lng: -75.46601, timestamp: DateTime(2026)));
+    ubicacion.controller.add(Ubicacion(lat: 10.3690, lng: -75.4660, timestamp: DateTime(2026)));
     await tester.pumpAndSettle();
 
     expect(tester.widget<MapaWidget>(find.byType(MapaWidget)).onMapaTocado, isNull);
@@ -298,8 +298,22 @@ void main() {
     await tester.pumpAndSettle();
     expect(_resumen(tester), endsWith('Toca el mapa para marcar tu punto de partida.'));
 
-    tester.widget<MapaWidget>(find.byType(MapaWidget)).onMapaTocado!(10.36901, -75.46601);
+    tester.widget<MapaWidget>(find.byType(MapaWidget)).onMapaTocado!(10.3690, -75.4660);
     await tester.pumpAndSettle();
     expect(_resumen(tester), '2 min · 120 m · 1 tramo con escaleras');
+  });
+
+  testWidgets('MF-04 si se pierde la señal con ruta, avisa que parte de la última posición y deja marcar otra',
+      (tester) async {
+    final ubicacion = await _montar(tester, destino: 'a1');
+    ubicacion.controller.add(Ubicacion(lat: 10.3690, lng: -75.4660, timestamp: DateTime(2026)));
+    await tester.pumpAndSettle();
+    expect(tester.widget<MapaWidget>(find.byType(MapaWidget)).onMapaTocado, isNull);
+
+    ubicacion.controller.addError(const UbicacionNoDisponible(MotivoSinUbicacion.sinSenal));
+    await tester.pumpAndSettle();
+    expect(_resumen(tester), startsWith('2 min · 120 m'));
+    expect(_resumen(tester), contains('No hay señal GPS suficiente. La ruta parte de tu última posición conocida.'));
+    expect(tester.widget<MapaWidget>(find.byType(MapaWidget)).onMapaTocado, isNotNull);
   });
 }

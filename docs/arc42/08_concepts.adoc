@@ -104,6 +104,166 @@ real está en lo que todavía no se ha construido (el tour, diferido) — la no 
 link:../../dominio_y_modularidad.md[dominio_y_modularidad.md] (que `TourRepository` no
 extienda `Espacio`/`Salon` y evite dos escritores sobre el mismo árbol de modelos).
 
+=== Consistencia de los datos: operación → garantía
+
+MAPSUTB no tiene base de datos ni broker
+(link:../adr/0018-datos-del-campus-solo-lectura-derivados-de-osm.md[ADR 0018]). Los datos del
+campus son dos archivos de solo lectura, `assets/data/zonas.json` y `assets/data/grafo.json`, y
+**la única escritura sobre ellos es el despliegue**. La app nunca los modifica. Por eso no hay
+transacciones en el código: no hay dos escrituras que deban quedar juntas. Lo que sí hay que
+garantizar es *qué versión* de los datos ve cada sesión.
+
+[cols="2,2,2,2,2", options="header"]
+|===
+|Operación (código) |Garantía |Desfase que se acepta |Qué lo reconcilia |Verificación
+
+|**Publicar una versión de los datos**: `deploy.yml` sube `zonas.json`, `grafo.json` y
+`main.dart.js` a Firebase Hosting
+|**Fuerte en el servidor.** Hosting activa la versión completa de una vez, nunca archivo por
+archivo (ADR 0007, ADR 0010).
+|Ninguno en el servidor. En el cliente, ver las tres filas siguientes.
+|—
+|Reversión medida en 0,4 s (ADR 0010).
+
+|**Leer el catálogo de zonas**: `ZonaRepositoryLocal.obtenerPuntos`
+(`lib/repositories/zona_repository.dart`)
+|**Instantánea por sesión.** La primera lectura queda en la caché del `AssetBundle`, y todas las
+pantallas reciben esa misma versión mientras la app siga abierta.
+|Una pestaña abierta antes de un despliegue conserva las zonas anteriores.
+|Recargar la página o reiniciar la app.
+|`test/zonas_test.dart`: «con lectura exitosa, la segunda consulta sale de la caché del bundle».
+
+|**Leer el grafo peatonal**: `MapaRepositoryLocal.obtenerGrafo`
+(`lib/routing/mapa_repository.dart:27-39`)
+|**Instantánea por sesión.** El grafo se interpreta una vez y queda en `_grafo`.
+|Igual que las zonas.
+|Recargar la página o reiniciar la app.
+|`test/ruteo_test.dart:226`: «carga el grafo empaquetado y lo guarda en caché» (`identical`).
+
+|**Coherencia entre zonas y grafo**: las 10 entradas del grafo apuntan a ids de zona
+|**Fuerte por archivo, eventual entre archivos** (punto intermedio). Cada archivo es una
+instantánea, pero son dos lecturas HTTP distintas. Para acortar la ventana, la app lee las dos al
+arrancar (`lib/main.dart:62`).
+|En web, si el despliegue cae justo entre las dos lecturas del arranque, una pestaña puede
+combinar zonas de una versión con el grafo de la otra.
+|Recargar. Mientras tanto, una entrada que falte da «No hay ruta hasta ese destino»
+(`ServicioRuteo.rutaDesdePosicion` devuelve `null`) y no un fallo.
+|En Android/iOS no aplica: los dos archivos van dentro del mismo paquete.
+
+|**Calcular una ruta**: `ServicioRuteo` (`lib/routing/servicio_ruteo.dart`)
+|**Fuerte respecto de la instantánea.** Es una función pura sobre el grafo recibido: el mismo grafo
+da la misma ruta.
+|—
+|—
+|`test/ruteo_test.dart:130`: «es simétrica y la geometría va del origen al destino», y `:183` para cada par de zonas.
+
+|**Posición del usuario**: `UbicacionServiceGps.ubicacionStream`
+(`lib/services/ubicacion_service_gps.dart`)
+|**La última lectura gana**, en memoria y nunca persistida
+(link:../adr/0017-gps-real-geolocator-filtro.md[ADR 0017]).
+|El retraso del filtro de lecturas.
+|La siguiente lectura válida.
+|`test/ubicacion_gps_test.dart`.
+
+|**Registrar un evento de analítica**: `AnalyticsAdapterHttp.registrarEvento`
+(`lib/adapters/analytics_adapter.dart:62-112`)
+|**Como máximo una vez**, de mejor esfuerzo
+(link:../adr/0016-no-extraer-modulos-por-ahora.md[ADR 0016]).
+|Se pierde el evento ante un fallo de red o un tiempo agotado (5 s).
+|Nada lo reconcilia: la pérdida se acepta porque el Measurement Protocol no deduplica y un reenvío
+podría contar el evento dos veces.
+|`test/modos_de_fallo_test.dart:175` (MF-15).
+|===
+
+==== Dos operaciones contrastadas con el código
+
+1. **Instantánea del grafo.** En `mapa_repository.dart:28-29`, si `_grafo` ya existe se devuelve
+   sin leer nada. La única asignación está en la línea 38, después de una lectura completa y
+   válida. Nada vuelve a poner `_grafo` en `null` y no hay ningún método de escritura, así que la
+   instantánea dura lo que dura la sesión. Eso es justo lo que promete la tabla. La prueba compara
+   dos llamadas con `identical`.
+2. **Analítica como máximo una vez.** En `analytics_adapter.dart:86-112` hay un solo `post`,
+   con `.timeout(tiempoLimite)`. El `catch` registra `analitica_fallo_red` y retorna sin
+   reintentar, y no hay bucle ni cola. MF-15 hace fallar la red y agotar el tiempo, y en los dos
+   casos comprueba que el evento se envió una sola vez.
+
+==== Flujo por eventos
+
+No hay flujo por eventos propio ni broker. El único mensaje que sale de la app es el evento de
+analítica, con la garantía de la tabla. El taller de mensajes de la semana 12 se califica aparte.
+
+=== Caché: qué, dónde, cuánto y qué la invalida
+
+[cols="2,2,2,3", options="header"]
+|===
+|Qué |Dónde |Cuánto tiempo |Qué la invalida
+
+|HTML, JS y JSON del sitio (`index.html`, `main.dart.js`, `zonas.json`, `grafo.json`)
+|Navegador, con `Cache-Control: no-cache` (`firebase.json`,
+link:../adr/0015-cache-del-sitio-revalidar.md[ADR 0015])
+|Se guarda, pero se revalida en cada carga de página.
+|Un despliegue o una reversión cambia el ETag: la siguiente carga recibe la versión nueva y, si
+nada cambió, un `304`.
+
+|`health.json`
+|No se guarda (`no-store`).
+|—
+|—
+
+|CanvasKit, fuentes e imágenes del build
+|Navegador, con la caché por defecto de Hosting (`max-age=3600`, verificado en el sitio el
+2026-10-25)
+|Hasta 1 h
+|Su contenido solo cambia al actualizar la versión de Flutter (hoy la 3.47.4, fijada en `ci.yml` y
+`deploy.yml`). *Límite:* después de un cambio de versión de Flutter, un navegador puede pasar hasta
+una hora con el CanvasKit anterior. La verificación de esa actualización se hace en una ventana
+nueva.
+
+|Lectura de `zonas.json` y `grafo.json`
+|Memoria: caché del `AssetBundle` de Flutter (`CachingAssetBundle`)
+|Toda la sesión
+|Recargar la página o reiniciar la app. **Una lectura fallida no se queda en caché:** el bundle
+también guardaría el error, y en web «Reintentar» lo repetiría hasta recargar. Los dos
+repositorios hacen `evict` del archivo antes de relanzar el error (`zona_repository.dart`,
+`mapa_repository.dart:41-50`). Pruebas: «una lectura fallida no queda en caché» en
+`test/zonas_test.dart` y `test/ruteo_test.dart`.
+
+|Grafo ya interpretado (`GrafoPeatonal`)
+|Memoria: `MapaRepositoryLocal._grafo`
+|Toda la sesión
+|Recargar o reiniciar. No hay escritura en tiempo de ejecución que lo deje viejo.
+
+|Service worker
+|No hay. El `flutter_service_worker.js` que genera Flutter 3.47 se desregistra al activarse
+(verificado en el sitio publicado el 2026-10-25).
+|—
+|—
+
+|Teselas de OpenStreetMap
+|Navegador y `flutter_map`, según los encabezados del servidor de OSM
+|Lo fija OSM; no es caché propia.
+|No aplica: el mapa base no es un dato del equipo.
+
+|App instalada (Android)
+|Los JSON van dentro del paquete.
+|Hasta actualizar la app.
+|La actualización de la app.
+|===
+
+==== Política de invalidación tras una escritura
+
+La única escritura es el despliegue, y la cadena de invalidación es esta:
+
+. `deploy.yml` publica la versión nueva y Hosting la activa completa.
+. La siguiente carga de la página revalida HTML, JS y JSON y recibe los ETag nuevos.
+. Las cachés en memoria arrancan vacías con esa carga y leen zonas y grafo de la versión nueva.
+. Una pestaña que ya estaba abierta conserva su instantánea hasta recargar. Es el desfase aceptado
+  de la tabla de consistencia.
+
+Si no existiera la regla de revalidación, una reversión (ADR 0010) quedaba en el servidor en 0,4 s
+pero el usuario seguía hasta una hora con la versión defectuosa. Así ocurrió el 2026-10-02 con
+`main.dart.js` (ADR 0015).
+
 === Observabilidad: logs estructurados y métrica
 
 * *Logs de la app:* `lib/core/log.dart` emite una línea JSON por evento con `ts`, `nivel` y

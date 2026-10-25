@@ -56,6 +56,10 @@ class _RaizNavegacionState extends State<_RaizNavegacion> {
     _ubicacionService = _ubicacionSimulada ? UbicacionServiceSimulado() : UbicacionServiceGps();
     _zonaRepository = ZonaRepositoryLocal();
     _mapaRepository = MapaRepositoryLocal();
+    // El grafo se lee al arrancar, junto con las zonas que pide la primera
+    // pantalla: así una pestaña no combina zonas de una versión con el grafo
+    // de un despliegue posterior (arc42 §8, consistencia entre archivos).
+    _mapaRepository.obtenerGrafo().ignore();
 
     // Sin credenciales (--dart-define, ver ConfigApis) la app arranca igual
     // y solo se ocultan las funciones que dependen de cada API.

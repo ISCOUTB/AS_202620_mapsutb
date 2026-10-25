@@ -64,6 +64,10 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
           projectId: ${{ vars.FIREBASE_PROJECT_ID }}
           channelId: live
+          # Versión fija: con `latest`, la 15.34.1 (2026-10-25) empezó a pedir
+          # serviceusage.services.get, que la cuenta de servicio no tiene, y el
+          # despliegue falló con 403. La 15.34.0 es la del último despliegue bueno.
+          firebaseToolsVersion: 15.34.0
 
       - name: Verificar URL y health check
         env:

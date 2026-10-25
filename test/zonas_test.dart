@@ -1,6 +1,8 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mapsutb/adapters/analytics_adapter.dart';
 import 'package:mapsutb/adapters/static_map_adapter.dart';
@@ -48,6 +50,23 @@ Zona _zonaDePrueba({double lat = 0, double lng = 0}) => Zona.fromJson({
         },
       ],
     });
+
+/// Bundle con la misma caché que `rootBundle` cuya primera lectura falla,
+/// como una descarga del asset interrumpida en web.
+class _BundleQueFallaUnaVez extends CachingAssetBundle {
+  _BundleQueFallaUnaVez(this._contenido, {this.fallar = true});
+
+  final String _contenido;
+  final bool fallar;
+  int lecturas = 0;
+
+  @override
+  Future<ByteData> load(String key) async {
+    lecturas++;
+    if (fallar && lecturas == 1) throw StateError('sin conexión');
+    return ByteData.sublistView(utf8.encode(_contenido));
+  }
+}
 
 class _RepositorioFalso implements ZonaRepository {
   _RepositorioFalso(this.zonas, {this.fallosIniciales = 0});
@@ -149,6 +168,27 @@ void main() {
       expect(zonas, isNotEmpty);
       expect(zonas.map((z) => z.id).toSet(), hasLength(zonas.length),
           reason: 'los ids de zona deben ser únicos');
+    });
+
+    test('una lectura fallida no queda en caché: reintentar vuelve a leer', () async {
+      final bundle = _BundleQueFallaUnaVez(File('assets/data/zonas.json').readAsStringSync());
+      final repo = ZonaRepositoryLocal(bundle: bundle);
+
+      await expectLater(repo.obtenerPuntos(), throwsStateError);
+      final zonas = await repo.obtenerPuntos();
+
+      expect(zonas, isNotEmpty);
+      expect(bundle.lecturas, 2);
+    });
+
+    test('con lectura exitosa, la segunda consulta sale de la caché del bundle', () async {
+      final bundle = _BundleQueFallaUnaVez(File('assets/data/zonas.json').readAsStringSync(), fallar: false);
+      final repo = ZonaRepositoryLocal(bundle: bundle);
+
+      await repo.obtenerPuntos();
+      await repo.obtenerPuntos();
+
+      expect(bundle.lecturas, 1);
     });
   });
 

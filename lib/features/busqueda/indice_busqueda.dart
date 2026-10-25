@@ -96,25 +96,20 @@ class IndiceBusqueda {
     if (q.isEmpty) return const [];
     final palabras = q.split(' ');
 
-    final encontrados = <(int, _Entrada)>[];
-    for (final entrada in _entradas) {
-      if (!palabras.every(entrada.todo.contains)) continue;
-      if (!palabras.any((p) => entrada.propios.any((n) => n.contains(p)))) continue;
-      final rango = entrada.propios.any((n) => n == q)
-          ? 0
-          : entrada.propios.any((n) => n.startsWith(q))
-              ? 1
-              : 2;
-      encontrados.add((rango, entrada));
-    }
-    encontrados.sort((a, b) {
-      final porRango = a.$1.compareTo(b.$1);
-      if (porRango != 0) return porRango;
-      final porTipo = a.$2.resultado.tipo.index.compareTo(b.$2.resultado.tipo.index);
-      if (porTipo != 0) return porTipo;
-      return a.$2.orden.compareTo(b.$2.orden);
-    });
+    final encontrados = <(int, _Entrada)>[
+      for (final entrada in _entradas)
+        if (entrada.coincide(palabras)) (entrada.rango(q), entrada),
+    ];
+    encontrados.sort(_porRangoTipoYOrden);
     return [for (final (_, entrada) in encontrados) entrada.resultado];
+  }
+
+  static int _porRangoTipoYOrden((int, _Entrada) a, (int, _Entrada) b) {
+    final porRango = a.$1.compareTo(b.$1);
+    if (porRango != 0) return porRango;
+    final porTipo = a.$2.resultado.tipo.index.compareTo(b.$2.resultado.tipo.index);
+    if (porTipo != 0) return porTipo;
+    return a.$2.orden.compareTo(b.$2.orden);
   }
 }
 
@@ -131,6 +126,17 @@ class _Entrada {
   final int orden;
 
   _Entrada(this.resultado, {required this.propios, required this.todo, required this.orden});
+
+  /// Todas las palabras aparecen en el texto y al menos una en un nombre propio.
+  bool coincide(List<String> palabras) =>
+      palabras.every(todo.contains) && palabras.any((p) => propios.any((n) => n.contains(p)));
+
+  /// 0 si un nombre propio es la consulta, 1 si empieza por ella, 2 si solo la contiene.
+  int rango(String consulta) {
+    if (propios.contains(consulta)) return 0;
+    if (propios.any((n) => n.startsWith(consulta))) return 1;
+    return 2;
+  }
 }
 
 const _sinTilde = {

@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mapsutb/routing/grafo.dart';
 import 'package:mapsutb/routing/mapa_repository.dart';
@@ -230,5 +231,32 @@ void main() {
       expect(g1.entradas, isNotEmpty);
       expect(identical(g1, g2), isTrue);
     });
+
+    test('una lectura fallida no queda en caché: reintentar vuelve a leer', () async {
+      final bundle = _BundleQueFallaUnaVez(File('assets/data/grafo.json').readAsStringSync());
+      final repo = MapaRepositoryLocal(bundle: bundle);
+
+      await expectLater(repo.obtenerGrafo(), throwsStateError);
+      final grafo = await repo.obtenerGrafo();
+
+      expect(grafo.nodos, isNotEmpty);
+      expect(bundle.lecturas, 2);
+    });
   });
+}
+
+/// Bundle con la misma caché que `rootBundle` cuya primera lectura falla,
+/// como una descarga del asset interrumpida en web.
+class _BundleQueFallaUnaVez extends CachingAssetBundle {
+  _BundleQueFallaUnaVez(this._contenido);
+
+  final String _contenido;
+  int lecturas = 0;
+
+  @override
+  Future<ByteData> load(String key) async {
+    lecturas++;
+    if (lecturas == 1) throw StateError('sin conexión');
+    return ByteData.sublistView(utf8.encode(_contenido));
+  }
 }

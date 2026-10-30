@@ -798,3 +798,4 @@
 {"ts": "2026-10-30T00:48:53Z", "url": "https://mapsutb.web.app/", "http_sitio": 200, "ms_sitio": 256, "http_health": 200, "ms_health": 117, "disponible": true}
 {"ts": "2026-10-30T01:24:53Z", "url": "https://mapsutb.web.app/", "http_sitio": 200, "ms_sitio": 58, "http_health": 200, "ms_health": 129, "disponible": true}
 {"ts": "2026-10-30T02:29:18Z", "url": "https://mapsutb.web.app/", "http_sitio": 200, "ms_sitio": 132, "http_health": 200, "ms_health": 155, "disponible": true}
+{"ts": "2026-10-30T03:27:39Z", "url": "https://mapsutb.web.app/", "http_sitio": 200, "ms_sitio": 129, "http_health": 200, "ms_health": 50, "disponible": true}

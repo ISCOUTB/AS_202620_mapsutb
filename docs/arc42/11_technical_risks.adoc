@@ -219,3 +219,86 @@ Esta lista cubre los riesgos y deuda técnica que ya se han identificado explíc
 de arquitectura del proyecto (ver vista de bloques y requerimientos de calidad). Si el equipo identifica riesgos
 adicionales — por ejemplo, experiencia previa del equipo con Flutter/patrones usados, o riesgos de cronograma —
 deben agregarse aquí con el mismo formato.
+[[amenazas-aceptadas]]
+=== Amenazas de seguridad aceptadas
+
+Vienen del link:../modelo-amenazas.md[modelo de amenazas] (S13, 2026-11-11). Aquí van solo las que
+se *aceptan*, con el motivo. Las mitigadas y las pendientes, con su dueño, están en esa tabla.
+
+[cols="1,3,1,4" options="header"]
+|===
+| ID | Amenaza | Prioridad | Por qué se acepta
+
+| T-05
+| OpenStreetMap puede bloquear o limitar las teselas y dejar el mapa base vacío
+| Media (4)
+| El riesgo residual se acepta: no hay alternativa gratuita y sin key para el mapa base (ADR 0012). La
+  ruta, los pines y la posición funcionan sin teselas, y el usuario ve el aviso de MF-01. Ya se mitigó
+  lo que depende de MAPSUTB: el Referer se conserva y la app no descarga teselas en masa.
+
+| T-10
+| Tráfico automatizado agota la cuota gratuita de Firebase Hosting y el sitio deja de servir
+| Media (3)
+| Defenderse (Cloud Armor, App Check, plan Blaze) exige tarjeta, y eso choca con arc42 §2. La sonda
+  horaria lo detecta y existe el despliegue alternativo con Docker (ADR 0010). En seis semanas medidas
+  no hubo ninguna caída (link:../evidencia-s14.md[evidencia S14]).
+
+| T-11
+| Firebase Hosting y OSM reciben la IP, el navegador y la zona consultada
+| Media (3)
+| Ningún sitio web se puede servir sin ese dato. MAPSUTB no lo recibe ni lo guarda, y lo declara en
+  el aviso de privacidad del README.
+
+| T-13
+| Un usuario falsifica su posición GPS
+| Baja (2)
+| El único afectado es quien la falsifica: la ruta es solo suya y no se comparte ni se guarda.
+|===
+
+[[revision-pares]]
+=== Lo que señaló la revisión entre pares (S14)
+
+Revisión entre pares de la semana 14, tal como la transmitió el equipo. Se registra aunque no se
+vaya a corregir todo, con el estado de cada punto: *corregido*, *asumido* o *pendiente*.
+
+[cols="3,1,5" options="header"]
+|===
+| Señalamiento | Estado | Qué se hizo o por qué no
+
+| «El proyecto está bien.»
+| —
+| No pide ningún cambio. Se deja constancia de que no señalaron fallas de funcionamiento.
+
+| Crear una pequeña base de datos para actualizar las ubicaciones o los nombres de los lugares.
+| *Asumido* (no se corrige)
+| Choca con la decisión de datos más costosa de revertir
+  (link:../adr/0018-datos-del-campus-solo-lectura-derivados-de-osm.md[ADR 0018]). Hoy un cambio de nombre
+  o de coordenada es una edición de `zonas.json` y un push a `master`, y el despliegue automático lo
+  publica (escenario MA-01). Con una base de datos se perdería el funcionamiento sin conexión del flujo
+  principal. Además, habría que proteger una escritura nueva con autenticación, lo que agrega
+  superficie de ataque que hoy no existe (modelo de amenazas), y en Firebase exigiría reglas de
+  Firestore o un backend. *Lo que se reconoce:* la observación sí acierta en que solo alguien con
+  acceso al repositorio puede actualizar los datos (RT-04). Si los datos tienen que cambiar más rápido
+  que los despliegues, la decisión se revisa: ese disparador ya está en el ADR 0018. Hay un
+  disparador nuevo que se anota aquí y no en el ADR, porque está aceptado: que la universidad
+  necesite editar los datos sin pasar por el equipo.
+
+| Desplegar en Dokploy.
+| *Pendiente*
+| Va en la misma dirección que el pedido docente de publicar bajo `iscoutb.dev`, que el README todavía
+  no cumple (el sitio está en `mapsutb.web.app`). La imagen ya existe: `infra/Dockerfile` y
+  `infra/nginx.conf`, probadas en el taller de despliegue como contingencia (ADR 0010). Falta decidir
+  si Dokploy pasa a ser la plataforma principal o un segundo entorno. Como eso cambia la decisión de
+  plataforma (ADR 0007), necesita un ADR nuevo antes del proyecto final. Dueño: Carlos Galvis.
+|===
+
+*Lo que se conoce, se asume y se ignora tras la medición de la S14* (ver link:../evidencia-s14.md[evidencia]):
+
+* *Se conoce:* el sitio y `health.json` respondieron HTTP 200 en las 984 muestras horarias del
+  2026-09-30 al 2026-11-11, con un p95 del health de 212 ms desde GitHub Actions. Desde el computador de
+  un integrante, el p95 fue de 266 ms en 60 peticiones.
+* *Se asume:* que una hora sin muestra (24 de 1.008) no oculta una caída. La sonda no corrió en esas
+  horas porque GitHub retrasa o salta las ejecuciones programadas, no porque el sitio fallara.
+* *Se ignora:* la disponibilidad *funcional*. La sonda comprueba que el HTML y el health responden,
+  no que la app cargue, dibuje el mapa y calcule una ruta en el navegador. También se ignora la
+  latencia desde la red móvil del campus, que nadie ha medido.

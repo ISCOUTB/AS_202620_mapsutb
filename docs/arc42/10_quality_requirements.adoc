@@ -48,7 +48,7 @@ link:../escenarios_calidad.md[escenarios_calidad.md]; las filas que tienen escen
 | ID | Tipo | Escenario
 | DI-01 | Uso | Si el servidor de teselas de OpenStreetMap o Google Geocoding API no responden (caída del servicio o sin señal de red), la app se lo informa al usuario de forma clara en vez de bloquearse o fallar silenciosamente: 0 % de caídas y 100 % de los casos con mensaje controlado (Escenario 3). Verificado por las pruebas de MF-01 (`test/mapa_test.dart`) y MF-07 a MF-15 (`test/modos_de_fallo_test.dart`).
 | DI-02 | Cambio | Si Google modifica límites de cuota o condiciones de uso de la Geocoding API, el equipo puede ajustar el `GeocodingAdapter` sin modificar el resto de la app, gracias al patrón Adapter.
-| DI-03 | Uso | Un usuario o evaluador fuera de la red de la universidad abre la URL pública en cualquier momento: el sitio y `/health.json` responden HTTP 200, con disponibilidad ≥ 99 % y p95 del health check menor a 1 s en una ventana de 7 días (Escenario 6). Medido cada hora por la sonda (ADR 0008).
+| DI-03 | Uso | Un usuario o evaluador fuera de la red de la universidad abre la URL pública en cualquier momento: el sitio y `/health.json` responden HTTP 200, con disponibilidad ≥ 99 % y p95 del health check menor a 1 s en una ventana de 7 días (Escenario 6). Medido cada hora por la sonda (ADR 0008). Resultado S14: *cumple* en las seis ventanas del 2026-09-30 al 2026-11-11, con 100 % de disponibilidad y un p95 del health entre 194 y 265 ms (link:../evidencia-s14.md[evidencia S14]).
 | DI-04 | Cambio | Tras un despliegue que deja el sitio roto, un integrante vuelve a la versión anterior sin recompilar en 5 minutos o menos, hasta que `health.json` muestra el commit anterior (Escenario 7). Medido: 0,4 s (ADR 0010).
 |===
 

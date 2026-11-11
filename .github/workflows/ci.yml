@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           # SonarCloud necesita el historial completo para el blame/new-code.
           fetch-depth: 0
@@ -29,6 +29,34 @@ jobs:
           cache: true
       - run: flutter pub get --enforce-lockfile
       - run: flutter analyze
+
+      # Análisis de dependencias (S13, amenaza T-03; ADR 0020): OSV-Scanner
+      # contrasta las 85 versiones exactas de pubspec.lock con la base OSV
+      # (avisos de GitHub y de pub.dev incluidos) y falla el pipeline si
+      # alguna tiene una vulnerabilidad conocida. El binario se descarga de
+      # la versión fija y se verifica su SHA-256 antes de ejecutarlo.
+      - name: Análisis de dependencias — OSV-Scanner
+        env:
+          OSV_VERSION: v2.7.0
+          OSV_SHA256: 160c6253e2922e9e0a6a9771c5c4c40a4b3c6090b34a3cdd5e80c96cc2e4218b
+        run: |
+          curl -sSfL -o osv-scanner \
+            "https://github.com/google/osv-scanner/releases/download/${OSV_VERSION}/osv-scanner_linux_amd64"
+          echo "${OSV_SHA256}  osv-scanner" | sha256sum --check
+          chmod +x osv-scanner
+          ./osv-scanner scan source --lockfile pubspec.lock
+
+      # Lo que el análisis anterior no ve: dependencias sin vulnerabilidad
+      # conocida pero atrasadas. Informativo; las decisiones están en
+      # docs/evidencia-s13.md.
+      - name: Dependencias desactualizadas (informativo)
+        run: flutter pub outdated --no-dev-dependencies
+
+      # Taller de mensajes S12 (prototipo aislado, ADR 0019): las pruebas de
+      # duplicado y de fallo recuperable se invocan con nombre para que el
+      # run las deje citables. La suite completa las vuelve a correr.
+      - name: Taller de mensajes — duplicado y fallo recuperable
+        run: flutter test test/taller_mensajes_test.dart
 
       # Prueba de contrato (ficha S7, criterio 6): se invoca de forma
       # explícita y nombrada para que el run deje evidencia citable de que el
@@ -44,6 +72,11 @@ jobs:
       # Suite completa + cobertura (genera coverage/lcov.info para SonarCloud).
       - name: Suite completa con cobertura
         run: flutter test --coverage
+
+      # Medición del Escenario 6 (S14): pruebas del script que corta las
+      # muestras de la sonda en ventanas de 7 días y calcula disponibilidad y p95.
+      - name: Pruebas del análisis de disponibilidad (S14)
+        run: python3 -m unittest discover -s scripts/medicion -v
 
       # Análisis estático auditable (ficha S7, criterio "Pipeline y análisis
       # estático"). Requiere el secret SONAR_TOKEN configurado en el repo.

@@ -13,7 +13,7 @@
     ],
     "headers": [
       {
-        "comment": "Cabeceras de seguridad (S13, modelo de amenazas T-03, T-04 y T-05; ADR 0020). La CSP va en modo report-only: el navegador avisa en la consola lo que bloquearía, sin bloquearlo, hasta comprobar en el sitio publicado que la app no la viola.",
+        "comment": "Cabeceras de seguridad (S13, docs/modelo-amenazas.md: T-04, T-05 y T-07; ADR 0020). La CSP va en modo report-only: el navegador avisa en la consola lo que bloquearía, sin bloquearlo, hasta comprobar en el sitio publicado que la app no la viola.",
         "source": "**",
         "headers": [
           {

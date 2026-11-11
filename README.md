@@ -202,6 +202,24 @@ Fuentes, herramientas y procedimiento del levantamiento del campus:
   del GPS no distingue pisos (error vertical de ±10–30 m); el piso sale del
   contexto declarado.
 
+## Privacidad
+
+MAPSUTB no tiene cuentas de usuario y no pide nombre, correo ni teléfono.
+
+- **Ubicación:** el navegador pide permiso antes de usar el GPS. La posición
+  se usa solo en el dispositivo para mostrar dónde estás y calcular la
+  ruta. No se guarda ni se envía a ningún servidor. Sin permiso, la
+  partida se marca tocando el mapa.
+- **Terceros:** al abrir el sitio, Firebase Hosting (Google) recibe la IP y
+  el navegador, como cualquier sitio web. Al mostrar el mapa, los
+  servidores de teselas de OpenStreetMap reciben la zona consultada. Cada
+  uno aplica su propia política de privacidad.
+- **Analítica:** hoy está apagada en el sitio publicado. Si se activa,
+  solo envía el nombre del evento y la zona, con un identificador
+  aleatorio por sesión.
+
+Detalle y base de cada tratamiento: [`docs/modelo-amenazas.md`](./docs/modelo-amenazas.md#privacidad-qué-datos-personales-se-tratan-y-con-qué-base).
+
 ## Estado actual
 
 Implementado:
@@ -223,12 +241,19 @@ Implementado:
   tiempo límite de 5 s y modos de fallo MF-01 a MF-15
   ([arc42 §11](./docs/arc42/11_technical_risks.adoc)). En producción,
   Geocoding y Static Maps están apagados por falta de key.
-- **Pruebas:** 12 archivos con 84 pruebas en `test/`, ejecutadas por el
+- **Pruebas:** 16 archivos con 154 pruebas en `test/`, ejecutadas por el
   pipeline de CI ([`.github/workflows/ci.yml`](./.github/workflows/ci.yml))
   junto con `flutter analyze`, cobertura y el Quality Gate de SonarCloud.
 - **Despliegue:** sitio web en Firebase Hosting con health check, logs
   estructurados, métrica de disponibilidad, reversión medida y secretos
-  fuera del código.
+  fuera del código. Disponibilidad medida: 100 % en seis ventanas de
+  7 días, p95 del health 212 ms ([`docs/evidencia-s14.md`](./docs/evidencia-s14.md)).
+- **Seguridad:** modelo de amenazas STRIDE sobre el C4, análisis de
+  dependencias con OSV-Scanner en CI, Dependabot, acciones fijadas por SHA
+  y cabeceras de seguridad ([`docs/modelo-amenazas.md`](./docs/modelo-amenazas.md)).
+- **Taller de mensajes:** prototipo aislado de cola con entrega al menos
+  una vez, no incorporado al sistema ([`docs/taller-mensajes.md`](./docs/taller-mensajes.md),
+  [ADR 0019](./docs/adr/0019-cola-de-eventos-de-uso-prototipo-no-incorporado.md)).
 
 No implementado:
 

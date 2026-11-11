@@ -102,7 +102,17 @@ Las decisiones de diseño del proyecto se documentan como Registros de Decisione
 | link:../adr/0018-datos-del-campus-solo-lectura-derivados-de-osm.md[Los datos del campus son archivos de solo lectura derivados de OpenStreetMap, sin base de datos]
 | Aceptado (2026-10-25)
 | La decisión de datos más costosa de revertir: licencia ODbL ya publicada, claves de OSM y levantamiento de campo, y el diseño sin conexión del flujo principal. Firestore descartado para estos datos.
+
+| ADR-0019
+| link:../adr/0019-cola-de-eventos-de-uso-prototipo-no-incorporado.md[Cola de eventos de uso con entrega al menos una vez: prototipo aislado, no se incorpora]
+| Aceptado (2026-11-11)
+| Taller de mensajes S12. Compara la cola con el envío síncrono actual; GA4 no deduplica y un colector propio exige backend, así que la analítica sigue como máximo una vez.
+
+| ADR-0020
+| link:../adr/0020-mitigaciones-de-seguridad-estructurales.md[Mitigaciones de seguridad que cambian cómo se construye y publica el sistema]
+| Aceptado (2026-11-11)
+| Modelo de amenazas S13: acciones fijadas por SHA, build público sin `GA_API_SECRET`, OSV-Scanner bloqueante y cabeceras de seguridad (CSP en report-only).
 |===
 
 Nuevas decisiones de diseño relevantes que surjan durante el desarrollo deben agregarse como un nuevo ADR, con el
-siguiente número libre (hoy, `0019-...`), y sumarse a esta tabla, en vez de editar retroactivamente un ADR aceptado.
+siguiente número libre (hoy, `0021-...`), y sumarse a esta tabla, en vez de editar retroactivamente un ADR aceptado.

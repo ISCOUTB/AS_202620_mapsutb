@@ -280,3 +280,54 @@ pero el usuario seguía hasta una hora con la versión defectuosa. Así ocurrió
   formato `json_mapsutb`).
 * *Métrica:* disponibilidad y p95 del health check del entorno público, ligada al Escenario 6
   (link:../adr/0008-metrica-disponibilidad-sonda-actions.md[ADR 0008]).
+
+[[arquitectura-de-seguridad]]
+=== Arquitectura de seguridad
+
+Resumen del link:../modelo-amenazas.md[modelo de amenazas] (STRIDE sobre C2 y §7, 2026-11-11). Las
+decisiones que cambian la estructura están en
+link:../adr/0020-mitigaciones-de-seguridad-estructurales.md[ADR 0020].
+
+*Superficie.* MAPSUTB es un cliente estático: no tiene backend propio, cuentas, sesiones ni base de
+datos. La app no escribe en ningún almacén propio (ADR 0018), y la única escritura hacia afuera, la
+analítica, está apagada en producción. Lo que hay que proteger es la *integridad de lo que se
+publica* (el código y los dos JSON de los que salen las rutas) y la *posición del usuario*.
+
+[cols="2,3,3" options="header"]
+|===
+| Frontera de confianza | Qué la cruza | Control
+
+| Repositorio → pipeline → Firebase Hosting
+| Código, `zonas.json` y `grafo.json`, y la credencial `FIREBASE_SERVICE_ACCOUNT`
+| Solo se despliega desde `master`, después de `flutter test`. Las acciones de terceros están fijadas por SHA
+  (T-01). OSV-Scanner bloquea dependencias con vulnerabilidades conocidas (T-03). `health.json` muestra
+  qué commit está publicado (T-14). *Pendiente:* proteger `master` (T-09) y llevar la credencial a un
+  environment protegido (T-08).
+
+| Build → navegador del usuario
+| Todo valor de `--dart-define`
+| Se trata como público. El build no admite `GA_API_SECRET`: el despliegue falla si existe (T-02). La key de
+  Google Maps, si se activa, va restringida por referente HTTP y por API (ADR 0009).
+
+| Firebase Hosting → navegador
+| HTML, JS, CanvasKit y JSON
+| HTTPS con HSTS preload (Firebase). `nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy` y
+  `Permissions-Policy` en `firebase.json`, más una CSP en report-only (T-04). El despliegue verifica las
+  cabeceras.
+
+| Sensor del dispositivo → app
+| Posición GPS
+| Pasa por el permiso del navegador. Solo vive en memoria y nunca se envía ni se registra en logs
+  (ADR 0017, T-07). `Permissions-Policy: geolocation=(self)` impide que la pida un iframe de terceros.
+
+| App → terceros (OSM, GA4, Google)
+| IP, user agent, Referer y el área del mapa
+| No se envían identificadores persistentes ni la posición. El Referer se reduce al origen (T-05, T-11).
+|===
+
+*Secretos.* Solo entran por los secrets del repositorio (ADR 0009). El 2026-11-11 se barrió el
+historial completo y no apareció ninguna credencial (T-06).
+
+*Privacidad.* Qué datos personales se tratan y con qué base:
+link:../modelo-amenazas.md#privacidad-qué-datos-personales-se-tratan-y-con-qué-base[modelo de amenazas]
+y aviso en el README.

@@ -1,0 +1,28 @@
+| Ventana (UTC) | Muestras / esperadas | Caídas | Disponibilidad | p95 health | máx. health | p95 sitio | ¿Cumple? |
+|---|---|---|---|---|---|---|---|
+| 2026-09-30 → 2026-10-07 | 150 / 168 | 0 | 100.0 % | 194 ms | 295 ms | 278 ms | sí |
+| 2026-10-07 → 2026-10-14 | 167 / 168 | 0 | 100.0 % | 208 ms | 815 ms | 244 ms | sí |
+| 2026-10-14 → 2026-10-21 | 168 / 168 | 0 | 100.0 % | 265 ms | 972 ms | 254 ms | sí |
+| 2026-10-21 → 2026-10-28 | 167 / 168 | 0 | 100.0 % | 199 ms | 344 ms | 230 ms | sí |
+| 2026-10-28 → 2026-11-04 | 167 / 168 | 0 | 100.0 % | 213 ms | 655 ms | 234 ms | sí |
+| 2026-11-04 → 2026-11-11 | 165 / 168 | 0 | 100.0 % | 209 ms | 330 ms | 200 ms | sí |
+{
+  "ventanas": 6,
+  "ventanas_que_cumplen": 6,
+  "periodo_completo": {
+    "desde": "2026-09-30T00:00:00Z",
+    "hasta": "2026-11-11T00:00:00Z",
+    "muestras": 984,
+    "esperadas": 1008,
+    "caidas": 0,
+    "disponibilidad_pct": 100.0,
+    "p95_health_ms": 212,
+    "max_health_ms": 972,
+    "p95_sitio_ms": 249,
+    "cumple": true
+  },
+  "meta": {
+    "disponibilidad_pct": 99.0,
+    "p95_health_ms": 1000
+  }
+}

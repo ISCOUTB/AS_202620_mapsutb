@@ -289,7 +289,7 @@ vaya a corregir todo, con el estado de cada punto: *corregido*, *asumido* o *pen
   no cumple (el sitio está en `mapsutb.web.app`). La imagen ya existe: `infra/Dockerfile` y
   `infra/nginx.conf`, probadas en el taller de despliegue como contingencia (ADR 0010). Falta decidir
   si Dokploy pasa a ser la plataforma principal o un segundo entorno. Como eso cambia la decisión de
-  plataforma (ADR 0007), necesita un ADR nuevo antes del proyecto final. Dueño: Carlos Galvis.
+  plataforma (ADR 0007), necesita un ADR nuevo antes del proyecto final. Dueño: Carlos Manrique.
 |===
 
 *Lo que se conoce, se asume y se ignora tras la medición de la S14* (ver link:../evidencia-s14.md[evidencia]):

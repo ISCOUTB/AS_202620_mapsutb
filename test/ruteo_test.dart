@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mapsutb/routing/grafo.dart';
 import 'package:mapsutb/routing/mapa_repository.dart';
@@ -161,6 +162,16 @@ void main() {
       expect(r.nodos.first, 'A');
       expect(ruteo.rutaDesdePosicion(10.369, -75.466, 'sin_entrada'), isNull);
     });
+
+    test('rutaDesdePosicion suma y dibuja el trecho desde la posición hasta el primer nodo', () {
+      final a = g.nodos['A']!;
+      final lat = a.lat - 0.00005, lng = a.lng; // ~5,5 m al sur de A, lejos de B
+      final r = ruteo.rutaDesdePosicion(lat, lng, 'zona_d')!;
+      final base = ruteo.rutaEntreNodos('A', 'D')!;
+      expect(r.nodos.first, 'A');
+      expect(r.metros, closeTo(base.metros + metrosEntre(lat, lng, a.lat, a.lng), 0.01));
+      expect(r.geometria.first, [lat, lng]);
+    });
   });
 
   group('Grafo real del campus (assets/data/grafo.json)', () {
@@ -178,6 +189,17 @@ void main() {
           expect(r!.metros, greaterThanOrEqualTo(metrosEntre(na.lat, na.lng, nb.lat, nb.lng) - 0.5));
           expect(r.metros, closeTo(ruteo.rutaEntreZonas(b, a)!.metros, 0.01));
         }
+      }
+    });
+
+    test('un tramo suelto (sin conexión con ninguna entrada) no se usa como punto de partida', () {
+      // Vía de servicio de 47 m que en OSM no toca el resto de la red.
+      final n1 = g.nodos['n9363443925']!, n2 = g.nodos['n9363443922']!;
+      final lat = (n1.lat + n2.lat) / 2, lng = (n1.lng + n2.lng) / 2;
+      final cercano = g.nodoMasCercano(lat, lng)!;
+      expect(cercano.$1.id, isNot(anyOf('n9363443925', 'n9363443922')));
+      for (final z in zonas) {
+        expect(ruteo.rutaDesdePosicion(lat, lng, z), isNotNull, reason: z);
       }
     });
 
@@ -209,5 +231,32 @@ void main() {
       expect(g1.entradas, isNotEmpty);
       expect(identical(g1, g2), isTrue);
     });
+
+    test('una lectura fallida no queda en caché: reintentar vuelve a leer', () async {
+      final bundle = _BundleQueFallaUnaVez(File('assets/data/grafo.json').readAsStringSync());
+      final repo = MapaRepositoryLocal(bundle: bundle);
+
+      await expectLater(repo.obtenerGrafo(), throwsStateError);
+      final grafo = await repo.obtenerGrafo();
+
+      expect(grafo.nodos, isNotEmpty);
+      expect(bundle.lecturas, 2);
+    });
   });
+}
+
+/// Bundle con la misma caché que `rootBundle` cuya primera lectura falla,
+/// como una descarga del asset interrumpida en web.
+class _BundleQueFallaUnaVez extends CachingAssetBundle {
+  _BundleQueFallaUnaVez(this._contenido);
+
+  final String _contenido;
+  int lecturas = 0;
+
+  @override
+  Future<ByteData> load(String key) async {
+    lecturas++;
+    if (lecturas == 1) throw StateError('sin conexión');
+    return ByteData.sublistView(utf8.encode(_contenido));
+  }
 }

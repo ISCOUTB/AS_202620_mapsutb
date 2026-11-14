@@ -1,13 +1,18 @@
+
 import 'package:flutter/material.dart';
 import 'package:mapsutb/adapters/analytics_adapter.dart';
 import 'package:mapsutb/adapters/static_map_adapter.dart';
 import 'package:mapsutb/core/app_colors.dart';
+import 'package:mapsutb/features/busqueda/indice_busqueda.dart';
 import 'package:mapsutb/models/evento_analitica.dart';
 import 'package:mapsutb/models/zona.dart';
 import 'package:mapsutb/repositories/zona_repository.dart';
+
+import '../tipos_lugar.dart';
+import '../widgets/resultados_busqueda.dart';
 import 'zona_detalle_screen.dart';
 
-/// Color de acento de una tarjeta y su variante oscura (para textos).
+/// Color de acento de una tarjeta y su variante oscura.
 class _Acento {
   final Color color;
   final Color oscuro;
@@ -33,11 +38,9 @@ class ZonasScreen extends StatefulWidget {
 }
 
 class _ZonasScreenState extends State<ZonasScreen> {
-  // Se crea una sola vez: si se creara en build(), cada rebuild volvería a
-  // leer y parsear zonas.json.
   late Future<List<Zona>> _zonas;
 
-  // Colores que se van alternando entre tarjetas.
+  // Colores de las tarjetas.
   static const _acentos = <_Acento>[
     _Acento(AppColors.azulPrincipal, AppColors.azulPrincipal),
     _Acento(AppColors.verdeEsmeralda, AppColors.verdeEsmeralda),
@@ -45,21 +48,35 @@ class _ZonasScreenState extends State<ZonasScreen> {
     _Acento(AppColors.verdeLima, AppColors.verdeEsmeralda),
   ];
 
+  // Índice de búsqueda y controlador del campo.
+  IndiceBusqueda? _indice;
+  final _consulta = TextEditingController();
+
   @override
   void initState() {
     super.initState();
-    _zonas = widget.repository.obtenerPuntos();
+    _zonas = _cargar();
+  }
+
+  @override
+  void dispose() {
+    _consulta.dispose();
+    super.dispose();
+  }
+
+  Future<List<Zona>> _cargar() async {
+    final zonas = await widget.repository.obtenerPuntos();
+    _indice = IndiceBusqueda(zonas);
+    return zonas;
   }
 
   void _reintentar() {
     setState(() {
-      _zonas = widget.repository.obtenerPuntos();
+      _zonas = _cargar();
     });
   }
 
-  void _abrirDetalle(Zona zona) {
-    // Mejor esfuerzo: un error de analítica nunca interrumpe la navegación
-    // (Escenario 3, ADR 0005).
+  void _abrirDetalle(Zona zona, {String? pisoId, String? espacioId}) {
     widget.analytics
         .registrarEvento(EventoAnalitica(
           nombre: 'consulta_zona',
@@ -74,14 +91,25 @@ class _ZonasScreenState extends State<ZonasScreen> {
           zona: zona,
           staticMap: widget.staticMap,
           onComoLlegar: widget.onComoLlegar,
+          pisoInicialId: pisoId,
+          espacioResaltadoId: espacioId,
         ),
       ),
     );
   }
 
-  /// Icono según el tipo de zona (si no coincide, un pin genérico).
+  void _abrirResultado(ResultadoBusqueda resultado) {
+    _abrirDetalle(
+      resultado.zona,
+      pisoId: resultado.piso?.id,
+      espacioId: resultado.espacio?.id,
+    );
+  }
+
+  /// Icono según el tipo de zona.
   IconData _icono(String tipo) {
     final t = tipo.toLowerCase();
+
     if (t.contains('biblio')) return Icons.local_library;
     if (t.contains('cafe') || t.contains('comed') || t.contains('rest')) {
       return Icons.restaurant;
@@ -94,6 +122,7 @@ class _ZonasScreenState extends State<ZonasScreen> {
     if (t.contains('aula') || t.contains('salon') || t.contains('edific')) {
       return Icons.school;
     }
+
     return Icons.place;
   }
 
@@ -109,8 +138,11 @@ class _ZonasScreenState extends State<ZonasScreen> {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(Icons.cloud_off,
-                      size: 56, color: AppColors.azulPrincipal.withOpacity(.6)),
+                  Icon(
+                    Icons.cloud_off,
+                    size: 56,
+                    color: AppColors.azulPrincipal.withOpacity(.6),
+                  ),
                   const SizedBox(height: 12),
                   const Text(
                     'No se pudieron cargar las zonas.',
@@ -137,39 +169,105 @@ class _ZonasScreenState extends State<ZonasScreen> {
             ),
           );
         }
+
         if (!snapshot.hasData) {
           return const Center(
-            child: CircularProgressIndicator(color: AppColors.azulPrincipal),
+            child: CircularProgressIndicator(
+              color: AppColors.azulPrincipal,
+            ),
           );
         }
 
         final puntos = snapshot.data!;
-        return ListView.builder(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
-          itemCount: puntos.length + 1, // +1 por el encabezado
-          itemBuilder: (context, i) {
-            if (i == 0) return _Encabezado(total: puntos.length);
+        final consulta = _consulta.text;
 
-            final punto = puntos[i - 1];
-            final acento = _acentos[(i - 1) % _acentos.length];
-            return _Aparece(
-              indice: i - 1,
-              child: _TarjetaZona(
-                zona: punto,
-                acento: acento,
-                icono: _icono(punto.tipo),
-                onTap: () => _abrirDetalle(punto),
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+              child: _CampoBusqueda(
+                controller: _consulta,
+                onChanged: (_) => setState(() {}),
               ),
-            );
-          },
+            ),
+            Expanded(
+              child: consulta.trim().isNotEmpty
+                  ? ResultadosBusqueda(
+                      consulta: consulta,
+                      resultados: _indice?.buscar(consulta) ?? const [],
+                      onAbrir: _abrirResultado,
+                      onComoLlegar: widget.onComoLlegar == null
+                          ? null
+                          : (r) => widget.onComoLlegar!(r.zona.id),
+                    )
+                  : ListView.builder(
+                      padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+                      itemCount: puntos.length + 1,
+                      itemBuilder: (context, i) {
+                        if (i == 0) {
+                          return _Encabezado(total: puntos.length);
+                        }
+
+                        final punto = puntos[i - 1];
+                        final acento =
+                            _acentos[(i - 1) % _acentos.length];
+
+                        return _Aparece(
+                          indice: i - 1,
+                          child: _TarjetaZona(
+                            zona: punto,
+                            acento: acento,
+                            icono: _icono(punto.tipo),
+                            onTap: () => _abrirDetalle(punto),
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
         );
       },
     );
   }
 }
 
+class _CampoBusqueda extends StatelessWidget {
+  final TextEditingController controller;
+  final ValueChanged<String> onChanged;
+
+  const _CampoBusqueda({
+    required this.controller,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      onChanged: onChanged,
+      textInputAction: TextInputAction.search,
+      decoration: InputDecoration(
+        hintText: 'Buscar zona, espacio o salón',
+        prefixIcon: const Icon(Icons.search),
+        suffixIcon: controller.text.isEmpty
+            ? null
+            : IconButton(
+                icon: const Icon(Icons.close),
+                tooltip: 'Borrar búsqueda',
+                onPressed: () {
+                  controller.clear();
+                  onChanged('');
+                },
+              ),
+      ),
+    );
+  }
+}
+
 class _Encabezado extends StatelessWidget {
   final int total;
+
   const _Encabezado({required this.total});
 
   @override
@@ -252,14 +350,12 @@ class _TarjetaZona extends StatelessWidget {
           child: IntrinsicHeight(
             child: Row(
               children: [
-                // Franja de color a la izquierda.
                 Container(width: 8, color: acento.color),
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.all(14),
                     child: Row(
                       children: [
-                        // Icono en cuadro con degradado.
                         Container(
                           width: 54,
                           height: 54,
@@ -292,10 +388,11 @@ class _TarjetaZona extends StatelessWidget {
                                 ),
                               ),
                               const SizedBox(height: 6),
-                              // Etiqueta con el tipo.
                               Container(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 10, vertical: 3),
+                                  horizontal: 10,
+                                  vertical: 3,
+                                ),
                                 decoration: BoxDecoration(
                                   color: acento.color.withOpacity(.14),
                                   borderRadius: BorderRadius.circular(20),
@@ -312,7 +409,6 @@ class _TarjetaZona extends StatelessWidget {
                             ],
                           ),
                         ),
-                        // Flecha en círculo.
                         Container(
                           width: 34,
                           height: 34,
@@ -320,8 +416,11 @@ class _TarjetaZona extends StatelessWidget {
                             shape: BoxShape.circle,
                             color: acento.color.withOpacity(.14),
                           ),
-                          child: Icon(Icons.arrow_forward_ios_rounded,
-                              size: 15, color: acento.oscuro),
+                          child: Icon(
+                            Icons.arrow_forward_ios_rounded,
+                            size: 15,
+                            color: acento.oscuro,
+                          ),
                         ),
                       ],
                     ),
@@ -336,15 +435,20 @@ class _TarjetaZona extends StatelessWidget {
   }
 }
 
-/// Animación de entrada: cada tarjeta sube y aparece con un pequeño retraso.
+/// Animación de entrada de las tarjetas.
 class _Aparece extends StatelessWidget {
   final int indice;
   final Widget child;
-  const _Aparece({required this.indice, required this.child});
+
+  const _Aparece({
+    required this.indice,
+    required this.child,
+  });
 
   @override
   Widget build(BuildContext context) {
     final extra = (indice < 8 ? indice : 8) * 70;
+
     return TweenAnimationBuilder<double>(
       tween: Tween(begin: 0, end: 1),
       duration: Duration(milliseconds: 350 + extra),

@@ -3,38 +3,57 @@ ifndef::imagesdir[:imagesdir: ../images]
 [[section-glossary]]
 == Glosario
 
-ifdef::arc42help[]
-[role="arc42help"]
-****
-.Contenido
-Los términos técnicos y de dominio más importantes que serán utilizados por las partes relacionadas al discutir el sistema.
-
-También se puede usar el glosario como fuente para traducciones si se trabaja en equipos multi-lenguaje.
-
-.Motivación
-Deberían definirse claramente los términos, para que todas las partes relacionadas:
-
-* Tengan un entendimiento idéntico de dichos términos
-* No usen sinónimos y homónimos
-
-.Forma
-* Crear una tabla con las columnas <Término> y <Definición>.
-* Se pueden agregar más columnas en caso de que se requieran traducciones.
-****
-endif::arc42help[]
-
 [cols="e,2e" options="header"]
 |===
 |Término |Definición
 
 |MAPSUTB
-|Nombre del sistema: app móvil Flutter que permite explorar el campus de la Universidad Tecnológica de Bolívar (UTB) mediante un mapa propio superpuesto sobre Google Maps SDK, con ruteo peatonal interno y un tour panorámico 360°.
+|Nombre del sistema: app Flutter, publicada como sitio web en Firebase Hosting, que permite ubicarse en el campus de la Universidad Tecnológica de Bolívar (UTB) mediante un plano propio superpuesto sobre teselas de OpenStreetMap, con ruteo peatonal interno. El tour panorámico 360° está diferido (no implementado).
 
-|Google Maps SDK
-|Servicio externo de Google usado como mapa base (con coordenadas GPS reales), sobre el cual la app superpone el plano propio del campus.
+|Google Maps SDK (histórico)
+|Mapa base de la propuesta inicial. Reemplazado por `flutter_map` con teselas de OpenStreetMap (ADR 0012), porque exigía tarjeta y exponía la key en web. Ya no se usa en el código.
+
+|OpenStreetMap / teselas
+|Mapa colaborativo abierto. La app pide sus teselas (imágenes PNG de 256×256 por zoom, columna y fila) a `tile.openstreetmap.org` para dibujar el mapa base (ADR 0012); de OSM salen también la geometría del grafo y las coordenadas de las zonas (ADR 0011). Gratis, con política de uso y sin acuerdo de servicio.
+
+|ODbL
+|Open Database License, la licencia de los datos de OpenStreetMap. Lo derivado de OSM (el grafo peatonal) se atribuye «© colaboradores de OpenStreetMap» y se comparte con la misma licencia (ADR 0011).
+
+|flutter_map
+|Librería de Flutter que dibuja mapas a partir de teselas. `MapaWidget` la usa para el mapa base y para superponer zonas, posición y ruta (ADR 0012).
 
 |Google Geocoding API
-|Servicio externo de Google usado para convertir coordenadas GPS en direcciones legibles y viceversa.
+|Servicio externo de Google usado para convertir coordenadas GPS en direcciones legibles y viceversa. Opcional: en producción está apagado por falta de key (ADR 0009).
+
+|Static Maps API
+|Servicio de Google Maps Platform que devuelve una imagen estática del mapa en unas coordenadas; la app la usa para la miniatura del detalle de una zona (`StaticMapAdapter`). Opcional: en producción está apagado por falta de key (ADR 0009).
+
+|Measurement Protocol / GA4
+|Endpoint HTTP de Google Analytics 4 para enviar eventos sin el SDK de Firebase. `AnalyticsAdapter` envía `consulta_zona` y `solicitud_ruta`, de mejor esfuerzo y como máximo una vez (ADR 0005, ADR 0016).
+
+|Firebase Hosting / plan Spark
+|Servicio de Google que aloja el sitio web estático de la app (`mapsutb.web.app`). El plan Spark es gratis y no pide método de pago: 10 GB almacenados y 360 MB/día de transferencia (ADR 0007, `docs/costos.md`).
+
+|health.json / sonda
+|`health.json` es el archivo que cada despliegue publica con `status`, `commit` y fecha. La sonda es el workflow de GitHub Actions que lo consulta cada hora y publica la disponibilidad y el p95 en la rama `metricas` (Escenario 6, ADR 0008).
+
+|geolocator
+|Paquete de Flutter que lee la posición del dispositivo; en web usa la API de geolocalización del navegador, que solo funciona con HTTPS. Lo usa `UbicacionServiceGps` (ADR 0017).
+
+|FiltroUbicacion
+|Clase de `lib/services/ubicacion_service.dart` que decide qué lecturas del GPS se usan: descarta las de más de 10 s, las de precisión peor que 30 m y las que se movieron menos de 5 m (MF-05, MF-06, ADR 0017).
+
+|UbicacionNoDisponible
+|Error que emite el `Stream<Ubicacion>` cuando no hay posición utilizable, con el motivo: permiso denegado, ubicación apagada o sin señal. El stream sigue abierto y vuelve a emitir si la señal vuelve (MF-04).
+
+|Partida marcada a mano
+|Punto de partida que el usuario marca tocando el mapa cuando el GPS no sirve (sin permiso, sin señal o a más de 300 m del campus). Tiene prioridad sobre el GPS hasta que el usuario vuelva a «Usar mi GPS» (ADR 0017).
+
+|Modo de fallo (MF-xx)
+|Lo que pasa cuando el otro lado de una integración no responde, responde tarde o responde dos veces, con su mitigación y su prueba. Están numerados MF-01 a MF-15 en la sección 11 (ADR 0016).
+
+|Levantamiento de campo
+|Recorrido del campus con herramientas web propias, GPS Logger y video para medir entradas, caminos y el error del GPS, y generar `grafo.json` y las coordenadas de `zonas.json` (`docs/levantamiento-campo.md`, ADR 0011).
 
 |Plano del campus
 |Representación propia (no de Google) de la geometría y el grafo peatonal del campus, empaquetada dentro de la app.
@@ -46,19 +65,19 @@ endif::arc42help[]
 |Cálculo de la ruta más corta entre dos puntos dentro del campus, resuelto internamente sobre el grafo peatonal propio mediante el algoritmo de Dijkstra, sin depender de ninguna API externa.
 
 |Tour panorámico
-|Módulo de la app que muestra imágenes equirectangulares (panorámicas 360°) capturadas vía smartphone, que permiten al usuario explorar visualmente espacios del campus.
+|Módulo previsto para mostrar imágenes equirectangulares (panorámicas 360°) capturadas vía smartphone, que permitirían al usuario explorar visualmente espacios del campus. Diferido (no implementado).
 
 |Panorámica 360° / captura esférica
 |Imagen equirectangular que cubre una vista completa de 360° alrededor de un punto, capturada con la cámara de un smartphone (sin necesidad de una cámara 360° dedicada).
 
 |Zona
-|Nivel superior de la jerarquía del campus: edificio, cafetería, parqueadero o zona común (`lib/models/zona.dart`), cargada por el equipo en un archivo JSON local. Puede contener `Piso` y/o `Espacio`. Redefinida por el link:0006-reajuste-limites-contexto.adoc[ADR 0006] para coincidir con el código; antes se confundía con lo que hoy se llama "Espacio".
+|Nivel superior de la jerarquía del campus: edificio, cafetería, parqueadero o zona común (`lib/models/zona.dart`), cargada por el equipo en un archivo JSON local. Puede contener `Piso` y/o `Espacio`. Redefinida por el link:../adr/0006-reajuste-limites-contexto.md[ADR 0006] para coincidir con el código; antes se confundía con lo que hoy se llama "Espacio".
 
 |Espacio
-|Nivel intermedio/hoja dentro de una `Zona` (opcionalmente a través de un `Piso`): salón, laboratorio u oficina (`lib/models/espacio.dart`, `salon.dart`), cargado por el equipo en el mismo archivo JSON local que `Zona`. Es el destino navegable concreto que un usuario selecciona — ver "Punto de interés". Entrada agregada por el link:0006-reajuste-limites-contexto.adoc[ADR 0006].
+|Nivel intermedio/hoja dentro de una `Zona` (opcionalmente a través de un `Piso`): salón, laboratorio u oficina (`lib/models/espacio.dart`, `salon.dart`), cargado por el equipo en el mismo archivo JSON local que `Zona`. Es el destino navegable concreto que un usuario selecciona — ver "Punto de interés". Entrada agregada por el link:../adr/0006-reajuste-limites-contexto.md[ADR 0006].
 
 |Punto de interés (POI)
-|Nombre de uso común para un `Espacio` o `Salon` (nunca una `Zona` completa): el destino navegable concreto que un usuario selecciona como objetivo de una ruta. No es una clase propia del código — se sirve desde `ZonaRepository`, igual que `Zona`. Definición fijada por el link:0006-reajuste-limites-contexto.adoc[ADR 0006] tras detectar el uso inconsistente entre `Zona` y `Espacio` en la documentación previa.
+|Nombre de uso común para un `Espacio` o `Salon` (nunca una `Zona` completa): el destino navegable concreto que un usuario selecciona como objetivo de una ruta. No es una clase propia del código — se sirve desde `ZonaRepository`, igual que `Zona`. Definición fijada por el link:../adr/0006-reajuste-limites-contexto.md[ADR 0006] tras detectar el uso inconsistente entre `Zona` y `Espacio` en la documentación previa.
 
 |Aspirante nuevo
 |Actor humano del sistema: persona que quiere conocer el campus antes de matricularse.
@@ -67,18 +86,18 @@ endif::arc42help[]
 |Actor humano del sistema: estudiante de la UTB que usa la app para ubicarse y trazar rutas dentro del campus.
 
 |Estudiante de intercambio
-|Actor humano del sistema: estudiante extranjero que usa la app en su interfaz en inglés para orientarse en un campus desconocido.
+|Actor humano del sistema: estudiante extranjero que usa la app para orientarse en un campus desconocido. La interfaz en inglés está pendiente (solo español hoy).
 
 |Invitado
 |Actor humano del sistema: visitante que usa la app para ubicarse y desplazarse dentro del campus.
 
 |Repository (patrón)
-|Patrón de diseño que expone los datos de un almacén (plano, zonas, panorámicas) a través de una interfaz simple, sin exponer su formato interno de almacenamiento. Usado en `MapaRepository`, `ZonaRepository` (sirve `Zona` y `Espacio`, ver ADR 0006) y `TourRepository`.
+|Patrón de diseño que expone los datos de un almacén (plano, zonas, panorámicas) a través de una interfaz simple, sin exponer su formato interno de almacenamiento. Usado en `MapaRepository` y `ZonaRepository` (sirve `Zona` y `Espacio`, ver ADR 0006); `TourRepository` está diferido con el tour.
 
 |Adapter (patrón)
-|Patrón de diseño que aísla al resto de la app de un servicio o SDK externo, traduciendo entre la interfaz que la app espera y la del servicio real. Usado en `MapaWidget` (Google Maps SDK) y `GeocodingAdapter` (Geocoding API).
+|Patrón de diseño que aísla al resto de la app de un servicio o SDK externo, traduciendo entre la interfaz que la app espera y la del servicio real. Usado en `MapaWidget` (`flutter_map` y teselas de OpenStreetMap), `GeocodingAdapter` (Geocoding API), `StaticMapAdapter` (Static Maps API) y `AnalyticsAdapter` (Measurement Protocol).
 
 |Observer (patrón)
-|Patrón de diseño en el que un componente emite eventos a quienes se suscriban a él. Usado en el `Servicio de ubicación`, que emite la posición del usuario en tiempo real (`Stream<Ubicacion>`).
+|Patrón de diseño en el que un componente emite eventos a quienes se suscriban a él. Usado en el `Servicio de ubicación`, que emite la posición del usuario en tiempo real (`Stream<Ubicacion>`, `UbicacionServiceGps`).
 
 |===

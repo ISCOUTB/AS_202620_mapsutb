@@ -89,10 +89,28 @@ class GrafoPeatonal {
 
   List<TramoGrafo> tramosDe(String nodo) => _adyacencia[nodo] ?? const [];
 
-  /// Nodo más cercano a una posición (p. ej. la del GPS) y su distancia en m.
+  /// Nodos desde los que se llega a alguna entrada. Un pedazo de camino
+  /// suelto (en OSM hay una vía de servicio de 47 m sin conexión) no sirve
+  /// como punto de partida: desde ahí no hay ruta a ningún destino.
+  late final Iterable<NodoGrafo> _nodosConectados = () {
+    if (entradas.isEmpty) return nodos.values;
+    final vistos = <String>{};
+    final pendientes = [...entradas.values.where(nodos.containsKey)];
+    while (pendientes.isNotEmpty) {
+      final id = pendientes.removeLast();
+      if (!vistos.add(id)) continue;
+      for (final t in tramosDe(id)) {
+        pendientes.add(t.otroExtremo(id));
+      }
+    }
+    return [for (final id in vistos) nodos[id]!];
+  }();
+
+  /// Nodo más cercano a una posición (p. ej. la del GPS) y su distancia en m,
+  /// entre los conectados con alguna entrada.
   (NodoGrafo, double)? nodoMasCercano(double lat, double lng) {
     (NodoGrafo, double)? mejor;
-    for (final n in nodos.values) {
+    for (final n in _nodosConectados) {
       final d = metrosEntre(lat, lng, n.lat, n.lng);
       if (mejor == null || d < mejor.$2) mejor = (n, d);
     }

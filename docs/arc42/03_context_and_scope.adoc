@@ -8,21 +8,24 @@ ifndef::imagesdir[:imagesdir: ../images]
 [options="header",cols="2,2,3"]
 |===
 |Socio de comunicación|Entradas al sistema|Salidas del sistema
-|Aspirante / futuro estudiante|Interacción táctil (navegación en el mapa, selección de puntos de interés)|Recorrido panorámico 360°, ubicación en el mapa, ruta más corta hacia el destino
+|Aspirante / futuro estudiante|Interacción táctil (navegación en el mapa, selección de puntos de interés)|Ubicación en el mapa, ruta más corta hacia el destino (el recorrido panorámico 360° está diferido)
 |Estudiante actual|Interacción táctil|Ubicación en tiempo real, ruta más corta hacia un punto de interés del campus
-|Estudiante de intercambio extranjero|Interacción táctil, selección de idioma (inglés)|Interfaz en inglés, ubicación y recorrido panorámico
-|Invitado |Interacción táctil|Ubicación en el mapa, recorrido panorámico de zonas del campus
+|Estudiante de intercambio extranjero|Interacción táctil (la selección de idioma está pendiente: solo español hoy)|Ubicación y ruta, con la interfaz en español
+|Invitado |Interacción táctil|Ubicación en el mapa y zonas del campus (recorrido panorámico: diferido)
 |Teselas de OpenStreetMap|Solicitud de teselas del mapa base|Mapa base sobre el cual la app dibuja zonas, posición y rutas (ADR 0012, reemplaza a Google Maps SDK)
-|Google Geocoding API|Coordenadas GPS o direcciones a convertir|Dirección legible o coordenadas correspondientes
+|Google Geocoding API (opcional; apagada en producción por falta de key, ADR 0009)|Coordenadas GPS o direcciones a convertir|Dirección legible o coordenadas correspondientes
+|Google Static Maps API (opcional; apagada en producción, ADR 0009)|Coordenadas de una zona|Miniatura estática para el detalle de la zona
+|Measurement Protocol (GA4)|Eventos de uso (`consulta_zona`, `solicitud_ruta`)|Ninguna para el usuario: analítica de mejor esfuerzo
 |===
 
 MAPSUTB no intercambia datos específicos de dominio de la universidad
-(zonas, puntos de interés, grafo peatonal, panorámicas) con ningún
-sistema externo: esos datos se resuelven completamente con activos
-locales empaquetados en la app. Sin embargo, el sistema sí depende en
-tiempo de ejecución de dos servicios externos de Google —Maps SDK y
-Geocoding API— para renderizar el mapa base y resolver geocodificación,
-consumidos directamente por la app vía HTTPS (ver <<section-solution-strategy>>
+(zonas, puntos de interés, grafo peatonal) con ningún sistema externo:
+esos datos se resuelven completamente con activos locales empaquetados
+en la app. Sin embargo, el sistema sí depende en tiempo de ejecución de
+las teselas de OpenStreetMap para el mapa base (ADR 0012) y, de forma
+opcional, de Google Geocoding API para la geocodificación, apagada en
+producción por falta de key (ADR 0009); ambos se consumen directamente
+desde la app vía HTTPS (ver <<section-solution-strategy>>
 y <<section-architecture-constraints>>).
 
 === Contexto Técnico
@@ -30,19 +33,21 @@ y <<section-architecture-constraints>>).
 [options="header",cols="2,3"]
 |===
 |Canal técnico|Entrada/salida que transporta
-|GPS del dispositivo (a través de servicios de localización del sistema operativo)|Posición del usuario en tiempo real (latitud/longitud), consumida vía el paquete `geolocator`
-|Almacenamiento local del dispositivo (activos empaquetados con la app)|Plano del campus (grafo peatonal y geometría propia), imágenes panorámicas 360° (capturadas por el equipo), datos de zonas y puntos de interés
+|GPS del dispositivo (en web, la API de geolocalización del navegador, que exige HTTPS)|Posición del usuario en tiempo real (latitud/longitud y precisión), consumida vía el paquete `geolocator` y filtrada por `FiltroUbicacion` (ADR 0017)
+|Activos empaquetados con la app|Plano del campus (grafo peatonal, `assets/data/grafo.json`) y datos de zonas y puntos de interés (`assets/data/zonas.json`)
 |Teselas de OpenStreetMap (HTTPS, PNG)|Coordenadas de tesela (z/x/y) ↔ imagen del mapa base, sobre la que se dibujan zonas, posición y rutas
-|Google Geocoding API (HTTPS)|Coordenadas GPS ↔ dirección legible
+|Google Geocoding API (HTTPS; opcional, apagada en producción)|Coordenadas GPS ↔ dirección legible
 |===
 
-El mapa base, la geocodificación y, por lo tanto, buena parte de la
-experiencia de ubicación y ruteo de MAPSUTB **requieren conexión a
-internet**: la app pide las teselas de OpenStreetMap y consulta Google
-Geocoding API en tiempo de ejecución. Lo que sí se resuelve sin red son
-el ruteo interno (calculado sobre el grafo peatonal propio, empaquetado
-localmente) y el contenido del tour panorámico y de zonas/puntos de
-interés, que se distribuyen como activos locales dentro de la app. La
-posición del usuario se obtiene directamente del hardware GPS del
-dispositivo a través de los servicios de localización del sistema
-operativo, sin pasar por ninguna API de red.
+El mapa base de MAPSUTB **requiere conexión a internet**: la app pide
+las teselas de OpenStreetMap en tiempo de ejecución. La geocodificación
+de Google también la requiere, pero en producción está apagada (sin key,
+ADR 0009). Lo que sí se resuelve sin red, una vez cargada la app, son el
+ruteo interno (calculado sobre el grafo peatonal propio, empaquetado
+localmente) y las zonas/puntos de interés, que se distribuyen como
+activos locales dentro de la app; sin teselas, la app avisa «Sin
+conexión al mapa base» y la ruta se sigue dibujando (MF-01). La posición
+del usuario se obtiene del GPS del dispositivo a través de la API de
+geolocalización del navegador (`geolocator`, ADR 0017), sin que el
+código de MAPSUTB llame a ninguna API de red; si no hay GPS, el usuario
+marca el punto de partida tocando el mapa.

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -22,14 +23,23 @@ abstract class GeocodingAdapter {
 }
 
 class GeocodingAdapterHttp implements GeocodingAdapter {
-  GeocodingAdapterHttp({required String apiKey, http.Client? client})
-      : _apiKey = apiKey,
+  GeocodingAdapterHttp({
+    required String apiKey,
+    http.Client? client,
+    this.tiempoLimite = const Duration(seconds: 5),
+  })  : _apiKey = apiKey,
         _client = client ?? http.Client();
 
   static const _baseUrl = 'https://maps.googleapis.com/maps/api/geocode/json';
 
   final String _apiKey;
   final http.Client _client;
+
+  /// Pasado este tiempo sin respuesta, la consulta se da por fallida
+  /// (modo de fallo «responde tarde», arc42 §11). No se reintenta sola: la
+  /// repite el usuario con el botón, y cada intento es una consulta que
+  /// cuenta para la cuota de Google (`docs/costos.md`, ADR 0016).
+  final Duration tiempoLimite;
 
   @override
   Future<Direccion> geocodificarInversa({required double lat, required double lng}) {
@@ -62,7 +72,15 @@ class GeocodingAdapterHttp implements GeocodingAdapter {
       'key': _apiKey,
     });
 
-    final respuesta = await _client.get(uri);
+    final http.Response respuesta;
+    try {
+      respuesta = await _client.get(uri).timeout(tiempoLimite);
+    } on TimeoutException {
+      throw GeocodingException('TIEMPO_AGOTADO');
+    } on http.ClientException {
+      // Sin red, DNS o conexión rechazada: «no responde».
+      throw GeocodingException('SIN_CONEXION');
+    }
 
     // Un error HTTP (5xx, 403 de cuota, página HTML de un proxy) no trae el
     // JSON del contrato: se reporta como GeocodingException en vez de dejar

@@ -1,10 +1,16 @@
+
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart'; 
+import 'package:google_fonts/google_fonts.dart';
 
 import 'features/home/presentation/home_screen.dart';
 import 'features/splash/presentation/splash_screen.dart';
 
 void main() => runApp(const MapsUtbApp());
+
+/// `--dart-define=UBICACION_SIMULADA=true` usa una posición fija del campus
+/// en lugar del GPS, para demostraciones fuera de la universidad.
+const _ubicacionSimulada =
+    bool.fromEnvironment('UBICACION_SIMULADA');
 
 class MapsUtbApp extends StatelessWidget {
   const MapsUtbApp({super.key});
@@ -18,10 +24,14 @@ class MapsUtbApp extends StatelessWidget {
         textTheme: GoogleFonts.interTextTheme(
           Theme.of(context).textTheme,
         ),
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF093AD8)),
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: const Color(0xFF093AD8),
+        ),
         useMaterial3: true,
       ),
-      home: SplashScreen(siguiente: (_) => const HomeScreen()),
+      home: SplashScreen(
+        siguiente: (_) => const HomeScreen(),
+      ),
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:http/http.dart' as http;
@@ -45,6 +46,7 @@ class AnalyticsAdapterHttp implements AnalyticsAdapter {
     required String apiSecret,
     required String clientId,
     http.Client? client,
+    this.tiempoLimite = const Duration(seconds: 5),
   })  : _measurementId = measurementId,
         _apiSecret = apiSecret,
         _clientId = clientId,
@@ -56,6 +58,12 @@ class AnalyticsAdapterHttp implements AnalyticsAdapter {
   final String _apiSecret;
   final String _clientId;
   final http.Client _client;
+
+  /// Pasado este tiempo, el evento se da por perdido igual que ante un fallo
+  /// de red. Nunca se reenvía: el Measurement Protocol no deduplica, así que
+  /// un reintento tras un tiempo agotado podría contar el evento dos veces
+  /// (como máximo una vez, ADR 0016).
+  final Duration tiempoLimite;
 
   @override
   Future<void> registrarEvento(EventoAnalitica evento) async {
@@ -79,7 +87,7 @@ class AnalyticsAdapterHttp implements AnalyticsAdapter {
         uri,
         headers: {'Content-Type': 'application/json'},
         body: cuerpo,
-      );
+      ).timeout(tiempoLimite);
 
       // El Measurement Protocol responde 204 sin cuerpo cuando acepta el
       // evento (docs/api/apis-externas.openapi.yaml). No se valida más

@@ -1,0 +1,17 @@
+{
+  "url": "https://mapsutb.web.app/",
+  "repeticiones": 60,
+  "desde": "2026-11-11T13:58:44Z",
+  "hasta": "2026-11-11T14:01:02Z",
+  "disponibilidad_pct": 100.0,
+  "health_ms": {
+    "p50": 203,
+    "p95": 266,
+    "max": 312
+  },
+  "sitio_ms": {
+    "p50": 110,
+    "p95": 141,
+    "max": 265
+  }
+}

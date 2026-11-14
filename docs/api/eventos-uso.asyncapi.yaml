@@ -1,0 +1,124 @@
+asyncapi: 3.0.0
+info:
+  title: MAPSUTB · Eventos de uso (taller de mensajes S12)
+  version: 1.0.0
+  description: |
+    Contrato del mensaje del **prototipo aislado** del taller de mensajes y
+    consistencia (S12). No describe una integración en producción: la app
+    publicada sigue enviando la analítica de forma síncrona y como máximo
+    una vez al Measurement Protocol (ADR 0005 y ADR 0016). La decisión de
+    no incorporar esta cola está en docs/adr/0019-cola-de-eventos-de-uso-prototipo-no-incorporado.md.
+
+    Implementación: lib/experimentos/mensajes/ (MensajeEventoUso,
+    ColaEventos, ConsumidorConteo). Pruebas: test/taller_mensajes_test.dart.
+
+    ## Criterio de compatibilidad
+
+    El campo `version` es la versión **mayor** del contrato. El consumidor
+    v1 es un lector tolerante:
+
+    | Cambio | ¿Compatible? | Qué hace el consumidor v1 |
+    |---|---|---|
+    | Agregar un campo opcional al mensaje (p. ej. `plataforma`) | Sí, sigue en v1 | Lo ignora |
+    | Agregar una clave nueva dentro de `parametros` | Sí, sigue en v1 | La conserva sin interpretarla |
+    | Quitar o renombrar un campo obligatorio | No, exige v2 | Rechaza: cola de fallidos |
+    | Cambiar el tipo de un campo (p. ej. `version` como texto) | No, exige v2 | Rechaza: cola de fallidos |
+    | Cambiar el significado de `id_mensaje` (dejar de ser único por evento) | No, exige v2 | No lo detecta: rompería la deduplicación sin aviso; por eso exige versión nueva |
+    | Publicar con `version` distinta de 1 | — | Rechaza: cola de fallidos, sin reintentos |
+
+    Un mensaje incompatible nunca se reintenta: reintentar no cambia el
+    contrato. Las pruebas «cambio compatible» y «cambio incompatible» de
+    test/taller_mensajes_test.dart verifican las dos primeras filas y las
+    de rechazo.
+
+    ## Garantía de entrega
+
+    Al menos una vez: la cola solo suelta un mensaje cuando el consumidor lo
+    confirma. El consumidor puede recibir duplicados y los descarta por
+    `id_mensaje`. Ver docs/taller-mensajes.md.
+
+channels:
+  eventosUso:
+    address: mapsutb.eventos-uso.v1
+    description: Cola en memoria (ColaEventos) entre la app y el colector de conteo.
+    messages:
+      eventoUso:
+        $ref: '#/components/messages/EventoUso'
+  eventosUsoFallidos:
+    address: mapsutb.eventos-uso.v1.fallidos
+    description: |
+      Cola de mensajes fallidos (ColaEventos.fallidos): mensajes que agotaron
+      4 intentos, que tuvieron un error no recuperable o que no cumplen el
+      contrato. Se guardan con el cuerpo original, el número de intentos y el
+      motivo, para revisarlos o reinyectarlos a mano.
+    messages:
+      eventoUsoFallido:
+        $ref: '#/components/messages/EventoUso'
+
+operations:
+  publicarEventoUso:
+    action: send
+    channel:
+      $ref: '#/channels/eventosUso'
+    summary: La app publica un evento de uso (p. ej. solicitud_ruta).
+  consumirEventoUso:
+    action: receive
+    channel:
+      $ref: '#/channels/eventosUso'
+    summary: |
+      El colector cuenta el evento una sola vez por id_mensaje. Si falla de
+      forma recuperable, la cola reintenta con espera de 200, 400 y 800 ms
+      (4 intentos en total) y luego lo pasa a eventosUsoFallidos.
+
+components:
+  messages:
+    EventoUso:
+      name: EventoUso
+      contentType: application/json
+      correlationId:
+        description: Acción del usuario que originó el evento; aparece en cada línea de log.
+        location: $message.payload#/id_correlacion
+      payload:
+        $ref: '#/components/schemas/EventoUsoV1'
+      examples:
+        - name: solicitud_ruta
+          payload:
+            version: 1
+            id_mensaje: 3f2a9c0d41b7e8a6c5d4e3f2a1b0c9d8
+            id_correlacion: accion-42
+            nombre: solicitud_ruta
+            parametros:
+              zona_destino: zona_t
+            emitido_en: '2026-11-11T14:00:00.000Z'
+  schemas:
+    EventoUsoV1:
+      type: object
+      required: [version, id_mensaje, id_correlacion, nombre, emitido_en]
+      additionalProperties: true
+      properties:
+        version:
+          type: integer
+          const: 1
+          description: Versión mayor del contrato.
+        id_mensaje:
+          type: string
+          minLength: 1
+          description: |
+            Clave de deduplicación. Única por evento; un reenvío del mismo
+            evento conserva el mismo valor. Se genera con 128 bits aleatorios.
+        id_correlacion:
+          type: string
+          minLength: 1
+          description: Identificador de la acción del usuario, para seguir el mensaje en los logs.
+        nombre:
+          type: string
+          minLength: 1
+          description: Nombre del evento, el mismo de EventoAnalitica (p. ej. solicitud_ruta).
+        parametros:
+          type: object
+          additionalProperties: true
+          description: Parámetros del evento. Nunca lleva la posición del usuario ni datos personales.
+        emitido_en:
+          type: string
+          format: date-time
+          description: Momento en que el productor creó el evento (UTC, ISO 8601).

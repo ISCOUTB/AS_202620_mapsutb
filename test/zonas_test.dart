@@ -1,9 +1,12 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mapsutb/adapters/analytics_adapter.dart';
 import 'package:mapsutb/adapters/static_map_adapter.dart';
+import 'package:mapsutb/features/zonas/presentation/screens/zona_detalle_screen.dart';
 import 'package:mapsutb/features/zonas/presentation/screens/zonas_screen.dart';
 import 'package:mapsutb/models/evento_analitica.dart';
 import 'package:mapsutb/models/imagen_mapa.dart';
@@ -47,6 +50,23 @@ Zona _zonaDePrueba({double lat = 0, double lng = 0}) => Zona.fromJson({
         },
       ],
     });
+
+/// Bundle con la misma caché que `rootBundle` cuya primera lectura falla,
+/// como una descarga del asset interrumpida en web.
+class _BundleQueFallaUnaVez extends CachingAssetBundle {
+  _BundleQueFallaUnaVez(this._contenido, {this.fallar = true});
+
+  final String _contenido;
+  final bool fallar;
+  int lecturas = 0;
+
+  @override
+  Future<ByteData> load(String key) async {
+    lecturas++;
+    if (fallar && lecturas == 1) throw StateError('sin conexión');
+    return ByteData.sublistView(utf8.encode(_contenido));
+  }
+}
 
 class _RepositorioFalso implements ZonaRepository {
   _RepositorioFalso(this.zonas, {this.fallosIniciales = 0});
@@ -149,6 +169,27 @@ void main() {
       expect(zonas.map((z) => z.id).toSet(), hasLength(zonas.length),
           reason: 'los ids de zona deben ser únicos');
     });
+
+    test('una lectura fallida no queda en caché: reintentar vuelve a leer', () async {
+      final bundle = _BundleQueFallaUnaVez(File('assets/data/zonas.json').readAsStringSync());
+      final repo = ZonaRepositoryLocal(bundle: bundle);
+
+      await expectLater(repo.obtenerPuntos(), throwsStateError);
+      final zonas = await repo.obtenerPuntos();
+
+      expect(zonas, isNotEmpty);
+      expect(bundle.lecturas, 2);
+    });
+
+    test('con lectura exitosa, la segunda consulta sale de la caché del bundle', () async {
+      final bundle = _BundleQueFallaUnaVez(File('assets/data/zonas.json').readAsStringSync(), fallar: false);
+      final repo = ZonaRepositoryLocal(bundle: bundle);
+
+      await repo.obtenerPuntos();
+      await repo.obtenerPuntos();
+
+      expect(bundle.lecturas, 1);
+    });
   });
 
   group('ZonasScreen', () {
@@ -172,8 +213,13 @@ void main() {
       await tester.tap(find.text('Piso 1'));
       await tester.pumpAndSettle();
       expect(find.text('Laboratorio de Sistemas'), findsOneWidget);
-      expect(find.text('laboratorio — Salones: 101, 102'), findsOneWidget);
-      expect(find.text('auditorio'), findsOneWidget);
+      // Tipos con etiqueta en español y salones como chips.
+      expect(find.text('Laboratorio'), findsOneWidget);
+      expect(find.text('101'), findsOneWidget);
+      expect(find.text('102'), findsOneWidget);
+      // El espacio "Auditorio" es de tipo auditorio: nombre y etiqueta.
+      expect(find.text('Auditorio'), findsNWidgets(2));
+      expect(find.text('auditorio'), findsNothing);
 
       await tester.tap(find.text('Piso 2'));
       await tester.pumpAndSettle();
@@ -261,17 +307,220 @@ void main() {
       expect(find.text('Mapa no disponible.'), findsNothing);
     });
 
-    testWidgets('avisa cuando la zona no tiene pisos', (tester) async {
-      final sinPisos = Zona(
+    testWidgets('avisa cuando la zona no tiene pisos ni espacios', (tester) async {
+      // El nombre no coincide con la etiqueta del tipo ("Cafetería"), que
+      // ahora aparece como subtítulo en la lista.
+      final vacia = Zona(
         id: 'cafe',
-        nombre: 'Cafetería',
+        nombre: 'Cafetería Central',
         tipo: 'cafeteria',
         lat: 0,
         lng: 0,
       );
-      await abrirDetalle(tester, sinPisos);
+      await abrirDetalle(tester, vacia);
 
-      expect(find.text('Esta zona no tiene pisos registrados.'), findsOneWidget);
+      expect(find.text('Esta zona no tiene espacios registrados.'), findsOneWidget);
+    });
+
+    testWidgets('una zona sin pisos muestra sus espacios en lugar de ocultarlos',
+        (tester) async {
+      await abrirDetalle(tester, _zonaSinPisos());
+
+      expect(find.text('Espacios'), findsOneWidget);
+      expect(find.text('Enfermería'), findsOneWidget);
+      expect(find.text('Bohíos Bakery'), findsOneWidget);
+      expect(find.text('Cafetería'), findsOneWidget); // etiqueta del tipo
+      expect(find.byType(ChoiceChip), findsNothing, reason: 'sin pisos no hay selector');
+      expect(find.textContaining('no tiene'), findsNothing);
+    });
+
+    testWidgets('los espacios con un piso inexistente quedan en "Otros espacios"',
+        (tester) async {
+      final zona = Zona.fromJson({
+        'id': 'b1',
+        'nombre': 'Bloque B1',
+        'tipo': 'edificio',
+        'lat': 0,
+        'lng': 0,
+        'pisos': [
+          {'id': 'p1', 'nombre': 'Piso 1'},
+        ],
+        'espacios': [
+          {'id': 'aula', 'nombre': 'Aula Máxima', 'tipo': 'salon', 'pisos': ['p1']},
+          {'id': 'kiosco', 'nombre': 'Kiosco', 'tipo': 'cafeteria', 'pisos': []},
+        ],
+      });
+      await abrirDetalle(tester, zona);
+
+      expect(find.text('Aula Máxima'), findsOneWidget);
+      expect(find.text('Kiosco'), findsNothing);
+
+      await tester.tap(find.text('Otros espacios'));
+      await tester.pumpAndSettle();
+      expect(find.text('Kiosco'), findsOneWidget);
+      expect(find.text('Aula Máxima'), findsNothing);
+    });
+
+    testWidgets('el selector de piso muestra solo los espacios del piso elegido',
+        (tester) async {
+      await abrirDetalle(tester, _zonaDePrueba());
+
+      ChoiceChip chip(String piso) =>
+          tester.widget<ChoiceChip>(find.widgetWithText(ChoiceChip, piso));
+      expect(chip('Piso 1').selected, isTrue);
+      expect(chip('Piso 2').selected, isFalse);
+      expect(find.text('Laboratorio de Sistemas'), findsOneWidget);
+
+      await tester.tap(find.text('Piso 2'));
+      await tester.pumpAndSettle();
+      expect(chip('Piso 2').selected, isTrue);
+      expect(find.text('Laboratorio de Sistemas'), findsNothing);
+    });
+
+    testWidgets('el resumen usa etiquetas en español, no el tipo crudo',
+        (tester) async {
+      await abrirDetalle(tester, _zonaSinPisos());
+
+      expect(find.text('Zona común · 3 espacios'), findsOneWidget);
+      expect(find.textContaining('zona_comun'), findsNothing);
+    });
+  });
+
+  group('Buscador en ZonasScreen', () {
+    Future<void> buscar(WidgetTester tester, String texto) async {
+      await tester.enterText(find.byType(TextField), texto);
+      await tester.pumpAndSettle();
+    }
+
+    testWidgets('encuentra espacios sin importar tildes ni mayúsculas y dice dónde están',
+        (tester) async {
+      await _montar(tester, repository: _RepositorioFalso([_zonaDePrueba(), _zonaSinPisos()]));
+
+      await buscar(tester, 'ENFERMERIA');
+      expect(find.text('Enfermería'), findsOneWidget);
+      expect(find.text('Servicio · Zona T'), findsOneWidget);
+      // La lista de zonas se reemplaza por los resultados.
+      expect(find.text('Edificio A1'), findsNothing);
+
+      await buscar(tester, 'lab sistemas');
+      expect(find.text('Laboratorio de Sistemas'), findsOneWidget);
+      expect(find.text('Laboratorio · Edificio A1 · Piso 1'), findsOneWidget);
+    });
+
+    testWidgets('encuentra salones por código y muestra el espacio y el piso',
+        (tester) async {
+      await _montar(tester, repository: _RepositorioFalso([_zonaDePrueba()]));
+
+      await buscar(tester, '102');
+      expect(find.text('Salón 102'), findsOneWidget);
+      expect(find.text('Laboratorio de Sistemas · Edificio A1 · Piso 1'), findsOneWidget);
+    });
+
+    testWidgets('sin coincidencias muestra un estado vacío con la consulta',
+        (tester) async {
+      await _montar(tester, repository: _RepositorioFalso([_zonaDePrueba()]));
+
+      await buscar(tester, 'piscina');
+      expect(find.text('Sin resultados para «piscina»'), findsOneWidget);
+
+      // Borrar la búsqueda devuelve la lista de zonas.
+      await tester.tap(find.byTooltip('Borrar búsqueda'));
+      await tester.pumpAndSettle();
+      expect(find.text('Edificio A1'), findsOneWidget);
+      expect(find.textContaining('Sin resultados'), findsNothing);
+    });
+
+    testWidgets('tocar una zona abre su detalle y registra consulta_zona',
+        (tester) async {
+      final analytics = _AnalyticsFalso();
+      await _montar(
+        tester,
+        repository: _RepositorioFalso([_zonaDePrueba(), _zonaSinPisos()]),
+        analytics: analytics,
+      );
+
+      await buscar(tester, 'zona t');
+      await tester.tap(find.text('Zona T'));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ZonaDetalleScreen), findsOneWidget);
+      expect(analytics.eventos.single.parametros['zona_id'], 'zonat');
+    });
+
+    testWidgets('tocar un espacio abre la zona en su piso y lo resalta',
+        (tester) async {
+      final zona = Zona.fromJson({
+        'id': 'a2',
+        'nombre': 'A2',
+        'tipo': 'edificio',
+        'lat': 0,
+        'lng': 0,
+        'pisos': [
+          {'id': 'p1', 'nombre': 'Primer Piso'},
+          {'id': 'p2', 'nombre': 'Segundo Piso'},
+        ],
+        'espacios': [
+          {'id': 'meca', 'nombre': 'Laboratorio de Mecatrónica', 'tipo': 'laboratorio', 'pisos': ['p1']},
+          {'id': 'bio', 'nombre': 'Laboratorio de Biomédica', 'tipo': 'laboratorio', 'pisos': ['p2']},
+        ],
+      });
+      await _montar(tester, repository: _RepositorioFalso([zona]));
+
+      await buscar(tester, 'biomedica');
+      await tester.tap(find.text('Laboratorio de Biomédica'));
+      await tester.pumpAndSettle();
+
+      final detalle = tester.widget<ZonaDetalleScreen>(find.byType(ZonaDetalleScreen));
+      expect(detalle.pisoInicialId, 'p2');
+      expect(detalle.espacioResaltadoId, 'bio');
+      expect(
+        tester.widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Segundo Piso')).selected,
+        isTrue,
+      );
+      expect(find.text('Laboratorio de Biomédica'), findsOneWidget);
+      expect(find.text('Laboratorio de Mecatrónica'), findsNothing);
+    });
+
+    testWidgets('"Cómo llegar" en un resultado pide la ruta a su zona',
+        (tester) async {
+      String? pedido;
+      await tester.pumpWidget(MaterialApp(
+        home: Scaffold(
+          body: ZonasScreen(
+            repository: _RepositorioFalso([
+              _zonaDePrueba(lat: 10.3697, lng: -75.4653),
+              _zonaSinPisos(),
+            ]),
+            onComoLlegar: (id) => pedido = id,
+          ),
+        ),
+      ));
+      await tester.pumpAndSettle();
+
+      await buscar(tester, '101');
+      await tester.tap(find.byTooltip('Cómo llegar'));
+      expect(pedido, 'a1');
+
+      // Zona T está en el campus pero sin coordenadas en estos datos de
+      // prueba: no ofrece la ruta.
+      await buscar(tester, 'enfermeria');
+      expect(find.text('Enfermería'), findsOneWidget);
+      expect(find.byTooltip('Cómo llegar'), findsNothing);
     });
   });
 }
+
+/// Zona sin pisos, como Zona T en zonas.json: sus espacios no tienen piso.
+Zona _zonaSinPisos() => Zona.fromJson({
+      'id': 'zonat',
+      'nombre': 'Zona T',
+      'tipo': 'zona_comun',
+      'lat': 0,
+      'lng': 0,
+      'pisos': [],
+      'espacios': [
+        {'id': 'zonat-comedor', 'nombre': 'Comedor', 'tipo': 'servicio', 'pisos': []},
+        {'id': 'zonat-bohios', 'nombre': 'Bohíos Bakery', 'tipo': 'cafeteria', 'pisos': []},
+        {'id': 'zonat-enfermeria', 'nombre': 'Enfermería', 'tipo': 'servicio', 'pisos': []},
+      ],
+    });

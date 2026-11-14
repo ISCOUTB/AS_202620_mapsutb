@@ -6,10 +6,10 @@ ifndef::imagesdir[:imagesdir: ../images]
 === Resumen de decisiones clave
 
 * *Patrón arquitectural:* monolito — una sola app Flutter, sin backend propio por ahora.
-* *Tecnología:* Flutter (un solo código base para Android/iOS).
-* *Mapa del campus:* plano propio (grafo peatonal y geometría del campus) alojado localmente, superpuesto sobre el mapa base de **Google Maps SDK**.
+* *Tecnología:* Flutter (un solo código base). Hoy se publica solo como web en Firebase Hosting (ADR 0007); la compilación móvil (Android/iOS) no está configurada.
+* *Mapa del campus:* plano propio (grafo peatonal y geometría del campus) alojado localmente, superpuesto sobre el mapa base de **teselas de OpenStreetMap** dibujadas con `flutter_map` (ADR 0012, que reemplazó a Google Maps SDK).
 * *Ruteo:* cálculo de la ruta más corta dentro del campus mediante **Dijkstra** sobre el grafo peatonal propio; no depende de un servicio externo de ruteo.
-* *Dependencias externas:* dos APIs de Google en la nube — **Maps SDK** (mapa base) y **Geocoding API** (conversión de coordenadas y direcciones), ambas vía HTTPS. El GPS del dispositivo (vía el paquete `geolocator`) es la única fuente de datos que no pasa por una API de red.
+* *Dependencias externas:* las teselas de **OpenStreetMap** (mapa base, sin key) y, de forma opcional, dos APIs de Google — **Geocoding API** (conversión de coordenadas y direcciones) y **Static Maps API** (miniaturas) —, apagadas en producción por falta de key (ADR 0009); la analítica va por Measurement Protocol según los secretos del despliegue. Todas vía HTTPS. El GPS del dispositivo (vía el paquete `geolocator`, ADR 0017) es la única fuente de datos que no pasa por una API de red.
 * *Patrones de diseño internos:* Repository, Adapter, Observer (detalle en link:../adr/0001-patrones-de-diseno.md[ADR 0001]).
 * *Proceso:* ADRs para decisiones estructurales; uso de IA generativa documentado en link:../ia.md[ia.md]; equipo de 4 estudiantes, un semestre académico.
 
@@ -20,10 +20,10 @@ ifndef::imagesdir[:imagesdir: ../images]
 |Decisión|Elección|Motivación
 |Framework de la app|Flutter|Un solo código base multiplataforma, dado el tamaño del equipo (ver 02_architecture_constraints)
 |Backend|Ninguno por ahora|El alcance actual no lo requiere; toda la lógica corre en el cliente
-|Mapa base|Google Maps SDK|Evita construir un motor de renderizado de mapas propio; el plano del campus se superpone sobre él como capa adicional
+|Mapa base|`flutter_map` + teselas de OpenStreetMap (ADR 0012)|Evita construir un motor de renderizado de mapas propio y no exige key ni tarjeta (Google Maps SDK, la elección inicial, sí las exige); el plano del campus se superpone sobre él como capa adicional
 |Origen del plano del campus|Activos locales del proyecto (grafo peatonal + geometría)|El ruteo interno y la superposición visual no dependen de que Google exponga esos datos
-|Geocodificación|Google Geocoding API|Evita implementar conversión de coordenadas↔direcciones propia
-|Obtención de ubicación del usuario|`geolocator` (paquete de Flutter)|GPS estándar del dispositivo; expone un `Stream` de posición en tiempo real, sin requerir cámara ni una API de red adicional
+|Geocodificación|Google Geocoding API (opcional; apagada en producción, ADR 0009)|Evita implementar conversión de coordenadas↔direcciones propia
+|Obtención de ubicación del usuario|`geolocator` (paquete de Flutter) + `FiltroUbicacion` (ADR 0017)|GPS estándar del dispositivo; expone un `Stream` de posición en tiempo real, sin requerir cámara ni una API de red adicional. El filtro descarta lecturas viejas, imprecisas o sin movimiento; sin GPS, el usuario marca la partida a mano
 |===
 
 === Decisión de descomposición de alto nivel
@@ -37,15 +37,17 @@ proyecto:
 [options="header",cols="3,1"]
 |===
 |Problema de diseño|Patrón elegido
-|Servir el plano del campus, los datos de zonas/puntos de interés y el contenido panorámico local|Repository
-|Aislar al resto de la app de Google Maps SDK y Google Geocoding API|Adapter
-|Ubicación en tiempo real hacia UI y tour panorámico|Observer (`Stream` de Dart, vía `geolocator`)
+|Servir el plano del campus y los datos de zonas/puntos de interés (el contenido panorámico está diferido con el tour)|Repository
+|Aislar al resto de la app del mapa base (`flutter_map` + OSM), Google Geocoding API, Static Maps API y Measurement Protocol|Adapter
+|Ubicación en tiempo real hacia las pantallas de mapa y ubicación|Observer (`Stream` de Dart, vía `geolocator`)
 |===
 
 El ruteo interno (Dijkstra sobre el grafo peatonal propio) no se resuelve
-con un patrón de diseño adicional: es un servicio propio que consume el
-`MapaRepository` directamente, según se detalla en la vista de bloques
-(sección 5).
+con un patrón de diseño adicional: es un servicio propio (`ServicioRuteo`)
+que no lee ningún repositorio. `MapaScreen` obtiene el grafo de
+`MapaRepository` y las zonas de `ZonaRepository`, y le pasa el grafo a
+`ServicioRuteo` para calcular la ruta, según se detalla en la vista de
+bloques (sección 5).
 
 El detalle de cada decisión, las alternativas descartadas y sus
 consecuencias están en link:../adr/0001-patrones-de-diseno.md[ADR 0001]
@@ -61,10 +63,10 @@ construcción en la sección 5.
 |Meta de calidad|Enfoque de solución|Detalle
 |Precisión de geolocalización y ruteo|Ruteo con **Dijkstra** sobre el grafo peatonal propio, sin depender de un servicio externo de ruteo (link:../escenarios_calidad.md[Escenario 2])|—
 |Precisión de geolocalización y ruteo|Patrón *Observer* para propagar la ubicación en tiempo real (`geolocator`) sin _polling_ (link:../escenarios_calidad.md[Escenario 2])|ADR 0001 (Observer)
-|Disponibilidad / confiabilidad|El plano del campus, el ruteo interno y el contenido del tour no dependen de red (activos locales); el **mapa base y la geocodificación sí dependen de Google Maps SDK/Geocoding API**, por lo que la app requiere conexión a internet para su experiencia completa (link:../escenarios_calidad.md[Escenario 3]); si el GPS pierde señal, la app maneja el error de forma controlada|Riesgo: dependencia de disponibilidad de servicios externos de Google (ver 11_technical_risks)
+|Disponibilidad / confiabilidad|El plano del campus, el ruteo interno y las zonas no dependen de red una vez cargada la app (activos locales); el **mapa base sí depende de las teselas de OpenStreetMap**, y la geocodificación de Google Geocoding API (apagada en producción). Sin teselas, la app avisa «Sin conexión al mapa base» y la ruta se sigue dibujando (MF-01, link:../escenarios_calidad.md[Escenario 3]); si el GPS no da posición, la app dice el motivo y deja marcar la partida a mano (MF-04, ADR 0017)|Riesgos RT-01 y RT-06; modos de fallo MF-01 a MF-15 (ver 11_technical_risks)
 |Mantenibilidad|Patrón *Repository* (`ZonaRepository`) centraliza el punto de cambio para la clasificación de zonas|ADR 0001 (Repository)
-|Fidelidad de contenido|Patrón *Repository* (`MapaRepository`, `ZonaRepository`, `TourRepository`) aísla el formato de los activos locales de quien los consume (link:../escenarios_calidad.md[Escenario 5])|ADR 0001 (Repository)
-|Rendimiento|Carga de escena panorámica local en menos de 3 s (link:../escenarios_calidad.md[Escenario 1]); pendiente de resolver con una decisión de diseño concreta|Por definir
+|Fidelidad de contenido|Patrón *Repository* (`MapaRepository`, `ZonaRepository`) aísla el formato de los activos locales de quien los consume. El link:../escenarios_calidad.md[Escenario 5] (fidelidad del tour) queda diferido con el tour 360°|ADR 0001 (Repository)
+|Rendimiento|Ruta en menos de 5 s desde elegir el destino (link:../escenarios_calidad.md[Escenario 2]): Dijkstra sobre el grafo local, p95 de 0,68 ms por ruta. La carga de escena panorámica en menos de 3 s (Escenario 1) queda diferida con el tour|ADR 0013
 |Usabilidad|Usuario nuevo se ubica en menos de 2 minutos sin ayuda (link:../escenarios_calidad.md[Escenario 4]); pendiente de resolver con una decisión de diseño de interacción|Por definir
 |Portabilidad|Cubierta por la decisión tecnológica de usar Flutter|—
 |===

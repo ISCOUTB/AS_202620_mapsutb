@@ -1,0 +1,17 @@
+# Actualizaciones de dependencias (S13, amenazas T-01 y T-03; ADR 0020).
+# Dependabot abre un PR por actualización; ninguna entra a master sin pasar
+# el CI (incluido OSV-Scanner) y la revisión del equipo. Las acciones de
+# GitHub están fijadas por SHA: Dependabot también propone esos cambios.
+version: 2
+updates:
+  - package-ecosystem: pub
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

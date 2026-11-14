@@ -16,7 +16,7 @@ y [planes de Firebase](https://firebase.google.com/pricing) (plan Spark: sin mé
 | Visitantes únicos al mes | 2.000 | Público objetivo de la ficha: aspirantes (admisiones), estudiantes nuevos y de intercambio; pico en inducción de semestre. |
 | Visitas por visitante | 3 | Uso puntual para ubicarse en las primeras semanas. |
 | Visitas al mes | **6.000** | 2.000 × 3 |
-| Transferencia por visita | 3 MB la primera, ~0,3 MB las siguientes (caché del navegador) | Tamaño de `build/web` de Flutter (JS + assets); CanvasKit se sirve desde el CDN de Google. |
+| Transferencia por visita | ~0,6 MB la primera, ~0,3 MB las siguientes (margen; sin despliegue de por medio el navegador revalida y recibe 304, ADR 0015) | Medido en el sitio publicado: `main.dart.js` pesa 563 KB con Brotli, más `index.html`, `zonas.json` y `grafo.json`. CanvasKit lo sirve el CDN de gstatic y las teselas vienen de OpenStreetMap: no cuentan en la cuota de Firebase. Cada despliegue cambia `main.dart.js` y obliga a todos a descargarlo de nuevo. |
 | Consultas de "¿Dónde estoy?" (Geocoding) | 2 por visita → **12.000/mes** | Botón de la pantalla Ubicación. |
 | Miniaturas de zona (Static Maps) | 3 por visita → **18.000/mes** | Una por cada detalle de zona abierto (solo zonas con coordenadas). |
 | Eventos de analítica (Measurement Protocol) | 3 por visita → 18.000/mes | Evento `consulta_zona`. |
@@ -27,12 +27,12 @@ y [planes de Firebase](https://firebase.google.com/pricing) (plan Spark: sin mé
 
 | Pieza | Plataforma | Capa gratuita | Uso supuesto | Costo mensual | Punto de ruptura de la capa gratuita |
 |---|---|---|---|---|---|
-| Sitio web (Flutter web) | Firebase Hosting, plan Spark (ADR 0007) | 10 GB almacenados, **360 MB/día** de transferencia | 2.000 × 3 MB + 4.000 × 0,3 MB ≈ 7,2 GB/mes ≈ **240 MB/día** en promedio | **USD 0** | **≈ 120 primeras visitas en un mismo día** (360 MB ÷ 3 MB), o ≈ 9.000 visitas/mes con la mezcla supuesta. En Spark no hay cobro: el sitio deja de servirse hasta el día siguiente. |
+| Sitio web (Flutter web) | Firebase Hosting, plan Spark (ADR 0007) | 10 GB almacenados, **360 MB/día** de transferencia | 2.000 × 0,6 MB + 4.000 × 0,3 MB ≈ 2,4 GB/mes ≈ **80 MB/día** en promedio | **USD 0** | **≈ 600 primeras visitas en un mismo día** (360 MB ÷ 0,6 MB), o ≈ 27.000 visitas/mes con la mezcla supuesta. En Spark no hay cobro: el sitio deja de servirse hasta el día siguiente. |
 | CI, despliegue y sonda | GitHub Actions (repo público) | Minutos ilimitados en repositorios públicos | ~35 runs de CI + ~720 de sonda | **USD 0** | No aplica mientras el repositorio sea público. |
 | Métrica | Rama `metricas` + raw.githubusercontent.com (ADR 0008) | Incluido en GitHub | ~720 líneas JSON/mes (< 150 KB) | **USD 0** | No aplica a este volumen. |
 | Geocoding API | Google Maps Platform | 10.000 eventos/mes | 12.000 | **USD 10** = (12.000 − 10.000) ÷ 1.000 × USD 5 | **5.000 visitas/mes** (10.000 ÷ 2). |
 | Static Maps API | Google Maps Platform | 10.000 eventos/mes | 18.000 | **USD 16** = (18.000 − 10.000) ÷ 1.000 × USD 2 | **≈ 3.333 visitas/mes** (10.000 ÷ 3). |
-| Maps SDK Android/iOS (mapa base, pendiente) | Google Maps Platform | Ilimitado | — | **USD 0** | No tiene. |
+| Teselas del mapa base | OpenStreetMap (`tile.openstreetmap.org`, ADR 0012) | Gratis, sujeto a la política de uso de teselas de la OSMF; sin SLA | Las teselas de cada visita (el navegador las guarda en caché) | **USD 0** | No hay cuota publicada: un uso intenso puede ser limitado o bloqueado sin aviso. Si pasa, cambiar a un proveedor de teselas con plan gratuito o alojar las teselas del campus (son pocas). |
 | Analítica | Google Analytics vinculado al proyecto de Firebase, vía Measurement Protocol (ADR 0005) | Gratuito (GA4 estándar) | 18.000 eventos | **USD 0** | No aplica a este volumen. |
 | Base de datos | Cloud Firestore (recomendado por el docente, **no adoptado aún**) | 1 GiB, 50.000 lecturas/día, 20.000 escrituras/día | — | **USD 0** | Pendiente de decisión (estrategia de datos, S12). |
 
@@ -40,10 +40,11 @@ y [planes de Firebase](https://firebase.google.com/pricing) (plan Spark: sin mé
 
 ## Qué significa para el equipo
 
-- **El riesgo real está en el hosting, no en el costo:** el promedio (≈ 240 MB/día) cabe en los
+- **El riesgo real está en el hosting, no en el costo:** el promedio (≈ 80 MB/día) cabe en los
   360 MB/día de Spark, pero la carga no es pareja. En la semana de inducción, un día con más de
-  ~120 visitantes nuevos agota la cuota y el sitio deja de responder hasta el día siguiente (lo
-  detectaría la sonda del Escenario 6). Mitigaciones sin tarjeta: reducir el tamaño del build web
+  ~600 visitantes nuevos agota la cuota y el sitio deja de responder hasta el día siguiente (lo
+  detectaría la sonda del Escenario 6). Un día con despliegue cuenta como si todas las visitas
+  fueran primeras, porque cada despliegue obliga a descargar otra vez `main.dart.js`. Mitigaciones sin tarjeta: reducir el tamaño del build web
   (`--tree-shake-icons`, fuentes e imágenes) y cachear los estáticos con `Cache-Control` largo;
   con tarjeta, pasar a Blaze, que mantiene la misma cuota gratis y cobra solo el excedente.
 - **Google Maps Platform exige una cuenta de facturación con tarjeta** incluso para la capa
@@ -58,4 +59,5 @@ y [planes de Firebase](https://firebase.google.com/pricing) (plan Spark: sin mé
   (Escenario 3) y no una factura.
 - En la versión web, la key quedaría visible en el JavaScript publicado y las llamadas REST desde
   el navegador pueden bloquearse por CORS; Google orienta estos servicios web a uso desde servidor
-  o app nativa. En la app móvil no aplica. Ver ADR 0007 y ADR 0009.
+  o app nativa. Como no hay versión móvil publicada (solo web), esto aplica siempre. Ver ADR 0007 y
+  ADR 0009.

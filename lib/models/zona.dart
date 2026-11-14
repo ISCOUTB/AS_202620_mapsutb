@@ -42,4 +42,12 @@ class Zona {
   /// en más de un piso, ej. un auditorio de doble altura).
   List<Espacio> espaciosEnPiso(String pisoId) =>
       espacios.where((e) => e.pisos.contains(pisoId)).toList();
+
+  /// Espacios que no caen en ningún piso registrado de la zona: todos los
+  /// de una zona sin pisos (Zona T, Quid, Contenedores) o los que apuntan a
+  /// un piso que no existe. Sin esto quedarían ocultos en el detalle.
+  List<Espacio> get espaciosSinPiso {
+    final ids = pisos.map((p) => p.id).toSet();
+    return espacios.where((e) => !e.pisos.any(ids.contains)).toList();
+  }
 }

@@ -63,7 +63,11 @@ class _UbicacionScreenState extends State<UbicacionScreen> {
   (Zona, double)? _zonaCercana(Ubicacion u) {
     (Zona, double)? mejor;
     for (final z in _zonas) {
-      final d = FiltroUbicacion.distanciaM(u.lat, u.lng, z.lat, z.lng);
+      final zLat = z.lat;
+      final zLng = z.lng;
+      if (zLat == null || zLng == null) continue;
+
+      final d = FiltroUbicacion.distanciaM(u.lat, u.lng, zLat, zLng);
       if (mejor == null || d < mejor.$2) mejor = (z, d);
     }
     return mejor;

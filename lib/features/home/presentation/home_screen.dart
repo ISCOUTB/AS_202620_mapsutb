@@ -1,19 +1,19 @@
 import 'dart:math';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
 import 'package:mapsutb/core/app_colors.dart';
 import 'package:mapsutb/core/bg_widget.dart';
+import 'package:mapsutb/core/barra_navegacion.dart';
 
-import 'package:circular_bottom_navigation/circular_bottom_navigation.dart';
-import 'package:circular_bottom_navigation/tab_item.dart';
-import 'package:flutter/material.dart';
 import '../../../adapters/analytics_adapter.dart';
-import '../../../adapters/geocoding_adapter.dart';
 import '../../../adapters/static_map_adapter.dart';
 import '../../../core/config_apis.dart';
 import '../../../repositories/zona_repository.dart';
 import '../../../routing/mapa_repository.dart';
 import '../../../services/ubicacion_service.dart';
+import '../../configuracion/presentation/screens/configuracion_screen.dart';
 import '../../mapas_ruteo/presentation/screens/mapa_screen.dart';
-import '../../mapas_ruteo/presentation/screens/ubicacion_screen.dart';
 import '../../zonas/presentation/screens/zonas_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -25,19 +25,16 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _indice = 0;
-  late final CircularBottomNavigationController _navController;
   late final UbicacionService _ubicacionService;
   late final ZonaRepository _zonaRepository;
   late final MapaRepository _mapaRepository;
   late final AnalyticsAdapter _analytics;
   String? _destino;
-  GeocodingAdapter? _geocoding;
   StaticMapAdapter? _staticMap;
 
   @override
   void initState() {
     super.initState();
-    _navController = CircularBottomNavigationController(_indice);
     _ubicacionService = UbicacionServiceSimulado();
     _zonaRepository = ZonaRepositoryLocal();
     _mapaRepository = MapaRepositoryLocal();
@@ -45,7 +42,6 @@ class _HomeScreenState extends State<HomeScreen> {
     // Sin credenciales (--dart-define, ver ConfigApis) la app arranca igual
     // y solo se ocultan las funciones que dependen de cada API.
     if (ConfigApis.tieneGoogleMaps) {
-      _geocoding = GeocodingAdapterHttp(apiKey: ConfigApis.googleMapsApiKey);
       _staticMap = StaticMapAdapterHttp(apiKey: ConfigApis.googleMapsApiKey);
     }
     _analytics = ConfigApis.tieneAnalytics
@@ -60,34 +56,28 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
-    _navController.dispose();
     _ubicacionService.dispose();
     super.dispose();
   }
 
+  /// "Sábado, 14 de noviembre" (requiere initializeDateFormatting('es') en main).
+  String _fechaHoy() {
+    final texto = DateFormat("EEEE, d 'de' MMMM", 'es').format(DateTime.now());
+    return texto[0].toUpperCase() + texto.substring(1);
+  }
+
   @override
   Widget build(BuildContext context) {
-    TextStyle etiqueta(Color c) =>
-        TextStyle(color: c, fontWeight: FontWeight.w900);
-
-    final tabs = <TabItem>[
-      TabItem(Icons.apartment, 'Zonas', AppColors.iaBlanco,
-          labelStyle: etiqueta(const Color.fromARGB(255, 255, 255, 255))),
-      TabItem(Icons.map, 'Mapa', AppColors.iaBlanco,
-          labelStyle: etiqueta(AppColors.iaBlanco)),
-      TabItem(Icons.my_location, 'Ubicación', AppColors.iaBlanco,
-          labelStyle: etiqueta(AppColors.iaBlanco)),
-    ];
-
     final pantalla = switch (_indice) {
       0 => ZonasScreen(
           repository: _zonaRepository,
           analytics: _analytics,
           staticMap: _staticMap,
           onComoLlegar: (zonaId) {
-            _destino = zonaId;
-            // Mueve el círculo y dispara selectedCallback, que actualiza _indice.
-            _navController.value = 1;
+            setState(() {
+              _destino = zonaId;
+              _indice = 1;
+            });
           },
         ),
       1 => MapaScreen(
@@ -98,44 +88,73 @@ class _HomeScreenState extends State<HomeScreen> {
           destinoInicial: _destino,
           analytics: _analytics,
         ),
-      _ => UbicacionScreen(service: _ubicacionService, geocoding: _geocoding),
+      _ => const ConfiguracionScreen(),
     };
 
     return Scaffold(
-      extendBodyBehindAppBar: true,
+      extendBody: true, // el contenido pasa por detrás de la barra inferior
+      backgroundColor: Colors.transparent,
       appBar: AppBar(
-        toolbarHeight: 100,
-        centerTitle: true,
-        backgroundColor: Colors.transparent,
+        toolbarHeight: 80,
+        centerTitle: false,
+        titleSpacing: 20,
+        backgroundColor: AppColors.azulPrincipal,
         elevation: 0,
-        title: const Text(
-          'MAPSUTB',
-          style: TextStyle(
-            fontFamily: 'Montserrat',
-            fontWeight: FontWeight.w900,
-            fontSize: 20,
-            color: AppColors.azulPrincipal,
+        systemOverlayStyle: SystemUiOverlayStyle.light, // iconos blancos arriba
+        title: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              _fechaHoy(),
+              style: const TextStyle(
+                color: Colors.white70,
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            const SizedBox(height: 2),
+            const Text(
+              'MAPSUTB',
+              style: TextStyle(
+                fontFamily: 'Montserrat',
+                fontWeight: FontWeight.w900,
+                fontSize: 20,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
+      ),
+      body: FondoMenu(
+        child: SafeArea(
+          top: false, // el AppBar ya cubre la parte de arriba
+          bottom: false, // el contenido llega hasta abajo, detrás de la barra
+          child: AnimatedSwitcher(
+            duration: const Duration(milliseconds: 350),
+            switchInCurve: Curves.easeOutCubic,
+            switchOutCurve: Curves.easeInCubic,
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: const Offset(0, 0.025),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: child,
+              ),
+            ),
+            // La key distingue una pantalla de otra para que se anime el cambio.
+            child: KeyedSubtree(
+              key: ValueKey('$_indice-$_destino'),
+              child: pantalla,
+            ),
           ),
         ),
       ),
-      body: FondoMenu(child: SafeArea(child: pantalla)),
-      backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-      bottomNavigationBar: SafeArea(
-        child: CircularBottomNavigation(
-          tabs,
-          controller: _navController,
-          selectedPos: _indice,
-          barHeight: 60,
-          circleSize: 58,
-          barBackgroundColor: AppColors.azulPrincipal,
-          selectedIconColor: AppColors.azulPrincipal,
-          normalIconColor: const Color.fromARGB(255, 255, 255, 255),
-          selectedCallback: (pos) {
-            if (pos != null && pos != _indice) {
-              setState(() => _indice = pos);
-            }
-          },
-        ),
+      bottomNavigationBar: BarraNavegacion(
+        indice: _indice,
+        onSeleccion: (pos) => setState(() => _indice = pos),
       ),
     );
   }

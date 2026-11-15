@@ -1,8 +1,9 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:mapsutb/core/app_colors.dart';
 
-/// Fondo para el menú principal: base blanca con bloques geométricos
-/// (rectángulos y formas en L) pegados a los bordes, con la paleta de la app.
+/// Fondo para el menú principal: base clara con círculos de degradado radial
+/// difuminados (azules y violetas) con la paleta de la app.
 ///
 /// Uso:
 /// ```dart
@@ -14,14 +15,18 @@ class FondoMenu extends StatelessWidget {
   /// Color de la base (blanco por defecto).
   final Color fondo;
 
-  /// Opacidad de los bloques: 1.0 = color pleno, 0.3 = muy suave.
+  /// Opacidad de los círculos: 1.0 = intensidad plena, 0.3 = muy suave.
   final double opacidad;
+
+  /// Desenfoque extra de los círculos (0 = solo degradado radial).
+  final double desenfoque;
 
   const FondoMenu({
     super.key,
     this.child,
     this.fondo = Colors.white,
     this.opacidad = 1.0,
+    this.desenfoque = 30,
   });
 
   @override
@@ -30,8 +35,79 @@ class FondoMenu extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         ColoredBox(color: fondo),
-        RepaintBoundary(
-          child: CustomPaint(painter: _BloquesPainter(opacidad)),
+        IgnorePointer(
+          child: RepaintBoundary(
+            child: LayoutBuilder(
+              builder: (context, c) {
+                final w = c.maxWidth;
+                final h = c.maxHeight;
+
+                Widget circulo({
+                  required double dx, // centro en X (0..1 del ancho)
+                  required double dy, // centro en Y (0..1 del alto)
+                  required double diametro, // relativo al ancho
+                  required Color color,
+                  required int alpha,
+                }) {
+                  final d = w * diametro;
+                  return Positioned(
+                    left: w * dx - d / 2,
+                    top: h * dy - d / 2,
+                    width: d,
+                    height: d,
+                    child: _Circulo(
+                      color: color,
+                      alpha: (alpha * opacidad).round().clamp(0, 255),
+                    ),
+                  );
+                }
+
+                Widget circulos = Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    // Azules
+                    circulo(dx: 0.05, dy: 0.05, diametro: 1.1, color: AppColors.azulPrincipal, alpha: 110),
+                    circulo(dx: 1.00, dy: 0.28, diametro: 0.9, color: AppColors.celeste, alpha: 100),
+                    circulo(dx: 0.10, dy: 0.62, diametro: 0.8, color: AppColors.celeste, alpha: 70),
+                    circulo(dx: 0.85, dy: 0.95, diametro: 1.2, color: AppColors.azulPrincipal, alpha: 100),
+                    // Violetas
+                    circulo(dx: 0.80, dy: 0.02, diametro: 0.7, color: AppColors.morado, alpha: 100),
+                    circulo(dx: 0.30, dy: 0.40, diametro: 0.9, color: AppColors.morado, alpha: 80),
+                    circulo(dx: 0.00, dy: 1.00, diametro: 0.9, color: AppColors.morado, alpha: 110),
+                    // Toque sutil de acento
+                    circulo(dx: 0.70, dy: 0.62, diametro: 0.45, color: AppColors.verdeLima, alpha: 35),
+                  ],
+                );
+
+                if (desenfoque > 0) {
+                  circulos = ImageFiltered(
+                    imageFilter: ImageFilter.blur(
+                      sigmaX: desenfoque,
+                      sigmaY: desenfoque,
+                      tileMode: TileMode.decal,
+                    ),
+                    child: circulos,
+                  );
+                }
+                return circulos;
+              },
+            ),
+          ),
+        ),
+        // Capa blanca translúcida para mantener el fondo claro
+        IgnorePointer(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.white.withAlpha(90),
+                  Colors.white.withAlpha(140),
+                ],
+              ),
+            ),
+          ),
         ),
         if (child != null) child!,
       ],
@@ -39,53 +115,27 @@ class FondoMenu extends StatelessWidget {
   }
 }
 
-class _BloquesPainter extends CustomPainter {
-  final double opacidad;
+/// Un círculo con degradado radial que se desvanece a transparente.
+class _Circulo extends StatelessWidget {
+  final Color color;
+  final int alpha;
 
-  const _BloquesPainter(this.opacidad);
+  const _Circulo({required this.color, required this.alpha});
 
   @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final u = w / 11; // unidad base: grosor de cada bloque
-
-    Paint pintura(Color c) => Paint()..color = c.withOpacity(opacidad);
-    final celeste = pintura(AppColors.celeste);
-    final lima = pintura(AppColors.verdeLima);
-    final azul = pintura(AppColors.azulPrincipal);
-    final esmeralda = pintura(AppColors.verdeEsmeralda);
-
-    // ---------- Parte superior ----------
-    // Rectángulo celeste flotante.
-    canvas.drawRect(Rect.fromLTWH(w * 0.32, u * 0.6, u * 2.2, u), celeste);
-    // Rectángulo verde lima que cuelga del borde superior.
-    canvas.drawRect(Rect.fromLTWH(w * 0.62, 0, u, u * 1.4), lima);
-    // Forma en L azul en la esquina superior derecha.
-    canvas.drawRect(Rect.fromLTWH(w - u * 1.7, 0, u, u * 2.4), azul);
-    canvas.drawRect(Rect.fromLTWH(w - u * 1.7, u * 1.4, u * 1.7, u), azul);
-
-    // ---------- Laterales ----------
-    // Cuadrado azul pegado al borde izquierdo.
-    canvas.drawRect(Rect.fromLTWH(0, h * 0.34, u, u), azul);
-    // Rectángulo verde lima pegado al borde derecho.
-    canvas.drawRect(Rect.fromLTWH(w - u * 1.35, h * 0.60, u * 1.35, u), lima);
-
-    // ---------- Parte inferior ----------
-    // Forma en L celeste en la esquina inferior izquierda.
-    final yL = h * 0.80;
-    canvas.drawRect(Rect.fromLTWH(0, yL, u * 1.85, u), celeste);
-    canvas.drawRect(Rect.fromLTWH(u * 0.85, yL + u, u, u * 1.4), celeste);
-    // Bloque esmeralda con muesca, abajo a la derecha.
-    canvas.drawRect(
-        Rect.fromLTWH(w - u * 3, h - u * 1.2, u * 3, u * 0.9), esmeralda);
-    canvas.drawRect(
-        Rect.fromLTWH(w - u * 3, h - u * 0.3, u * 0.85, u * 0.3), esmeralda);
-    canvas.drawRect(
-        Rect.fromLTWH(w - u * 0.8, h - u * 0.3, u * 0.8, u * 0.3), esmeralda);
+  Widget build(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: RadialGradient(
+          colors: [
+            color.withAlpha(alpha),
+            color.withAlpha((alpha * 0.45).round()),
+            color.withAlpha(0),
+          ],
+          stops: const [0.0, 0.5, 1.0],
+        ),
+      ),
+    );
   }
-
-  @override
-  bool shouldRepaint(covariant _BloquesPainter old) =>
-      old.opacidad != opacidad;
 }

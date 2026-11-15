@@ -11,6 +11,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:      
+    sdk: flutter
   cupertino_icons: ^1.0.6
   http: ^1.6.0
   flutter_map: ^8.3.2
@@ -19,6 +21,8 @@ dependencies:
   circular_bottom_navigation: ^2.4.0
   google_fonts: ^6.2.0 
   geolocator: ^14.0.2
+  shared_preferences: ^2.2.0
+  intl: any
 
 dev_dependencies:
   flutter_test:
@@ -28,7 +32,9 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+  generate: true
   assets:
     - assets/data/zonas.json
     - assets/data/grafo.json
     - assets/icons/mapsutb_logo_WHITE.svg
+    - assets/salones/

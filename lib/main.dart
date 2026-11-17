@@ -1,6 +1,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:mapsutb/l10n/app_localizations.dart';
 import 'adapters/analytics_adapter.dart';
 import 'adapters/geocoding_adapter.dart';
 import 'adapters/static_map_adapter.dart';
@@ -27,6 +28,8 @@ class MapsUtbApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'MAPSUTB',
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       theme: temaMapsUtb(),
       home: const _RaizNavegacion(),
     );
@@ -114,11 +117,11 @@ class _RaizNavegacionState extends State<_RaizNavegacion> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: _indice,
         onDestinationSelected: (i) => setState(() => _indice = i),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.apartment), label: 'Zonas'),
-          NavigationDestination(icon: Icon(Icons.map), label: 'Mapa'),
+        destinations: [
+          NavigationDestination(icon: Icon(Icons.apartment), label: AppLocalizations.of(context)!.zones),
+          NavigationDestination(icon: Icon(Icons.map), label: AppLocalizations.of(context)!.map),
           NavigationDestination(
-              icon: Icon(Icons.my_location), label: 'Ubicación'),
+              icon: Icon(Icons.my_location), label: AppLocalizations.of(context)!.location),
         ],
       ),
     );

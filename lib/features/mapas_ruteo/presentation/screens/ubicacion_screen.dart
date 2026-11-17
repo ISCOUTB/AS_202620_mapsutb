@@ -1,3 +1,4 @@
+import 'package:mapsutb/l10n/app_localizations.dart';
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:mapsutb/adapters/geocoding_adapter.dart';
@@ -92,25 +93,23 @@ class _UbicacionScreenState extends State<UbicacionScreen> {
     });
   }
 
-  static String _textoSinUbicacion(UbicacionNoDisponible fallo) => switch (fallo.motivo) {
-        MotivoSinUbicacion.permisoDenegado =>
-          'Sin permiso de ubicación: actívalo para este sitio en el navegador.',
-        MotivoSinUbicacion.servicioApagado => 'La ubicación del dispositivo está apagada.',
-        MotivoSinUbicacion.sinSenal => 'No hay señal GPS suficiente (sal a un espacio abierto).',
-        MotivoSinUbicacion.precisionBaja =>
-          'Tu ubicación es demasiado imprecisa (± ${fallo.precisionM?.round() ?? '?'} m): '
-              'un computador suele ubicarse por Wi-Fi. Usa el celular en el campus.',
+  String _textoSinUbicacion(BuildContext context, UbicacionNoDisponible fallo) => switch (fallo.motivo) {
+        MotivoSinUbicacion.permisoDenegado => AppLocalizations.of(context)!.noLocationPermission,
+        MotivoSinUbicacion.servicioApagado => AppLocalizations.of(context)!.locationOff,
+        MotivoSinUbicacion.sinSenal => AppLocalizations.of(context)!.noGpsSignal,
+        MotivoSinUbicacion.precisionBaja => AppLocalizations.of(context)!.retryLocation,
       };
 
   /// Título y detalle: «Estás cerca de A2» / «a 40 m · ± 8 m».
-  (String, String?) _dondeEstas(Ubicacion u) {
+  (String, String?) _dondeEstas(BuildContext context, Ubicacion u) {
+    final l = AppLocalizations.of(context)!;
     final precision = u.precisionM == null ? null : '± ${u.precisionM!.round()} m';
     final cercana = _zonaCercana(u);
     if (cercana == null) return (u.toString(), precision);
     final (zona, metros) = cercana;
-    if (metros > UbicacionScreen.maxDistanciaAlCampusM) return ('Estás fuera del campus', precision);
+    if (metros > UbicacionScreen.maxDistanciaAlCampusM) return (l.outsideCampus, precision);
     final detalle = ['a ${metros.round()} m', if (precision != null) precision].join(' · ');
-    return ('Estás cerca de ${zona.nombre}', detalle);
+    return (l.nearZone(zona.nombre), detalle);
   }
 
   @override
@@ -124,7 +123,8 @@ class _UbicacionScreenState extends State<UbicacionScreen> {
     final ubicacion = _ubicacionActual;
     final geocoding = widget.geocoding;
     final tema = Theme.of(context);
-    final (titulo, detalle) = ubicacion == null ? ('Esperando tu ubicación…', null) : _dondeEstas(ubicacion);
+    final l10n = AppLocalizations.of(context)!;
+    final (titulo, detalle) = ubicacion == null ? (l10n.waitingLocation, null) : _dondeEstas(context, ubicacion);
     return Center(
       child: Padding(
         padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -140,7 +140,7 @@ class _UbicacionScreenState extends State<UbicacionScreen> {
             if (_sinUbicacion case final fallo?)
               Padding(
                 padding: const EdgeInsets.only(top: 8),
-                child: Text(_textoSinUbicacion(fallo), key: const Key('sin_ubicacion'), textAlign: TextAlign.center),
+                child: Text(_textoSinUbicacion(context, fallo), key: const Key('sin_ubicacion'), textAlign: TextAlign.center),
               ),
             if (geocoding != null) ...[
               const SizedBox(height: 16),
@@ -149,7 +149,7 @@ class _UbicacionScreenState extends State<UbicacionScreen> {
                     ? null
                     : () => _geocodificar(geocoding),
                 icon: const Icon(Icons.place),
-                label: const Text('¿Dónde estoy?'),
+                label: Text(l10n.whereAmI),
               ),
               if (_direccion != null)
                 Padding(

@@ -1,3 +1,4 @@
+import 'package:mapsutb/l10n/app_localizations.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -72,7 +73,7 @@ Future<_UbicacionFalsa> _montar(WidgetTester tester,
     {String? destino, MapaRepository? mapa, AnalyticsAdapter analytics = const AnalyticsAdapterNulo()}) async {
   final ubicacion = _UbicacionFalsa();
   addTearDown(ubicacion.dispose);
-  await tester.pumpWidget(MaterialApp(
+  await tester.pumpWidget(MaterialApp(localizationsDelegates: AppLocalizations.localizationsDelegates, supportedLocales: AppLocalizations.supportedLocales, locale: const Locale('es'),
     home: Scaffold(
       body: MapaScreen(
         zonaRepository: _ZonasFalsas(),
@@ -170,7 +171,7 @@ void main() {
   testWidgets('"Cómo llegar" en el detalle de zona cierra el detalle y pide la ruta', (tester) async {
     String? pedido;
     final zona = Zona(id: 'a1', nombre: 'A1', tipo: 'edificio', lat: 10.3701, lng: -75.4660);
-    await tester.pumpWidget(MaterialApp(
+    await tester.pumpWidget(MaterialApp(localizationsDelegates: AppLocalizations.localizationsDelegates, supportedLocales: AppLocalizations.supportedLocales, locale: const Locale('es'),
       home: Builder(
         builder: (context) => TextButton(
           onPressed: () => Navigator.of(context).push(MaterialPageRoute(

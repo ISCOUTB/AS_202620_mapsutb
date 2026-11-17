@@ -1,3 +1,4 @@
+import 'package:mapsutb/l10n/app_localizations.dart';
 import 'dart:typed_data';
 
 import 'package:flutter/material.dart';
@@ -33,6 +34,7 @@ class ZonaDetalleScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final adapter = staticMap;
     final comoLlegar = onComoLlegar;
     final tema = Theme.of(context);
@@ -56,7 +58,7 @@ class ZonaDetalleScreen extends StatelessWidget {
               padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
               child: FilledButton.icon(
                 icon: const Icon(Icons.directions_walk),
-                label: const Text('Cómo llegar'),
+                label: Text(l10n.howToGetThere),
                 onPressed: () {
                   Navigator.of(context).pop();
                   comoLlegar(zona.id);
@@ -125,7 +127,7 @@ class _EspaciosPorPisoState extends State<_EspaciosPorPiso> {
   Widget build(BuildContext context) {
     final sinPiso = _zona.espaciosSinPiso;
     if (_zona.pisos.isEmpty && sinPiso.isEmpty) {
-      return const Center(child: Text('Esta zona no tiene espacios registrados.'));
+      return Center(child: Text(AppLocalizations.of(context)!.noSpaces));
     }
 
     final espacios = _seleccion == _sinPiso ? sinPiso : _zona.espaciosEnPiso(_seleccion);
@@ -136,7 +138,7 @@ class _EspaciosPorPisoState extends State<_EspaciosPorPiso> {
           _SelectorPiso(
             opciones: {
               for (final piso in _zona.pisos) piso.id: piso.nombre,
-              if (sinPiso.isNotEmpty) _sinPiso: 'Otros espacios',
+              if (sinPiso.isNotEmpty) _sinPiso: AppLocalizations.of(context)!.otherSpaces,
             },
             seleccion: _seleccion,
             onSeleccion: (id) => setState(() => _seleccion = id),
@@ -144,11 +146,11 @@ class _EspaciosPorPisoState extends State<_EspaciosPorPiso> {
         else
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-            child: Text('Espacios', style: Theme.of(context).textTheme.titleMedium),
+            child: Text(AppLocalizations.of(context)!.spaces, style: Theme.of(context).textTheme.titleMedium),
           ),
         Expanded(
           child: espacios.isEmpty
-              ? const Center(child: Text('Sin espacios registrados en este piso.'))
+              ? Center(child: Text(AppLocalizations.of(context)!.noSpacesOnFloor))
               // Columna y no ListView.builder: son pocos espacios por piso y
               // así la tarjeta resaltada existe para llevarla a la vista.
               : SingleChildScrollView(
@@ -247,7 +249,7 @@ class _TarjetaEspacio extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 8),
-                _Etiqueta(etiquetaTipo(espacio.tipo)),
+                _Etiqueta(etiquetaTipoLocalizada(context, espacio.tipo)),
               ],
             ),
             if (espacio.salones.isNotEmpty) ...[
@@ -342,7 +344,7 @@ class _MiniaturaMapaState extends State<_MiniaturaMapa> {
         future: _imagen,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return const Center(child: Text('Mapa no disponible.'));
+            return Center(child: Text(AppLocalizations.of(context)!.mapUnavailable));
           }
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());

@@ -1,3 +1,4 @@
+import 'package:mapsutb/l10n/app_localizations.dart';
 import 'dart:async';
 import 'dart:convert';
 
@@ -99,7 +100,7 @@ void main() {
       final service = _UbicacionServiceFalso();
       addTearDown(service.dispose);
       final geocoding = _GeocodingPendiente();
-      await tester.pumpWidget(MaterialApp(
+      await tester.pumpWidget(MaterialApp(localizationsDelegates: AppLocalizations.localizationsDelegates, supportedLocales: AppLocalizations.supportedLocales, locale: const Locale('es'),
         home: Scaffold(body: UbicacionScreen(service: service, geocoding: geocoding)),
       ));
       service.controller.add(Ubicacion(lat: 10.37, lng: -75.46, timestamp: DateTime(2026)));
@@ -121,7 +122,7 @@ void main() {
       final service = _UbicacionServiceFalso();
       addTearDown(service.dispose);
       final client = MockClient((_) => Completer<http.Response>().future); // nunca contesta
-      await tester.pumpWidget(MaterialApp(
+      await tester.pumpWidget(MaterialApp(localizationsDelegates: AppLocalizations.localizationsDelegates, supportedLocales: AppLocalizations.supportedLocales, locale: const Locale('es'),
         home: Scaffold(
           body: UbicacionScreen(
             service: service,

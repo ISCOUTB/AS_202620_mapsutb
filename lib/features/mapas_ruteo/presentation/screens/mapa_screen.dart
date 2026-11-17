@@ -1,3 +1,4 @@
+import 'package:mapsutb/l10n/app_localizations.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -102,18 +103,19 @@ class _MapaScreenState extends State<MapaScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return FutureBuilder<(List<Zona>, GrafoPeatonal)>(
       future: _datos,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return Center(
             child: Column(mainAxisSize: MainAxisSize.min, children: [
-              const Text('No se pudo cargar el mapa del campus.'),
+              Text(l10n.loadMapError),
               TextButton(
                 onPressed: () => setState(() {
                   _datos = _cargar();
                 }),
-                child: const Text('Reintentar'),
+                child: Text(l10n.retry),
               ),
             ]),
           );
@@ -132,7 +134,7 @@ class _MapaScreenState extends State<MapaScreen> {
     final reloj = Stopwatch()..start();
     final zonas = todas.where((z) => z.tieneCoordenadas && grafo.entradas.containsKey(z.id)).toList();
     final destino = zonas.any((z) => z.id == _destino) ? _destino : null;
-    final estado = _calcularRuta(grafo, destino);
+    final estado = _calcularRuta(context, grafo, destino);
     final ruta = estado.ruta;
     if (ruta != null && destino != _destinoMedido) {
       _destinoMedido = destino;
@@ -184,14 +186,14 @@ class _MapaScreenState extends State<MapaScreen> {
                 key: const Key('destino'),
                 isExpanded: true,
                 value: destino,
-                hint: const Text('¿A dónde vas?'),
+                hint: Text(AppLocalizations.of(context)!.destinationPrompt),
                 underline: const SizedBox.shrink(),
                 items: [for (final z in zonas) DropdownMenuItem(value: z.id, child: Text(z.nombre))],
                 onChanged: _elegirDestino,
               ),
               FilterChip(
                 key: const Key('evitar_escaleras'),
-                label: const Text('Evitar escaleras'),
+                label: Text(AppLocalizations.of(context)!.avoidStairs),
                 selected: _evitarEscaleras,
                 onSelected: (v) => setState(() => _evitarEscaleras = v),
               ),
@@ -213,11 +215,11 @@ class _MapaScreenState extends State<MapaScreen> {
                   key: const Key('usar_gps'),
                   onPressed: () => setState(() => _origenManual = null),
                   icon: const Icon(Icons.my_location),
-                  label: const Text('Partida marcada a mano · Usar mi GPS'),
+                  label: Text(AppLocalizations.of(context)!.manualStartUseGps),
                 ),
               if (_sinMapaBase)
-                const Text(
-                  'Sin conexión al mapa base: la ruta sigue siendo válida, sale de los caminos guardados en la app.',
+                Text(
+                  AppLocalizations.of(context)!.baseMapOffline,
                   key: Key('aviso_sin_mapa_base'),
                 ),
             ]),
@@ -243,41 +245,40 @@ class _MapaScreenState extends State<MapaScreen> {
     setState(() => _origenManual = Ubicacion(lat: lat, lng: lng, timestamp: DateTime.now()));
   }
 
-  static const _tocaElMapa = 'Toca el mapa para marcar tu punto de partida.';
-
-  _EstadoRuta _calcularRuta(GrafoPeatonal grafo, String? destino) {
+  _EstadoRuta _calcularRuta(BuildContext context, GrafoPeatonal grafo, String? destino) {
+    final l = AppLocalizations.of(context)!;
+    final tocaElMapa = l.manualStart;
     final pos = _origenManual ?? _posicion;
-    if (destino == null) return const _EstadoRuta(null, 'Elige un destino o toca una zona del mapa.');
+    if (destino == null) return _EstadoRuta(null, l.routeChoose);
     final fallo = _sinUbicacion;
     if (pos == null) {
-      return _EstadoRuta(null, fallo == null ? 'Esperando tu ubicación…' : '${_textoFallo(fallo)} $_tocaElMapa');
+      return _EstadoRuta(null, fallo == null ? l.routeWait : '${_textoFallo(context, fallo)} $tocaElMapa');
     }
     if (!_enCampus(grafo, pos)) {
-      return const _EstadoRuta(null, 'Estás fuera del campus: la ruta se calcula desde los caminos del campus. $_tocaElMapa');
+      return _EstadoRuta(null, '${l.routeOutside} $tocaElMapa');
     }
     final ruta = ServicioRuteo(grafo).rutaDesdePosicion(pos.lat, pos.lng, destino, evitarEscaleras: _evitarEscaleras);
     if (ruta == null) {
       return _EstadoRuta(null, _evitarEscaleras
-          ? 'No hay ruta sin escaleras hasta ese destino.'
-          : 'No hay ruta hasta ese destino.');
+          ? l.routeNoStairs
+          : l.routeNone);
     }
     final minutos = (ruta.tiempoCaminando.inSeconds / 60).ceil();
     final n = ruta.tramosConEscaleras;
     final plural = n == 1 ? '' : 's';
     final escaleras = n == 0 ? 'sin escaleras' : '$n tramo$plural con escaleras';
-    final resumen = '$minutos min · ${ruta.metros.round()} m · $escaleras';
+    final resumen = '${l.routeMeters(minutos, ruta.metros.round())} · $escaleras';
     if (fallo != null && _origenManual == null) {
-      return _EstadoRuta(ruta, '$resumen\n${_textoFallo(fallo)} La ruta parte de tu última posición conocida. $_tocaElMapa');
+      return _EstadoRuta(ruta, '$resumen\n${_textoFallo(context, fallo)} $tocaElMapa');
     }
     return _EstadoRuta(ruta, resumen);
   }
 
-  static String _textoFallo(UbicacionNoDisponible fallo) => switch (fallo.motivo) {
-        MotivoSinUbicacion.permisoDenegado => 'Sin permiso de ubicación.',
-        MotivoSinUbicacion.servicioApagado => 'La ubicación del dispositivo está apagada.',
-        MotivoSinUbicacion.sinSenal => 'No hay señal GPS suficiente.',
-        MotivoSinUbicacion.precisionBaja =>
-          'Tu ubicación es demasiado imprecisa (± ${fallo.precisionM?.round() ?? '?'} m) para guiarte en el campus.',
+  static String _textoFallo(BuildContext context, UbicacionNoDisponible fallo) => switch (fallo.motivo) {
+        MotivoSinUbicacion.permisoDenegado => AppLocalizations.of(context)!.noLocationPermission,
+        MotivoSinUbicacion.servicioApagado => AppLocalizations.of(context)!.locationOff,
+        MotivoSinUbicacion.sinSenal => AppLocalizations.of(context)!.noGpsSignal,
+        MotivoSinUbicacion.precisionBaja => AppLocalizations.of(context)!.retryLocation,
       };
 }
 

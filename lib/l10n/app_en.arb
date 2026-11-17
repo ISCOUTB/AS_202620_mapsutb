@@ -1,0 +1,112 @@
+{
+  "@@locale": "en",
+  "zones": "Zones",
+  "map": "Map",
+  "location": "Location",
+  "loadZonesError": "Could not load the zones.",
+  "loadMapError": "Could not load the campus map.",
+  "retry": "Retry",
+  "searchHint": "Search zone, space, or classroom",
+  "clearSearch": "Clear search",
+  "howToGetThere": "Directions",
+  "noSpaces": "No spaces are registered in this zone.",
+  "spaces": "Spaces",
+  "noSpacesOnFloor": "No spaces are registered on this floor.",
+  "otherSpaces": "Other spaces",
+  "mapUnavailable": "Map unavailable.",
+  "noResults": "No results for ?{query}?",
+  "searchTip": "Try a building name, space name, or classroom number.",
+  "destinationPrompt": "Where are you going?",
+  "avoidStairs": "Avoid stairs",
+  "manualStartUseGps": "Starting point marked manually ? Use my GPS",
+  "baseMapOffline": "Base map connection unavailable. The route remains valid and uses paths saved in the app.",
+  "osmAttribution": "OpenStreetMap contributors",
+  "noType": "Unclassified",
+  "auditorium": "Auditorium",
+  "library": "Library",
+  "cafeteria": "Cafeteria",
+  "building": "Building",
+  "laboratory": "Laboratory",
+  "office": "Office",
+  "institutionalOffice": "Institutional office",
+  "parking": "Parking",
+  "classroom": "Classroom",
+  "service": "Service",
+  "commonArea": "Common area",
+  "floorCount": "{count} floors",
+  "floorCountOne": "{count} floor",
+  "spaceCount": "{count} spaces",
+  "spaceCountOne": "{count} space",
+  "whereAmI": "Where am I?",
+  "waitingLocation": "Waiting for your location?",
+  "noLocationPermission": "Location permission denied.",
+  "locationOff": "Device location is turned off.",
+  "noGpsSignal": "No sufficient GPS signal.",
+  "retryLocation": "Check your location and try again.",
+  "outsideCampus": "You are outside the campus",
+  "nearZone": "You are near {zone}",
+  "distanceMeters": "{meters} m away",
+  "routeChoose": "Choose a destination or tap a zone on the map.",
+  "routeWait": "Waiting for your location?",
+  "routeOutside": "You are outside campus. Routes follow campus paths.",
+  "routeNoStairs": "No stair-free route is available to that destination.",
+  "routeNone": "No route is available to that destination.",
+  "routeMeters": "{minutes} min ? {meters} m",
+  "manualStart": "Tap the map to mark your starting point.",
+  "simulatedLocation": "(Simulated location for demonstration; this is not your real position)",
+  "@noResults": {
+    "placeholders": {
+      "query": {}
+    }
+  },
+  "@floorCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@floorCountOne": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@spaceCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@spaceCountOne": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@nearZone": {
+    "placeholders": {
+      "zone": {}
+    }
+  },
+  "@distanceMeters": {
+    "placeholders": {
+      "meters": {
+        "type": "int"
+      }
+    }
+  },
+  "@routeMeters": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "meters": {
+        "type": "int"
+      }
+    }
+  }
+}

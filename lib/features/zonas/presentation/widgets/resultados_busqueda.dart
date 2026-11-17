@@ -1,3 +1,4 @@
+import 'package:mapsutb/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:mapsutb/features/busqueda/indice_busqueda.dart';
 
@@ -22,6 +23,7 @@ class ResultadosBusqueda extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     if (resultados.isEmpty) {
       return Center(
         child: Padding(
@@ -30,13 +32,13 @@ class ResultadosBusqueda extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                'Sin resultados para «${consulta.trim()}»',
+                l10n.noResults(consulta.trim()),
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 8),
-              const Text(
-                'Prueba con el nombre del bloque, del espacio o el número del salón.',
+              Text(
+                l10n.searchTip,
                 textAlign: TextAlign.center,
               ),
             ],
@@ -67,10 +69,11 @@ class _FilaResultado extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     final comoLlegar = onComoLlegar;
     final (icono, queEs) = switch (resultado.tipo) {
-      TipoResultado.zona => (Icons.apartment, etiquetaTipo(resultado.zona.tipo)),
-      TipoResultado.espacio => (Icons.meeting_room_outlined, etiquetaTipo(resultado.espacio!.tipo)),
+      TipoResultado.zona => (Icons.apartment, etiquetaTipoLocalizada(context, resultado.zona.tipo)),
+      TipoResultado.espacio => (Icons.meeting_room_outlined, etiquetaTipoLocalizada(context, resultado.espacio!.tipo)),
       TipoResultado.salon => (Icons.door_front_door_outlined, resultado.espacio!.nombre),
     };
     // Una zona ya dice qué es con su tipo; un espacio o salón dice además dónde.
@@ -86,7 +89,7 @@ class _FilaResultado extends StatelessWidget {
         trailing: comoLlegar != null && resultado.zona.tieneCoordenadas
             ? IconButton(
                 icon: const Icon(Icons.directions_walk),
-                tooltip: 'Cómo llegar',
+                tooltip: l10n.howToGetThere,
                 onPressed: () => comoLlegar(resultado),
               )
             : const Icon(Icons.chevron_right),

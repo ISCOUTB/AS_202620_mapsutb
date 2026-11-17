@@ -1,3 +1,4 @@
+import 'package:mapsutb/l10n/app_localizations.dart';
 import 'dart:async';
 
 import 'package:flutter/material.dart';
@@ -60,7 +61,7 @@ Future<_UbicacionServiceFalso> _montar(
 }) async {
   final service = _UbicacionServiceFalso();
   addTearDown(service.dispose);
-  await tester.pumpWidget(MaterialApp(
+  await tester.pumpWidget(MaterialApp(localizationsDelegates: AppLocalizations.localizationsDelegates, supportedLocales: AppLocalizations.supportedLocales, locale: const Locale('es'),
     home: Scaffold(
       body: UbicacionScreen(service: service, geocoding: geocoding),
     ),
@@ -146,7 +147,7 @@ void main() {
     testWidgets('dice la zona más cercana en vez de coordenadas', (tester) async {
       final service = _UbicacionServiceFalso();
       addTearDown(service.dispose);
-      await tester.pumpWidget(MaterialApp(
+      await tester.pumpWidget(MaterialApp(localizationsDelegates: AppLocalizations.localizationsDelegates, supportedLocales: AppLocalizations.supportedLocales, locale: const Locale('es'),
         home: Scaffold(body: UbicacionScreen(service: service, zonaRepository: _ZonasFalsas())),
       ));
       await tester.pumpAndSettle();

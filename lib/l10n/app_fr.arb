@@ -1,0 +1,112 @@
+{
+  "@@locale": "fr",
+  "zones": "Zones",
+  "map": "Carte",
+  "location": "Localisation",
+  "loadZonesError": "Impossible de charger les zones.",
+  "loadMapError": "Impossible de charger la carte du campus.",
+  "retry": "R?essayer",
+  "searchHint": "Rechercher une zone, un espace ou une salle",
+  "clearSearch": "Effacer la recherche",
+  "howToGetThere": "Itin?raire",
+  "noSpaces": "Aucun espace n?est enregistr? dans cette zone.",
+  "spaces": "Espaces",
+  "noSpacesOnFloor": "Aucun espace n?est enregistr? ? cet ?tage.",
+  "otherSpaces": "Autres espaces",
+  "mapUnavailable": "Carte indisponible.",
+  "noResults": "Aucun r?sultat pour ? {query} ?",
+  "searchTip": "Essayez le nom du b?timent, de l?espace ou le num?ro de la salle.",
+  "destinationPrompt": "O? allez-vous ?",
+  "avoidStairs": "?viter les escaliers",
+  "manualStartUseGps": "D?part indiqu? manuellement ? Utiliser mon GPS",
+  "baseMapOffline": "Carte de base hors ligne. L?itin?raire reste valide et suit les chemins enregistr?s dans l?application.",
+  "osmAttribution": "contributeurs OpenStreetMap",
+  "noType": "Non class?",
+  "auditorium": "Auditorium",
+  "library": "Biblioth?que",
+  "cafeteria": "Caf?t?ria",
+  "building": "B?timent",
+  "laboratory": "Laboratoire",
+  "office": "Bureau",
+  "institutionalOffice": "Bureau institutionnel",
+  "parking": "Parking",
+  "classroom": "Salle de cours",
+  "service": "Service",
+  "commonArea": "Espace commun",
+  "floorCount": "{count} ?tages",
+  "floorCountOne": "{count} ?tage",
+  "spaceCount": "{count} espaces",
+  "spaceCountOne": "{count} espace",
+  "whereAmI": "O? suis-je ?",
+  "waitingLocation": "En attente de votre position?",
+  "noLocationPermission": "Autorisation de localisation refus?e.",
+  "locationOff": "La localisation de l?appareil est d?sactiv?e.",
+  "noGpsSignal": "Signal GPS insuffisant.",
+  "retryLocation": "V?rifiez votre position et r?essayez.",
+  "outsideCampus": "Vous ?tes hors du campus",
+  "nearZone": "Vous ?tes pr?s de {zone}",
+  "distanceMeters": "? {meters} m",
+  "routeChoose": "Choisissez une destination ou touchez une zone sur la carte.",
+  "routeWait": "En attente de votre position?",
+  "routeOutside": "Vous ?tes hors du campus. L?itin?raire suit les chemins du campus.",
+  "routeNoStairs": "Aucun itin?raire sans escaliers vers cette destination.",
+  "routeNone": "Aucun itin?raire disponible vers cette destination.",
+  "routeMeters": "{minutes} min ? {meters} m",
+  "manualStart": "Touchez la carte pour indiquer votre point de d?part.",
+  "simulatedLocation": "(Position simul?e pour la d?monstration ; ce n?est pas votre position r?elle)",
+  "@noResults": {
+    "placeholders": {
+      "query": {}
+    }
+  },
+  "@floorCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@floorCountOne": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@spaceCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@spaceCountOne": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "@nearZone": {
+    "placeholders": {
+      "zone": {}
+    }
+  },
+  "@distanceMeters": {
+    "placeholders": {
+      "meters": {
+        "type": "int"
+      }
+    }
+  },
+  "@routeMeters": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "meters": {
+        "type": "int"
+      }
+    }
+  }
+}

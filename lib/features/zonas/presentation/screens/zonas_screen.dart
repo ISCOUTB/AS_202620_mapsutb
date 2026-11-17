@@ -1,3 +1,4 @@
+import 'package:mapsutb/l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:mapsutb/adapters/analytics_adapter.dart';
 import 'package:mapsutb/adapters/static_map_adapter.dart';
@@ -96,6 +97,7 @@ class _ZonasScreenState extends State<ZonasScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return FutureBuilder<List<Zona>>(
       future: _zonas,
       builder: (context, snapshot) {
@@ -104,11 +106,11 @@ class _ZonasScreenState extends State<ZonasScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('No se pudieron cargar las zonas.'),
+                Text(l10n.loadZonesError),
                 const SizedBox(height: 8),
                 TextButton(
                   onPressed: _reintentar,
-                  child: const Text('Reintentar'),
+                  child: Text(l10n.retry),
                 ),
               ],
             ),
@@ -160,13 +162,13 @@ class _CampoBusqueda extends StatelessWidget {
       onChanged: onChanged,
       textInputAction: TextInputAction.search,
       decoration: InputDecoration(
-        hintText: 'Buscar zona, espacio o salón',
+        hintText: AppLocalizations.of(context)!.searchHint,
         prefixIcon: const Icon(Icons.search),
         suffixIcon: controller.text.isEmpty
             ? null
             : IconButton(
                 icon: const Icon(Icons.close),
-                tooltip: 'Borrar búsqueda',
+                tooltip: AppLocalizations.of(context)!.clearSearch,
                 onPressed: () {
                   controller.clear();
                   onChanged('');

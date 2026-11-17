@@ -1,0 +1,112 @@
+{
+  "@@locale": "es",
+  "zones": "Zonas",
+  "map": "Mapa",
+  "location": "Ubicaci?n",
+  "loadZonesError": "No se pudieron cargar las zonas.",
+  "loadMapError": "No se pudo cargar el mapa del campus.",
+  "retry": "Reintentar",
+  "searchHint": "Buscar zona, espacio o sal?n",
+  "clearSearch": "Borrar b?squeda",
+  "howToGetThere": "C?mo llegar",
+  "noSpaces": "Esta zona no tiene espacios registrados.",
+  "spaces": "Espacios",
+  "noSpacesOnFloor": "Sin espacios registrados en este piso.",
+  "otherSpaces": "Otros espacios",
+  "mapUnavailable": "Mapa no disponible.",
+  "noResults": "Sin resultados para ?{query}?",
+  "@noResults": {
+    "placeholders": {
+      "query": {}
+    }
+  },
+  "searchTip": "Prueba con el nombre del bloque, del espacio o el n?mero del sal?n.",
+  "destinationPrompt": "?A d?nde vas?",
+  "avoidStairs": "Evitar escaleras",
+  "manualStartUseGps": "Partida marcada a mano ? Usar mi GPS",
+  "baseMapOffline": "Sin conexi?n al mapa base: la ruta sigue siendo v?lida, sale de los caminos guardados en la app.",
+  "osmAttribution": "colaboradores de OpenStreetMap",
+  "noType": "Sin tipo",
+  "auditorium": "Auditorio",
+  "library": "Biblioteca",
+  "cafeteria": "Cafeter?a",
+  "building": "Edificio",
+  "laboratory": "Laboratorio",
+  "office": "Oficina",
+  "institutionalOffice": "Oficina institucional",
+  "parking": "Parqueadero",
+  "classroom": "Sal?n",
+  "service": "Servicio",
+  "commonArea": "Zona com?n",
+  "floorCount": "{count} pisos",
+  "@floorCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "floorCountOne": "{count} piso",
+  "@floorCountOne": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "spaceCount": "{count} espacios",
+  "@spaceCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "spaceCountOne": "{count} espacio",
+  "@spaceCountOne": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "whereAmI": "?D?nde estoy?",
+  "waitingLocation": "Esperando tu ubicaci?n?",
+  "noLocationPermission": "Sin permiso de ubicaci?n.",
+  "locationOff": "La ubicaci?n del dispositivo est? apagada.",
+  "noGpsSignal": "No hay se?al GPS suficiente.",
+  "retryLocation": "Revisa tu ubicaci?n y vuelve a intentarlo.",
+  "outsideCampus": "Est?s fuera del campus",
+  "nearZone": "Est?s cerca de {zone}",
+  "@nearZone": {
+    "placeholders": {
+      "zone": {}
+    }
+  },
+  "distanceMeters": "a {meters} m",
+  "@distanceMeters": {
+    "placeholders": {
+      "meters": {
+        "type": "int"
+      }
+    }
+  },
+  "routeChoose": "Elige un destino o toca una zona del mapa.",
+  "routeWait": "Esperando tu ubicaci?n?",
+  "routeOutside": "Est?s fuera del campus: la ruta se calcula desde los caminos del campus.",
+  "routeNoStairs": "No hay ruta sin escaleras hasta ese destino.",
+  "routeNone": "No hay ruta hasta ese destino.",
+  "routeMeters": "{minutes} min ? {meters} m",
+  "@routeMeters": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      },
+      "meters": {
+        "type": "int"
+      }
+    }
+  },
+  "manualStart": "Toca el mapa para marcar tu punto de partida.",
+  "simulatedLocation": "(Ubicaci?n simulada para demostraci?n: no es tu posici?n real)"
+}

@@ -1,3 +1,4 @@
+import 'package:mapsutb/l10n/app_localizations.dart';
 import 'dart:convert';
 import 'dart:io';
 
@@ -123,7 +124,7 @@ Future<void> _montar(
   AnalyticsAdapter analytics = const AnalyticsAdapterNulo(),
   StaticMapAdapter? staticMap,
 }) async {
-  await tester.pumpWidget(MaterialApp(
+  await tester.pumpWidget(MaterialApp(localizationsDelegates: AppLocalizations.localizationsDelegates, supportedLocales: AppLocalizations.supportedLocales, locale: const Locale('es'),
     home: Scaffold(
       body: ZonasScreen(
         repository: repository,
@@ -484,7 +485,7 @@ void main() {
     testWidgets('"Cómo llegar" en un resultado pide la ruta a su zona',
         (tester) async {
       String? pedido;
-      await tester.pumpWidget(MaterialApp(
+      await tester.pumpWidget(MaterialApp(localizationsDelegates: AppLocalizations.localizationsDelegates, supportedLocales: AppLocalizations.supportedLocales, locale: const Locale('es'),
         home: Scaffold(
           body: ZonasScreen(
             repository: _RepositorioFalso([

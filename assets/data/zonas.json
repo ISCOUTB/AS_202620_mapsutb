@@ -1,8 +1,8 @@
 [
   {
     "id": "a1",
-    "nombre": "A1",
-    "tipo": "edificio",
+    "nombre": "Edificio A1",
+    "tipo": "Edificio",
     "lat": 10.3697266,
     "lng": -75.4653159,
     "pisos": [
@@ -26,13 +26,13 @@
         "tipo": "laboratorio",
         "pisos": ["a1-piso4"],
         "salones": [
-          {"id": "a1-401", "nombre": "401"},
-          {"id": "a1-402", "nombre": "402"},
-          {"id": "a1-403", "nombre": "403"},
-          {"id": "a1-404", "nombre": "404"},
-          {"id": "a1-405", "nombre": "405"},
-          {"id": "a1-406", "nombre": "406 - Lab de Redes"},
-          {"id": "a1-407", "nombre": "407"}
+          {"id": "a1-401", "nombre": "401", "descripcion": "Salón 401 del Edificio A1, ubicado en el Cuarto Piso. Forma parte de «Salón de Sistemas / Laboratorios de Computadores»."},
+          {"id": "a1-402", "nombre": "402", "descripcion": "Salón 402 del Edificio A1, ubicado en el Cuarto Piso. Forma parte de «Salón de Sistemas / Laboratorios de Computadores»."},
+          {"id": "a1-403", "nombre": "403", "descripcion": "Salón 403 del Edificio A1, ubicado en el Cuarto Piso. Forma parte de «Salón de Sistemas / Laboratorios de Computadores»."},
+          {"id": "a1-404", "nombre": "404", "descripcion": "Salón 404 del Edificio A1, ubicado en el Cuarto Piso. Forma parte de «Salón de Sistemas / Laboratorios de Computadores»."},
+          {"id": "a1-405", "nombre": "405", "descripcion": "Salón 405 del Edificio A1, ubicado en el Cuarto Piso. Forma parte de «Salón de Sistemas / Laboratorios de Computadores»."},
+          {"id": "a1-406", "nombre": "406 - Lab de Redes", "descripcion": "Salón 406 del Edificio A1, ubicado en el Cuarto Piso. Espacio de laboratorio para prácticas y trabajo académico."},
+          {"id": "a1-407", "nombre": "407", "descripcion": "Salón 407 del Edificio A1, ubicado en el Cuarto Piso. Forma parte de «Salón de Sistemas / Laboratorios de Computadores»."}
         ]
       },
       {
@@ -41,15 +41,15 @@
         "tipo": "laboratorio",
         "pisos": ["a1-piso3"],
         "salones": [
-          {"id": "a1-300", "nombre": "300 - Lab Computadores de Arquitectura"},
-          {"id": "a1-301", "nombre": "301"},
-          {"id": "a1-302", "nombre": "302"},
-          {"id": "a1-303", "nombre": "303"},
-          {"id": "a1-304", "nombre": "304"},
-          {"id": "a1-305", "nombre": "305"},
-          {"id": "a1-306", "nombre": "306"},
-          {"id": "a1-307", "nombre": "307"},
-          {"id": "a1-308", "nombre": "308"}
+          {"id": "a1-300", "nombre": "300 - Lab Computadores de Arquitectura", "descripcion": "Salón 300 del Edificio A1, ubicado en el Tercer Piso. Espacio de laboratorio para prácticas y trabajo académico."},
+          {"id": "a1-301", "nombre": "301", "descripcion": "Salón 301 del Edificio A1, ubicado en el Tercer Piso. Forma parte de «Laboratorios y Salones de Arquitectura»."},
+          {"id": "a1-302", "nombre": "302", "descripcion": "Salón 302 del Edificio A1, ubicado en el Tercer Piso. Forma parte de «Laboratorios y Salones de Arquitectura»."},
+          {"id": "a1-303", "nombre": "303", "descripcion": "Salón 303 del Edificio A1, ubicado en el Tercer Piso. Forma parte de «Laboratorios y Salones de Arquitectura»."},
+          {"id": "a1-304", "nombre": "304", "descripcion": "Salón 304 del Edificio A1, ubicado en el Tercer Piso. Forma parte de «Laboratorios y Salones de Arquitectura»."},
+          {"id": "a1-305", "nombre": "305", "descripcion": "Salón 305 del Edificio A1, ubicado en el Tercer Piso. Forma parte de «Laboratorios y Salones de Arquitectura»."},
+          {"id": "a1-306", "nombre": "306", "descripcion": "Salón 306 del Edificio A1, ubicado en el Tercer Piso. Forma parte de «Laboratorios y Salones de Arquitectura»."},
+          {"id": "a1-307", "nombre": "307", "descripcion": "Salón 307 del Edificio A1, ubicado en el Tercer Piso. Forma parte de «Laboratorios y Salones de Arquitectura»."},
+          {"id": "a1-308", "nombre": "308", "descripcion": "Salón 308 del Edificio A1, ubicado en el Tercer Piso. Forma parte de «Laboratorios y Salones de Arquitectura»."}
         ]
       },
       {
@@ -72,10 +72,10 @@
         "tipo": "laboratorio",
         "pisos": ["a1-piso2"],
         "salones": [
-          {"id": "a1-psic-coord", "nombre": "Coordinación de Lab de Psicología"},
-          {"id": "a1-psic-proc", "nombre": "Lab de Procesos Psicológicos"},
-          {"id": "a1-psic-neuro1", "nombre": "Lab de Neurociencia y Cognición I"},
-          {"id": "a1-psic-neuro2", "nombre": "Lab de Neurociencia y Cognición II"}
+          {"id": "a1-psic-coord", "nombre": "Coordinación de Lab de Psicología", "descripcion": "Se encuentra en el Segundo Piso del Edificio A1, dentro de «Zona Psicología»."},
+          {"id": "a1-psic-proc", "nombre": "Lab de Procesos Psicológicos", "descripcion": "Se encuentra en el Segundo Piso del Edificio A1, dentro de «Zona Psicología». Espacio de laboratorio para prácticas y trabajo académico."},
+          {"id": "a1-psic-neuro1", "nombre": "Lab de Neurociencia y Cognición I", "descripcion": "Se encuentra en el Segundo Piso del Edificio A1, dentro de «Zona Psicología». Espacio de laboratorio para prácticas y trabajo académico."},
+          {"id": "a1-psic-neuro2", "nombre": "Lab de Neurociencia y Cognición II", "descripcion": "Se encuentra en el Segundo Piso del Edificio A1, dentro de «Zona Psicología». Espacio de laboratorio para prácticas y trabajo académico."}
         ]
       },
       {
@@ -84,19 +84,19 @@
         "tipo": "laboratorio",
         "pisos": ["a1-piso1"],
         "salones": [
-          {"id": "a1-com-foto", "nombre": "Lab de Fotografía"},
-          {"id": "a1-com-sonido", "nombre": "Lab de Sonido"},
-          {"id": "a1-com-redaccion", "nombre": "Sala de Redacción"},
-          {"id": "a1-com-oficina", "nombre": "Oficina LabCom"},
-          {"id": "a1-com-estudio", "nombre": "Estudio de Grabación"}
+          {"id": "a1-com-foto", "nombre": "Lab de Fotografía", "descripcion": "Se encuentra en el Primer Piso del Edificio A1, dentro de «Zona Comunicación Social». Espacio de laboratorio para prácticas y trabajo académico."},
+          {"id": "a1-com-sonido", "nombre": "Lab de Sonido", "descripcion": "Se encuentra en el Primer Piso del Edificio A1, dentro de «Zona Comunicación Social». Espacio de laboratorio para prácticas y trabajo académico."},
+          {"id": "a1-com-redaccion", "nombre": "Sala de Redacción", "descripcion": "Se encuentra en el Primer Piso del Edificio A1, dentro de «Zona Comunicación Social»."},
+          {"id": "a1-com-oficina", "nombre": "Oficina LabCom", "descripcion": "Se encuentra en el Primer Piso del Edificio A1, dentro de «Zona Comunicación Social»."},
+          {"id": "a1-com-estudio", "nombre": "Estudio de Grabación", "descripcion": "Se encuentra en el Primer Piso del Edificio A1, dentro de «Zona Comunicación Social»."}
         ]
       }
     ]
   },
   {
     "id": "a2",
-    "nombre": "A2",
-    "tipo": "edificio",
+    "nombre": "Edificio A2",
+    "tipo": "Edificio",
     "lat": 10.3707767,
     "lng": -75.4656252,
     "pisos": [
@@ -115,10 +115,13 @@
         "tipo": "salon",
         "pisos": ["a2-piso5"],
         "salones": [
-          {"id": "a2-501", "nombre": "501"}, {"id": "a2-502", "nombre": "502"},
-          {"id": "a2-503", "nombre": "503"}, {"id": "a2-504", "nombre": "504"},
-          {"id": "a2-505", "nombre": "505"}, {"id": "a2-506", "nombre": "506"},
-          {"id": "a2-507", "nombre": "507"}
+          {"id": "a2-501", "nombre": "501", "descripcion": "Salón 501 del Edificio A2, ubicado en el Quinto Piso. Espacio para clases y actividades académicas."},
+          {"id": "a2-502", "nombre": "502", "descripcion": "Salón 502 del Edificio A2, ubicado en el Quinto Piso. Espacio para clases y actividades académicas."},
+          {"id": "a2-503", "nombre": "503", "descripcion": "Salón 503 del Edificio A2, ubicado en el Quinto Piso. Espacio para clases y actividades académicas."},
+          {"id": "a2-504", "nombre": "504", "descripcion": "Salón 504 del Edificio A2, ubicado en el Quinto Piso. Espacio para clases y actividades académicas."},
+          {"id": "a2-505", "nombre": "505", "descripcion": "Salón 505 del Edificio A2, ubicado en el Quinto Piso. Espacio para clases y actividades académicas."},
+          {"id": "a2-506", "nombre": "506", "descripcion": "Salón 506 del Edificio A2, ubicado en el Quinto Piso. Espacio para clases y actividades académicas."},
+          {"id": "a2-507", "nombre": "507", "descripcion": "Salón 507 del Edificio A2, ubicado en el Quinto Piso. Espacio para clases y actividades académicas."}
         ]
       },
       {
@@ -127,10 +130,14 @@
         "tipo": "salon",
         "pisos": ["a2-piso4"],
         "salones": [
-          {"id": "a2-401", "nombre": "401"}, {"id": "a2-402", "nombre": "402"},
-          {"id": "a2-403", "nombre": "403"}, {"id": "a2-404", "nombre": "404"},
-          {"id": "a2-405", "nombre": "405"}, {"id": "a2-406", "nombre": "406"},
-          {"id": "a2-407", "nombre": "407"}, {"id": "a2-408", "nombre": "408"}
+          {"id": "a2-401", "nombre": "401", "descripcion": "Salón 401 del Edificio A2, ubicado en el Cuarto Piso. Espacio para clases y actividades académicas."},
+          {"id": "a2-402", "nombre": "402", "descripcion": "Salón 402 del Edificio A2, ubicado en el Cuarto Piso. Espacio para clases y actividades académicas."},
+          {"id": "a2-403", "nombre": "403", "descripcion": "Salón 403 del Edificio A2, ubicado en el Cuarto Piso. Espacio para clases y actividades académicas."},
+          {"id": "a2-404", "nombre": "404", "descripcion": "Salón 404 del Edificio A2, ubicado en el Cuarto Piso. Espacio para clases y actividades académicas."},
+          {"id": "a2-405", "nombre": "405", "descripcion": "Salón 405 del Edificio A2, ubicado en el Cuarto Piso. Espacio para clases y actividades académicas."},
+          {"id": "a2-406", "nombre": "406", "descripcion": "Salón 406 del Edificio A2, ubicado en el Cuarto Piso. Espacio para clases y actividades académicas."},
+          {"id": "a2-407", "nombre": "407", "descripcion": "Salón 407 del Edificio A2, ubicado en el Cuarto Piso. Espacio para clases y actividades académicas."},
+          {"id": "a2-408", "nombre": "408", "descripcion": "Salón 408 del Edificio A2, ubicado en el Cuarto Piso. Espacio para clases y actividades académicas."}
         ]
       },
       {
@@ -139,10 +146,14 @@
         "tipo": "salon",
         "pisos": ["a2-piso3"],
         "salones": [
-          {"id": "a2-301", "nombre": "301"}, {"id": "a2-302", "nombre": "302"},
-          {"id": "a2-303", "nombre": "303"}, {"id": "a2-304", "nombre": "304"},
-          {"id": "a2-305", "nombre": "305"}, {"id": "a2-306", "nombre": "306"},
-          {"id": "a2-307", "nombre": "307"}, {"id": "a2-308", "nombre": "308"}
+          {"id": "a2-301", "nombre": "301", "descripcion": "Salón 301 del Edificio A2, ubicado en el Tercer Piso. Espacio para clases y actividades académicas."},
+          {"id": "a2-302", "nombre": "302", "descripcion": "Salón 302 del Edificio A2, ubicado en el Tercer Piso. Espacio para clases y actividades académicas."},
+          {"id": "a2-303", "nombre": "303", "descripcion": "Salón 303 del Edificio A2, ubicado en el Tercer Piso. Espacio para clases y actividades académicas."},
+          {"id": "a2-304", "nombre": "304", "descripcion": "Salón 304 del Edificio A2, ubicado en el Tercer Piso. Espacio para clases y actividades académicas."},
+          {"id": "a2-305", "nombre": "305", "descripcion": "Salón 305 del Edificio A2, ubicado en el Tercer Piso. Espacio para clases y actividades académicas."},
+          {"id": "a2-306", "nombre": "306", "descripcion": "Salón 306 del Edificio A2, ubicado en el Tercer Piso. Espacio para clases y actividades académicas."},
+          {"id": "a2-307", "nombre": "307", "descripcion": "Salón 307 del Edificio A2, ubicado en el Tercer Piso. Espacio para clases y actividades académicas."},
+          {"id": "a2-308", "nombre": "308", "descripcion": "Salón 308 del Edificio A2, ubicado en el Tercer Piso. Espacio para clases y actividades académicas."}
         ]
       },
       {
@@ -150,14 +161,18 @@
         "nombre": "Laboratorio de Biomédica",
         "tipo": "laboratorio",
         "pisos": ["a2-piso2"],
-        "salones": [{"id": "a2-201", "nombre": "201"}]
+        "salones": [
+          {"id": "a2-201", "nombre": "201", "descripcion": "Salón 201 del Edificio A2, ubicado en el Segundo Piso. Forma parte de «Laboratorio de Biomédica»."}
+        ]
       },
       {
         "id": "a2-esp-produccion",
         "nombre": "Laboratorio de Ing. de Producción",
         "tipo": "laboratorio",
         "pisos": ["a2-piso2"],
-        "salones": [{"id": "a2-202", "nombre": "202"}]
+        "salones": [
+          {"id": "a2-202", "nombre": "202", "descripcion": "Salón 202 del Edificio A2, ubicado en el Segundo Piso. Forma parte de «Laboratorio de Ing. de Producción»."}
+        ]
       },
       {
         "id": "a2-esp-salones203",
@@ -165,9 +180,11 @@
         "tipo": "salon",
         "pisos": ["a2-piso2"],
         "salones": [
-          {"id": "a2-203", "nombre": "203"}, {"id": "a2-204", "nombre": "204"},
-          {"id": "a2-205", "nombre": "205"}, {"id": "a2-206", "nombre": "206"},
-          {"id": "a2-207", "nombre": "207"}
+          {"id": "a2-203", "nombre": "203", "descripcion": "Salón 203 del Edificio A2, ubicado en el Segundo Piso. Espacio para clases y actividades académicas."},
+          {"id": "a2-204", "nombre": "204", "descripcion": "Salón 204 del Edificio A2, ubicado en el Segundo Piso. Espacio para clases y actividades académicas."},
+          {"id": "a2-205", "nombre": "205", "descripcion": "Salón 205 del Edificio A2, ubicado en el Segundo Piso. Espacio para clases y actividades académicas."},
+          {"id": "a2-206", "nombre": "206", "descripcion": "Salón 206 del Edificio A2, ubicado en el Segundo Piso. Espacio para clases y actividades académicas."},
+          {"id": "a2-207", "nombre": "207", "descripcion": "Salón 207 del Edificio A2, ubicado en el Segundo Piso. Espacio para clases y actividades académicas."}
         ]
       },
       {
@@ -175,49 +192,64 @@
         "nombre": "Oficina Contact Center",
         "tipo": "oficina",
         "pisos": ["a2-piso2"],
-        "salones": [{"id": "a2-208", "nombre": "208"}]
+        "salones": [
+          {"id": "a2-208", "nombre": "208", "descripcion": "Salón 208 del Edificio A2, ubicado en el Segundo Piso. Espacio administrativo de la universidad."}
+        ]
       },
       {
         "id": "a2-esp-mecatronica",
         "nombre": "Laboratorio de Mecatrónica",
         "tipo": "laboratorio",
         "pisos": ["a2-piso1"],
-        "salones": [{"id": "a2-101", "nombre": "101"}, {"id": "a2-102", "nombre": "102"}]
+        "salones": [
+          {"id": "a2-101", "nombre": "101", "descripcion": "Salón 101 del Edificio A2, ubicado en el Primer Piso. Forma parte de «Laboratorio de Mecatrónica»."},
+          {"id": "a2-102", "nombre": "102", "descripcion": "Salón 102 del Edificio A2, ubicado en el Primer Piso. Forma parte de «Laboratorio de Mecatrónica»."}
+        ]
       },
       {
         "id": "a2-esp-energia",
         "nombre": "Laboratorio Inteligente de Energía",
         "tipo": "laboratorio",
         "pisos": ["a2-piso1"],
-        "salones": [{"id": "a2-103", "nombre": "103"}]
+        "salones": [
+          {"id": "a2-103", "nombre": "103", "descripcion": "Salón 103 del Edificio A2, ubicado en el Primer Piso. Forma parte de «Laboratorio Inteligente de Energía»."}
+        ]
       },
       {
         "id": "a2-esp-simulacion",
         "nombre": "Laboratorio de Simulación E&E",
         "tipo": "laboratorio",
         "pisos": ["a2-piso1"],
-        "salones": [{"id": "a2-104", "nombre": "104"}]
+        "salones": [
+          {"id": "a2-104", "nombre": "104", "descripcion": "Salón 104 del Edificio A2, ubicado en el Primer Piso. Forma parte de «Laboratorio de Simulación E&E»."}
+        ]
       },
       {
         "id": "a2-esp-ieee",
         "nombre": "Sala Rama Estudiantil IEEE",
         "tipo": "oficina",
         "pisos": ["a2-piso1"],
-        "salones": [{"id": "a2-104b", "nombre": "104B"}]
+        "salones": [
+          {"id": "a2-104b", "nombre": "104B", "descripcion": "Salón 104B del Edificio A2, ubicado en el Primer Piso. Espacio administrativo de la universidad."}
+        ]
       },
       {
         "id": "a2-esp-electronica",
         "nombre": "Laboratorio de Electrónica",
         "tipo": "laboratorio",
         "pisos": ["a2-piso1"],
-        "salones": [{"id": "a2-105", "nombre": "105"}]
+        "salones": [
+          {"id": "a2-105", "nombre": "105", "descripcion": "Salón 105 del Edificio A2, ubicado en el Primer Piso. Forma parte de «Laboratorio de Electrónica»."}
+        ]
       },
       {
         "id": "a2-esp-telecom",
         "nombre": "Laboratorio de Telecomunicaciones",
         "tipo": "laboratorio",
         "pisos": ["a2-piso1"],
-        "salones": [{"id": "a2-106", "nombre": "106"}]
+        "salones": [
+          {"id": "a2-106", "nombre": "106", "descripcion": "Salón 106 del Edificio A2, ubicado en el Primer Piso. Forma parte de «Laboratorio de Telecomunicaciones»."}
+        ]
       },
       {
         "id": "a2-esp-labsing",
@@ -225,18 +257,18 @@
         "tipo": "laboratorio",
         "pisos": ["a2-piso0"],
         "salones": [
-          {"id": "a2-001", "nombre": "001 - Lab de Diseño Naval"},
-          {"id": "a2-002", "nombre": "002 - Lab de Estructuras"},
-          {"id": "a2-003", "nombre": "003 - Lab de Resistencia de Materiales (Caracterización de Materiales y Metalografía)"},
-          {"id": "a2-004", "nombre": "004 - Lab de Óptica y Procesamiento de Imágenes (OPI-Lab)"},
-          {"id": "a2-005", "nombre": "005 - Lab de Fluidos"},
-          {"id": "a2-006", "nombre": "006 - Lab de Ing. Ambiental (Análisis y Calidad Ambiental)"},
-          {"id": "a2-007", "nombre": "007 - Lab de Maestría en Logística"},
-          {"id": "a2-008", "nombre": "008 - Lab de Máquinas Eléctricas"},
-          {"id": "a2-009", "nombre": "009 - Lab de Automatismos Eléctricos"},
-          {"id": "a2-010", "nombre": "010 - Lab de Diseño de Experimentos"},
-          {"id": "a2-011", "nombre": "011 - Lab de Productividad"},
-          {"id": "a2-012", "nombre": "012 - Lab de Seguridad y Salud en el Trabajo"}
+          {"id": "a2-001", "nombre": "001 - Lab de Diseño Naval", "descripcion": "Salón 001 del Edificio A2, ubicado en el Piso 0 (Subterráneo). Espacio de laboratorio para prácticas y trabajo académico."},
+          {"id": "a2-002", "nombre": "002 - Lab de Estructuras", "descripcion": "Salón 002 del Edificio A2, ubicado en el Piso 0 (Subterráneo). Espacio de laboratorio para prácticas y trabajo académico."},
+          {"id": "a2-003", "nombre": "003 - Lab de Resistencia de Materiales (Caracterización de Materiales y Metalografía)", "descripcion": "Salón 003 del Edificio A2, ubicado en el Piso 0 (Subterráneo). Espacio de laboratorio para prácticas y trabajo académico."},
+          {"id": "a2-004", "nombre": "004 - Lab de Óptica y Procesamiento de Imágenes (OPI-Lab)", "descripcion": "Salón 004 del Edificio A2, ubicado en el Piso 0 (Subterráneo). Espacio de laboratorio para prácticas y trabajo académico."},
+          {"id": "a2-005", "nombre": "005 - Lab de Fluidos", "descripcion": "Salón 005 del Edificio A2, ubicado en el Piso 0 (Subterráneo). Espacio de laboratorio para prácticas y trabajo académico."},
+          {"id": "a2-006", "nombre": "006 - Lab de Ing. Ambiental (Análisis y Calidad Ambiental)", "descripcion": "Salón 006 del Edificio A2, ubicado en el Piso 0 (Subterráneo). Espacio de laboratorio para prácticas y trabajo académico."},
+          {"id": "a2-007", "nombre": "007 - Lab de Maestría en Logística", "descripcion": "Salón 007 del Edificio A2, ubicado en el Piso 0 (Subterráneo). Espacio de laboratorio para prácticas y trabajo académico."},
+          {"id": "a2-008", "nombre": "008 - Lab de Máquinas Eléctricas", "descripcion": "Salón 008 del Edificio A2, ubicado en el Piso 0 (Subterráneo). Espacio de laboratorio para prácticas y trabajo académico."},
+          {"id": "a2-009", "nombre": "009 - Lab de Automatismos Eléctricos", "descripcion": "Salón 009 del Edificio A2, ubicado en el Piso 0 (Subterráneo). Espacio de laboratorio para prácticas y trabajo académico."},
+          {"id": "a2-010", "nombre": "010 - Lab de Diseño de Experimentos", "descripcion": "Salón 010 del Edificio A2, ubicado en el Piso 0 (Subterráneo). Espacio de laboratorio para prácticas y trabajo académico."},
+          {"id": "a2-011", "nombre": "011 - Lab de Productividad", "descripcion": "Salón 011 del Edificio A2, ubicado en el Piso 0 (Subterráneo). Espacio de laboratorio para prácticas y trabajo académico."},
+          {"id": "a2-012", "nombre": "012 - Lab de Seguridad y Salud en el Trabajo", "descripcion": "Salón 012 del Edificio A2, ubicado en el Piso 0 (Subterráneo). Espacio de laboratorio para prácticas y trabajo académico."}
         ]
       },
       {
@@ -245,13 +277,13 @@
         "tipo": "oficina",
         "pisos": ["a2-exterior"],
         "salones": [
-          {"id": "a2-ext-audiovisuales", "nombre": "Audiovisuales"},
-          {"id": "a2-ext-seguridad", "nombre": "Seguridad Física"},
-          {"id": "a2-ext-dirserv", "nombre": "Dirección de Servicios Administrativos"},
-          {"id": "a2-ext-investigacion", "nombre": "Investigación"},
-          {"id": "a2-ext-compras", "nombre": "Compras y Contrataciones"},
-          {"id": "a2-ext-auditorio", "nombre": "Auditorio Napoleón de la Rosa Echavez"},
-          {"id": "a2-ext-archivo", "nombre": "Archivo Histórico"}
+          {"id": "a2-ext-audiovisuales", "nombre": "Audiovisuales", "descripcion": "Se encuentra en la Parte Exterior del Edificio A2, dentro de «Oficinas y Servicios - Parte Exterior A2». Espacio administrativo de la universidad."},
+          {"id": "a2-ext-seguridad", "nombre": "Seguridad Física", "descripcion": "Se encuentra en la Parte Exterior del Edificio A2, dentro de «Oficinas y Servicios - Parte Exterior A2». Espacio administrativo de la universidad."},
+          {"id": "a2-ext-dirserv", "nombre": "Dirección de Servicios Administrativos", "descripcion": "Se encuentra en la Parte Exterior del Edificio A2, dentro de «Oficinas y Servicios - Parte Exterior A2». Espacio administrativo de la universidad."},
+          {"id": "a2-ext-investigacion", "nombre": "Investigación", "descripcion": "Se encuentra en la Parte Exterior del Edificio A2, dentro de «Oficinas y Servicios - Parte Exterior A2». Espacio administrativo de la universidad."},
+          {"id": "a2-ext-compras", "nombre": "Compras y Contrataciones", "descripcion": "Se encuentra en la Parte Exterior del Edificio A2, dentro de «Oficinas y Servicios - Parte Exterior A2». Espacio administrativo de la universidad."},
+          {"id": "a2-ext-auditorio", "nombre": "Auditorio Napoleón de la Rosa Echavez", "descripcion": "Se encuentra en la Parte Exterior del Edificio A2, dentro de «Oficinas y Servicios - Parte Exterior A2». Espacio para eventos y actividades institucionales."},
+          {"id": "a2-ext-archivo", "nombre": "Archivo Histórico", "descripcion": "Se encuentra en la Parte Exterior del Edificio A2, dentro de «Oficinas y Servicios - Parte Exterior A2». Espacio administrativo de la universidad."}
         ]
       }
     ]
@@ -259,7 +291,7 @@
   {
     "id": "eda2",
     "nombre": "EDA2",
-    "tipo": "edificio",
+    "tipo": "Edificio",
     "lat": 10.3704556,
     "lng": -75.4652821,
     "pisos": [
@@ -278,7 +310,7 @@
   {
     "id": "contenedores",
     "nombre": "Contenedores",
-    "tipo": "servicio",
+    "tipo": "Zona Común",
     "lat": 0.0,
     "lng": 0.0,
     "pisos": [],
@@ -291,8 +323,8 @@
   },
   {
     "id": "a3",
-    "nombre": "A3",
-    "tipo": "edificio",
+    "nombre": "Edificio A3",
+    "tipo": "Edificio",
     "lat": 10.3695718,
     "lng": -75.4645311,
     "pisos": [
@@ -304,17 +336,21 @@
       {
         "id": "a3-esp-salones1", "nombre": "Salones 101-105", "tipo": "salon", "pisos": ["a3-piso1"],
         "salones": [
-          {"id": "a3-101", "nombre": "101"}, {"id": "a3-102", "nombre": "102"},
-          {"id": "a3-103", "nombre": "103"}, {"id": "a3-104", "nombre": "104"},
-          {"id": "a3-105", "nombre": "105"}
+          {"id": "a3-101", "nombre": "101", "descripcion": "Salón 101 del Edificio A3, ubicado en el Primer Piso. Espacio para clases y actividades académicas."},
+          {"id": "a3-102", "nombre": "102", "descripcion": "Salón 102 del Edificio A3, ubicado en el Primer Piso. Espacio para clases y actividades académicas."},
+          {"id": "a3-103", "nombre": "103", "descripcion": "Salón 103 del Edificio A3, ubicado en el Primer Piso. Espacio para clases y actividades académicas."},
+          {"id": "a3-104", "nombre": "104", "descripcion": "Salón 104 del Edificio A3, ubicado en el Primer Piso. Espacio para clases y actividades académicas."},
+          {"id": "a3-105", "nombre": "105", "descripcion": "Salón 105 del Edificio A3, ubicado en el Primer Piso. Espacio para clases y actividades académicas."}
         ]
       },
       {"id": "a3-esp-banomujeres1", "nombre": "Baño de Mujeres", "tipo": "servicio", "pisos": ["a3-piso1"], "salones": []},
       {
         "id": "a3-esp-salones2", "nombre": "Salones 201-204", "tipo": "salon", "pisos": ["a3-piso2"],
         "salones": [
-          {"id": "a3-201", "nombre": "201"}, {"id": "a3-202", "nombre": "202"},
-          {"id": "a3-203", "nombre": "203"}, {"id": "a3-204", "nombre": "204"}
+          {"id": "a3-201", "nombre": "201", "descripcion": "Salón 201 del Edificio A3, ubicado en el Segundo Piso. Espacio para clases y actividades académicas."},
+          {"id": "a3-202", "nombre": "202", "descripcion": "Salón 202 del Edificio A3, ubicado en el Segundo Piso. Espacio para clases y actividades académicas."},
+          {"id": "a3-203", "nombre": "203", "descripcion": "Salón 203 del Edificio A3, ubicado en el Segundo Piso. Espacio para clases y actividades académicas."},
+          {"id": "a3-204", "nombre": "204", "descripcion": "Salón 204 del Edificio A3, ubicado en el Segundo Piso. Espacio para clases y actividades académicas."}
         ]
       },
       {"id": "a3-esp-banohombres2", "nombre": "Baño de Hombres", "tipo": "servicio", "pisos": ["a3-piso2"], "salones": []},
@@ -324,8 +360,8 @@
   },
   {
     "id": "a4",
-    "nombre": "A4",
-    "tipo": "edificio",
+    "nombre": "Edificio A4",
+    "tipo": "Edificio",
     "lat": 10.3692896,
     "lng": -75.4648238,
     "pisos": [
@@ -337,15 +373,19 @@
       {
         "id": "a4-esp-auditorios1", "nombre": "Salones Tipo Auditorio 101-103", "tipo": "salon", "pisos": ["a4-piso1"],
         "salones": [
-          {"id": "a4-101", "nombre": "101"}, {"id": "a4-102", "nombre": "102"}, {"id": "a4-103", "nombre": "103"}
+          {"id": "a4-101", "nombre": "101", "descripcion": "Salón 101 (tipo auditorio) del Edificio A4, ubicado en el Primer Piso. Espacio para clases y actividades académicas."},
+          {"id": "a4-102", "nombre": "102", "descripcion": "Salón 102 (tipo auditorio) del Edificio A4, ubicado en el Primer Piso. Espacio para clases y actividades académicas."},
+          {"id": "a4-103", "nombre": "103", "descripcion": "Salón 103 (tipo auditorio) del Edificio A4, ubicado en el Primer Piso. Espacio para clases y actividades académicas."}
         ]
       },
       {"id": "a4-esp-banohombres1", "nombre": "Baño de Hombres", "tipo": "servicio", "pisos": ["a4-piso1"], "salones": []},
       {
         "id": "a4-esp-salones2", "nombre": "Salones 201-204", "tipo": "salon", "pisos": ["a4-piso2"],
         "salones": [
-          {"id": "a4-201", "nombre": "201"}, {"id": "a4-202", "nombre": "202"},
-          {"id": "a4-203", "nombre": "203"}, {"id": "a4-204", "nombre": "204"}
+          {"id": "a4-201", "nombre": "201", "descripcion": "Salón 201 del Edificio A4, ubicado en el Segundo Piso. Espacio para clases y actividades académicas."},
+          {"id": "a4-202", "nombre": "202", "descripcion": "Salón 202 del Edificio A4, ubicado en el Segundo Piso. Espacio para clases y actividades académicas."},
+          {"id": "a4-203", "nombre": "203", "descripcion": "Salón 203 del Edificio A4, ubicado en el Segundo Piso. Espacio para clases y actividades académicas."},
+          {"id": "a4-204", "nombre": "204", "descripcion": "Salón 204 del Edificio A4, ubicado en el Segundo Piso. Espacio para clases y actividades académicas."}
         ]
       },
       {"id": "a4-esp-banomujeres2", "nombre": "Baño de Mujeres", "tipo": "servicio", "pisos": ["a4-piso2"], "salones": []},
@@ -356,8 +396,8 @@
   },
   {
     "id": "a5",
-    "nombre": "A5",
-    "tipo": "edificio",
+    "nombre": "Edificio A5",
+    "tipo": "Edificio",
     "lat": 10.3691844,
     "lng": -75.4645773,
     "pisos": [
@@ -369,24 +409,31 @@
       {
         "id": "a5-esp-cbasicas1", "nombre": "Zona Lab Ciencias Básicas", "tipo": "laboratorio", "pisos": ["a5-piso1"],
         "salones": [
-          {"id": "a5-101", "nombre": "101 - Lab de Física Mecánica"},
-          {"id": "a5-102", "nombre": "102 - Lab de Electricidad y Magnetismo"},
-          {"id": "a5-103", "nombre": "103 - Lab de Química"},
-          {"id": "a5-104", "nombre": "104 - Lab de Biología"}
+          {"id": "a5-101", "nombre": "101 - Lab de Física Mecánica", "descripcion": "Salón 101 del Edificio A5, ubicado en el Primer Piso. Espacio de laboratorio para prácticas y trabajo académico."},
+          {"id": "a5-102", "nombre": "102 - Lab de Electricidad y Magnetismo", "descripcion": "Salón 102 del Edificio A5, ubicado en el Primer Piso. Espacio de laboratorio para prácticas y trabajo académico."},
+          {"id": "a5-103", "nombre": "103 - Lab de Química", "descripcion": "Salón 103 del Edificio A5, ubicado en el Primer Piso. Espacio de laboratorio para prácticas y trabajo académico."},
+          {"id": "a5-104", "nombre": "104 - Lab de Biología", "descripcion": "Salón 104 del Edificio A5, ubicado en el Primer Piso. Espacio de laboratorio para prácticas y trabajo académico."}
         ]
       },
       {"id": "a5-esp-banomujeres1", "nombre": "Baño de Mujeres", "tipo": "servicio", "pisos": ["a5-piso1"], "salones": []},
       {
         "id": "a5-esp-quanta", "nombre": "Quanta Lab", "tipo": "laboratorio", "pisos": ["a5-piso2"],
-        "salones": [{"id": "a5-201", "nombre": "201"}, {"id": "a5-202", "nombre": "202"}]
+        "salones": [
+          {"id": "a5-201", "nombre": "201", "descripcion": "Salón 201 del Edificio A5, ubicado en el Segundo Piso. Forma parte de «Quanta Lab»."},
+          {"id": "a5-202", "nombre": "202", "descripcion": "Salón 202 del Edificio A5, ubicado en el Segundo Piso. Forma parte de «Quanta Lab»."}
+        ]
       },
       {
         "id": "a5-esp-salon203", "nombre": "Salón 203", "tipo": "salon", "pisos": ["a5-piso2"],
-        "salones": [{"id": "a5-203", "nombre": "203"}]
+        "salones": [
+          {"id": "a5-203", "nombre": "203", "descripcion": "Salón 203 del Edificio A5, ubicado en el Segundo Piso. Espacio para clases y actividades académicas."}
+        ]
       },
       {
         "id": "a5-esp-cbasicas2", "nombre": "Zona Lab Ciencias Básicas", "tipo": "laboratorio", "pisos": ["a5-piso2"],
-        "salones": [{"id": "a5-204", "nombre": "204 - Lab de Física Calor y Ondas"}]
+        "salones": [
+          {"id": "a5-204", "nombre": "204 - Lab de Física Calor y Ondas", "descripcion": "Salón 204 del Edificio A5, ubicado en el Segundo Piso. Espacio de laboratorio para prácticas y trabajo académico."}
+        ]
       },
       {"id": "a5-esp-banohombres3", "nombre": "Baño de Hombres", "tipo": "servicio", "pisos": ["a5-piso3"], "salones": []},
       {"id": "a5-esp-salaprofes3", "nombre": "Sala de Profesores Ciencias Básicas", "tipo": "oficina", "pisos": ["a5-piso3"], "salones": []},
@@ -396,7 +443,7 @@
   {
     "id": "zonat",
     "nombre": "Zona T",
-    "tipo": "zona_comun",
+    "tipo": "Zona Común",
     "lat": 10.3691880,
     "lng": -75.4655558,
     "pisos": [],
@@ -412,7 +459,7 @@
   {
     "id": "quid",
     "nombre": "Quid",
-    "tipo": "edificio",
+    "tipo": "Servicio",
     "lat": 10.3692585,
     "lng": -75.4658987,
     "pisos": [],
@@ -421,9 +468,9 @@
       {
         "id": "quid-esp-asistentes", "nombre": "Asistentes de Programa", "tipo": "oficina", "pisos": [],
         "salones": [
-          {"id": "quid-asist1", "nombre": "Asistente de Programa 1"},
-          {"id": "quid-asist2", "nombre": "Asistente de Programa 2"},
-          {"id": "quid-asist3", "nombre": "Asistente de Programa 3"}
+          {"id": "quid-asist1", "nombre": "Asistente de Programa 1", "descripcion": "Se encuentra en Quid, dentro de «Asistentes de Programa». Espacio administrativo de la universidad."},
+          {"id": "quid-asist2", "nombre": "Asistente de Programa 2", "descripcion": "Se encuentra en Quid, dentro de «Asistentes de Programa». Espacio administrativo de la universidad."},
+          {"id": "quid-asist3", "nombre": "Asistente de Programa 3", "descripcion": "Se encuentra en Quid, dentro de «Asistentes de Programa». Espacio administrativo de la universidad."}
         ]
       },
       {"id": "quid-esp-sala1", "nombre": "Sala QUID 1", "tipo": "salon", "pisos": [], "salones": []},
@@ -434,7 +481,7 @@
   {
     "id": "alcatraz",
     "nombre": "Alcatraz",
-    "tipo": "edificio",
+    "tipo": "Zona Común",
     "lat": 10.3704183,
     "lng": -75.4653751,
     "pisos": [
@@ -446,15 +493,17 @@
       {
         "id": "alcatraz-esp-placita", "nombre": "La Placita", "tipo": "cafeteria", "pisos": ["alcatraz-piso1"],
         "salones": [
-          {"id": "alcatraz-antojos", "nombre": "Antojos"},
-          {"id": "alcatraz-puntofit", "nombre": "Punto Fit"},
-          {"id": "alcatraz-alegria", "nombre": "Alegría"},
-          {"id": "alcatraz-asao", "nombre": "El Asao"}
+          {"id": "alcatraz-antojos", "nombre": "Antojos", "descripcion": "Se encuentra en el Primer Piso (Zona Cafeterías) de Alcatraz, dentro de «La Placita». Punto de comida y bebida."},
+          {"id": "alcatraz-puntofit", "nombre": "Punto Fit", "descripcion": "Se encuentra en el Primer Piso (Zona Cafeterías) de Alcatraz, dentro de «La Placita». Punto de comida y bebida."},
+          {"id": "alcatraz-alegria", "nombre": "Alegría", "descripcion": "Se encuentra en el Primer Piso (Zona Cafeterías) de Alcatraz, dentro de «La Placita». Punto de comida y bebida."},
+          {"id": "alcatraz-asao", "nombre": "El Asao", "descripcion": "Se encuentra en el Primer Piso (Zona Cafeterías) de Alcatraz, dentro de «La Placita». Punto de comida y bebida."}
         ]
       },
       {
         "id": "alcatraz-esp-meson", "nombre": "El Mesón", "tipo": "cafeteria", "pisos": ["alcatraz-piso1"],
-        "salones": [{"id": "alcatraz-solocafe", "nombre": "Solo Café"}]
+        "salones": [
+          {"id": "alcatraz-solocafe", "nombre": "Solo Café", "descripcion": "Se encuentra en el Primer Piso (Zona Cafeterías) de Alcatraz, dentro de «El Mesón». Punto de comida y bebida."}
+        ]
       },
       {"id": "alcatraz-esp-banosbebederos1", "nombre": "Baños y Bebederos", "tipo": "servicio", "pisos": ["alcatraz-piso1"], "salones": []},
       {"id": "alcatraz-esp-salasestudio", "nombre": "Salas de Estudio", "tipo": "servicio", "pisos": ["alcatraz-piso2"], "salones": []},
@@ -469,7 +518,7 @@
   {
     "id": "biblioteca",
     "nombre": "Biblioteca Luis Enrique Borja Barón",
-    "tipo": "biblioteca",
+    "tipo": "Biblioteca",
     "lat": 10.3703379,
     "lng": -75.4652824,
     "pisos": [
@@ -488,6 +537,20 @@
       {"id": "biblioteca-esp-recepcion1", "nombre": "Recepción", "tipo": "servicio", "pisos": ["biblioteca-piso1"], "salones": []},
       {"id": "biblioteca-esp-estanterias", "nombre": "Estanterías", "tipo": "servicio", "pisos": ["biblioteca-piso1"], "salones": []},
       {"id": "biblioteca-esp-bano1", "nombre": "Baño", "tipo": "servicio", "pisos": ["biblioteca-piso1"], "salones": []}
+    ]
+  },
+  {
+    "id": "espacioslibres",
+    "nombre": "Espacios Libres",
+    "tipo": "Zona Común",
+    "lat": 10.3698194,
+    "lng": -75.4663472,
+    "pisos": [
+      {"id": "el-piso1", "nombre": "Canchas Recreacionales"}
+    ],
+    "espacios": [
+      {"id": "cancha_beisbol", "nombre": "Cancha de Beisból", "tipo": "servicio", "lat": 10.3696667, "lng": -75.4662778, "pisos": ["el-piso1"], "salones": []},
+      {"id": "cancha_futbol", "nombre": "Cancha de fútbol", "tipo": "servicio", "lat": 10.3699722, "lng": -75.4664167, "pisos": ["el-piso1"], "salones": []}
     ]
   }
 ]

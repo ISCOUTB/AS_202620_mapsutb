@@ -162,7 +162,7 @@ class _MapaScreenState extends State<MapaScreen> {
         child: MapaWidget(
           latCentro: centro?.lat ?? 10.3700,
           lngCentro: centro?.lng ?? -75.4655,
-          lugares: [for (final z in zonas) LugarEnMapa(id: z.id, etiqueta: z.nombre, lat: z.lat, lng: z.lng)],
+          lugares: [for (final z in zonas) LugarEnMapa(id: z.id, etiqueta: z.nombre, lat: z.lat!, lng: z.lng!)],
           ruta: ruta?.geometria ?? const [],
           posicion: pos == null ? null : [pos.lat, pos.lng],
           lugarSeleccionado: destino,

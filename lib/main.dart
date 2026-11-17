@@ -1,126 +1,59 @@
-import 'dart:math';
-
 import 'package:flutter/material.dart';
-import 'adapters/analytics_adapter.dart';
-import 'adapters/geocoding_adapter.dart';
-import 'adapters/static_map_adapter.dart';
-import 'core/config_apis.dart';
-import 'features/zonas/presentation/screens/zonas_screen.dart';
-import 'features/zonas/presentation/tema_maps_utb.dart';
-import 'features/mapas_ruteo/presentation/screens/mapa_screen.dart';
-import 'features/mapas_ruteo/presentation/screens/ubicacion_screen.dart';
-import 'repositories/zona_repository.dart';
-import 'routing/mapa_repository.dart';
-import 'services/ubicacion_service.dart';
-import 'services/ubicacion_service_gps.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/date_symbol_data_local.dart';
 
-void main() => runApp(const MapsUtbApp());
+import 'core/ajustes_idioma.dart';
+import 'features/home/presentation/home_screen.dart';
+import 'features/idioma/presentation/seleccion_idioma_screen.dart';
+import 'features/splash/presentation/splash_screen.dart';
 
-/// `--dart-define=UBICACION_SIMULADA=true` usa una posición fija del campus
-/// en lugar del GPS, para demostraciones fuera de la universidad.
-const _ubicacionSimulada = bool.fromEnvironment('UBICACION_SIMULADA');
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await initializeDateFormatting(); // días y meses de todos los idiomas (es, en…)
+  await AjustesIdioma.instancia.cargar(); // idioma guardado (null la primera vez)
+  runApp(const MapsUtbApp());
+}
+
+const _ubicacionSimulada =
+    bool.fromEnvironment('UBICACION_SIMULADA');
 
 class MapsUtbApp extends StatelessWidget {
   const MapsUtbApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'MAPSUTB',
-      theme: temaMapsUtb(),
-      home: const _RaizNavegacion(),
-    );
-  }
-}
-
-class _RaizNavegacion extends StatefulWidget {
-  const _RaizNavegacion();
-
-  @override
-  State<_RaizNavegacion> createState() => _RaizNavegacionState();
-}
-
-class _RaizNavegacionState extends State<_RaizNavegacion> {
-  int _indice = 0;
-  late final UbicacionService _ubicacionService;
-  late final ZonaRepository _zonaRepository;
-  late final MapaRepository _mapaRepository;
-  late final AnalyticsAdapter _analytics;
-  String? _destino;
-  GeocodingAdapter? _geocoding;
-  StaticMapAdapter? _staticMap;
-
-  @override
-  void initState() {
-    super.initState();
-    _ubicacionService = _ubicacionSimulada ? UbicacionServiceSimulado() : UbicacionServiceGps();
-    _zonaRepository = ZonaRepositoryLocal();
-    _mapaRepository = MapaRepositoryLocal();
-    // El grafo se lee al arrancar, junto con las zonas que pide la primera
-    // pantalla: así una pestaña no combina zonas de una versión con el grafo
-    // de un despliegue posterior (arc42 §8, consistencia entre archivos).
-    _mapaRepository.obtenerGrafo().ignore();
-
-    // Sin credenciales (--dart-define, ver ConfigApis) la app arranca igual
-    // y solo se ocultan las funciones que dependen de cada API.
-    if (ConfigApis.tieneGoogleMaps) {
-      _geocoding = GeocodingAdapterHttp(apiKey: ConfigApis.googleMapsApiKey);
-      _staticMap = StaticMapAdapterHttp(apiKey: ConfigApis.googleMapsApiKey);
-    }
-    _analytics = ConfigApis.tieneAnalytics
-        ? AnalyticsAdapterHttp(
-            measurementId: ConfigApis.gaMeasurementId,
-            apiSecret: ConfigApis.gaApiSecret,
-            // Identificador por sesión: sin almacenamiento persistente aún,
-            // cada arranque cuenta como un cliente nuevo en GA4.
-            clientId: '${Random.secure().nextInt(1 << 31)}'
-                '.${DateTime.now().millisecondsSinceEpoch ~/ 1000}',
-          )
-        : const AnalyticsAdapterNulo();
-  }
-
-  @override
-  void dispose() {
-    _ubicacionService.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final pantalla = switch (_indice) {
-      0 => ZonasScreen(
-          repository: _zonaRepository,
-          analytics: _analytics,
-          staticMap: _staticMap,
-          onComoLlegar: (zonaId) => setState(() {
-            _destino = zonaId;
-            _indice = 1;
-          }),
-        ),
-      1 => MapaScreen(
-          key: ValueKey(_destino),
-          zonaRepository: _zonaRepository,
-          mapaRepository: _mapaRepository,
-          ubicacionService: _ubicacionService,
-          destinoInicial: _destino,
-          analytics: _analytics,
-        ),
-      _ => UbicacionScreen(service: _ubicacionService, geocoding: _geocoding, zonaRepository: _zonaRepository),
-    };
-
-    return Scaffold(
-      appBar: AppBar(title: const Text('MAPSUTB')),
-      body: pantalla,
-      bottomNavigationBar: NavigationBar(
-        selectedIndex: _indice,
-        onDestinationSelected: (i) => setState(() => _indice = i),
-        destinations: const [
-          NavigationDestination(icon: Icon(Icons.apartment), label: 'Zonas'),
-          NavigationDestination(icon: Icon(Icons.map), label: 'Mapa'),
-          NavigationDestination(
-              icon: Icon(Icons.my_location), label: 'Ubicación'),
-        ],
-      ),
+    // Se reconstruye cuando el usuario elige o cambia el idioma.
+    return ValueListenableBuilder<Locale?>(
+      valueListenable: AjustesIdioma.instancia.locale,
+      builder: (context, locale, _) {
+        return MaterialApp(
+          title: 'MAPSUTB',
+          debugShowCheckedModeBanner: false,
+          locale: locale, // null solo antes de elegir (usa el del dispositivo)
+          supportedLocales: AjustesIdioma.soportados,
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          theme: ThemeData(
+            textTheme: GoogleFonts.interTextTheme(
+              Theme.of(context).textTheme,
+            ),
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF093AD8),
+            ),
+            useMaterial3: true,
+          ),
+          home: SplashScreen(
+            // Primera vez: pantalla de idioma obligatoria. Después: directo al home.
+            siguiente: (_) => AjustesIdioma.instancia.yaElegido
+                ? const HomeScreen()
+                : SeleccionIdiomaScreen(siguiente: (_) => const HomeScreen()),
+          ),
+        );
+      },
     );
   }
 }

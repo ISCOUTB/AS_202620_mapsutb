@@ -25,14 +25,10 @@ void main() {
     testWidgets('muestra opciones de idioma y permite seleccionar uno',
         (tester) async {
       SharedPreferences.setMockInitialValues({});
-      bool llamado = false;
 
       await tester.pumpWidget(MaterialApp(
         home: SeleccionIdiomaScreen(
-          siguiente: (_) {
-            llamado = true;
-            return const SizedBox();
-          },
+          siguiente: (_) => const SizedBox(),
         ),
       ));
 

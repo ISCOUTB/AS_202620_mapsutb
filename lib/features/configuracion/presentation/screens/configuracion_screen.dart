@@ -15,7 +15,7 @@ class ConfiguracionScreen extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(16, 80, 16, 24),
       children: [
         Text(
-          l10n?.configTitulo ?? 'Configuración',
+          l10n.configTitulo,
           style: const TextStyle(
             fontFamily: 'Montserrat',
             fontWeight: FontWeight.w900,
@@ -26,13 +26,12 @@ class ConfiguracionScreen extends StatelessWidget {
         const SizedBox(height: 16),
         _OpcionConfiguracion(
           icono: Icons.notifications_outlined,
-          titulo: l10n?.configNotificaciones ?? 'Notificaciones',
+          titulo: l10n.configNotificaciones,
           onTap: () {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
-                  l10n?.configNotificacionesWeb ??
-                      'Las notificaciones están desactivadas en la versión web.',
+                  l10n.configNotificacionesWeb,
                 ),
                 duration: const Duration(seconds: 2),
               ),
@@ -41,7 +40,7 @@ class ConfiguracionScreen extends StatelessWidget {
         ),
         _OpcionConfiguracion(
           icono: Icons.language,
-          titulo: l10n?.configIdioma ?? 'Idioma',
+          titulo: l10n.configIdioma,
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute<void>(
@@ -61,7 +60,7 @@ class ConfiguracionScreen extends StatelessWidget {
         ),
         _OpcionConfiguracion(
           icono: Icons.info_outline,
-          titulo: l10n?.configAcercaDe ?? 'Acerca de',
+          titulo: l10n.configAcercaDe,
           onTap: () {
             showAboutDialog(
               context: context,
@@ -72,8 +71,7 @@ class ConfiguracionScreen extends StatelessWidget {
               children: [
                 const SizedBox(height: 12),
                 Text(
-                  l10n?.acercaDeDescripcion ??
-                      'Mapa interactivo y sistema de ruteo peatonal para el campus de la UTB.',
+                  l10n.acercaDeDescripcion,
                 ),
               ],
             );

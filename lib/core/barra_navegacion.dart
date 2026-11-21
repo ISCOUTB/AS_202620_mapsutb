@@ -19,9 +19,9 @@ class BarraNavegacion extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final items = <_ItemBarra>[
-      _ItemBarra(Icons.apartment_rounded, l10n?.navZonas ?? 'Zonas'),
-      _ItemBarra(Icons.map_rounded, l10n?.navMapa ?? 'Mapa'),
-      _ItemBarra(Icons.settings_rounded, l10n?.navConfiguracion ?? 'Configuración'),
+      _ItemBarra(Icons.apartment_rounded, l10n.navZonas),
+      _ItemBarra(Icons.map_rounded, l10n.navMapa),
+      _ItemBarra(Icons.settings_rounded, l10n.navConfiguracion),
     ];
     return SafeArea(
       minimum: const EdgeInsets.fromLTRB(20, 0, 20, 12),

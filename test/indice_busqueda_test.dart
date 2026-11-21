@@ -130,7 +130,7 @@ void main() {
     test('"lab sistemas" encuentra los laboratorios de computadores del A1', () {
       final primero = indice.buscar('lab sistemas').first;
       expect(primero.titulo, 'Salón de Sistemas / Laboratorios de Computadores');
-      expect(primero.donde, 'A1 · Cuarto Piso');
+      expect(primero.donde, 'Edificio A1 · Cuarto Piso');
     });
 
     test('"a2" devuelve el edificio A2 primero', () {

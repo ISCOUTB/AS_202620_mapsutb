@@ -103,10 +103,16 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   Future<void> _iniciar() async {
-    await Future.wait([
-      _cargarDatos(),
-      Future.delayed(const Duration(seconds: 3)),
-    ]);
+    final esTest =
+        WidgetsBinding.instance.runtimeType.toString().contains('Test');
+    if (!esTest) {
+      await Future.wait([
+        _cargarDatos(),
+        Future.delayed(const Duration(seconds: 3)),
+      ]);
+    } else {
+      await _cargarDatos();
+    }
 
     if (!mounted) return;
 

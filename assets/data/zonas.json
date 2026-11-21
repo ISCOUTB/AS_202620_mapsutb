@@ -543,8 +543,8 @@
     "id": "espacioslibres",
     "nombre": "Espacios Libres",
     "tipo": "Zona Común",
-    "lat": 10.3698194,
-    "lng": -75.4663472,
+    "lat": 0,
+    "lng": 0,
     "pisos": [
       {"id": "el-piso1", "nombre": "Canchas Recreacionales"}
     ],

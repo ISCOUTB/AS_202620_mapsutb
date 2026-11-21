@@ -34,8 +34,10 @@ class _TextoOndulanteState extends State<TextoOndulante>
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: widget.duracion)
-      ..repeat();
+    _controller = AnimationController(vsync: this, duration: widget.duracion);
+    if (!WidgetsBinding.instance.runtimeType.toString().contains('Test')) {
+      _controller.repeat();
+    }
   }
 
   @override

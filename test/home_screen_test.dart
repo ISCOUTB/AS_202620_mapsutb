@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:mapsutb/core/barra_navegacion.dart';
 import 'package:mapsutb/core/bg_widget.dart';
 import 'package:mapsutb/features/home/presentation/home_screen.dart';
+import 'package:mapsutb/l10n/app_localizations.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -16,6 +18,13 @@ void main() {
     testWidgets('arranca con la barra superior y permite cambiar de pestaña',
         (tester) async {
       await tester.pumpWidget(const MaterialApp(
+        localizationsDelegates: [
+          AppLocalizations.delegate,
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+          GlobalCupertinoLocalizations.delegate,
+        ],
+        supportedLocales: AppLocalizations.supportedLocales,
         home: HomeScreen(),
       ));
       await tester.pump();

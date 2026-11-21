@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:mapsutb/core/app_colors.dart';
+import 'package:mapsutb/features/idioma/presentation/seleccion_idioma_screen.dart';
 
-/// Pantalla de configuración. Es una base: agrega aquí tus opciones.
+/// Pantalla de configuración del sistema.
 class ConfiguracionScreen extends StatelessWidget {
   const ConfiguracionScreen({super.key});
 
@@ -9,8 +10,8 @@ class ConfiguracionScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 80, 16, 24),
-      children: const [
-        Text(
+      children: [
+        const Text(
           'Configuración',
           style: TextStyle(
             fontFamily: 'Montserrat',
@@ -19,18 +20,56 @@ class ConfiguracionScreen extends StatelessWidget {
             color: AppColors.azulOscuro,
           ),
         ),
-        SizedBox(height: 16),
+        const SizedBox(height: 16),
         _OpcionConfiguracion(
           icono: Icons.notifications_outlined,
           titulo: 'Notificaciones',
+          onTap: () {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Las notificaciones están desactivadas en la versión web.'),
+                duration: Duration(seconds: 2),
+              ),
+            );
+          },
         ),
         _OpcionConfiguracion(
           icono: Icons.language,
           titulo: 'Idioma',
+          onTap: () {
+            Navigator.of(context).push(
+              MaterialPageRoute<void>(
+                builder: (context) => SeleccionIdiomaScreen(
+                  siguiente: (ctx) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (Navigator.of(ctx).canPop()) {
+                        Navigator.of(ctx).pop();
+                      }
+                    });
+                    return const SizedBox.shrink();
+                  },
+                ),
+              ),
+            );
+          },
         ),
         _OpcionConfiguracion(
           icono: Icons.info_outline,
           titulo: 'Acerca de',
+          onTap: () {
+            showAboutDialog(
+              context: context,
+              applicationName: 'MAPSUTB',
+              applicationVersion: '1.0.0',
+              applicationLegalese: '© 2026 Universidad Tecnológica de Bolívar\nArquitectura de Software',
+              children: const [
+                SizedBox(height: 12),
+                Text(
+                  'Mapa interactivo y sistema de ruteo peatonal para el campus de la UTB.',
+                ),
+              ],
+            );
+          },
         ),
       ],
     );
@@ -40,8 +79,13 @@ class ConfiguracionScreen extends StatelessWidget {
 class _OpcionConfiguracion extends StatelessWidget {
   final IconData icono;
   final String titulo;
+  final VoidCallback? onTap;
 
-  const _OpcionConfiguracion({required this.icono, required this.titulo});
+  const _OpcionConfiguracion({
+    required this.icono,
+    required this.titulo,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -59,9 +103,7 @@ class _OpcionConfiguracion extends StatelessWidget {
           ),
         ),
         trailing: const Icon(Icons.chevron_right, color: Colors.white),
-        onTap: () {
-          // TODO: acción de cada opción
-        },
+        onTap: onTap,
       ),
     );
   }

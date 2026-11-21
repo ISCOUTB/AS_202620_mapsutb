@@ -18,6 +18,7 @@ void main() {
     testWidgets('arranca con la barra superior y permite cambiar de pestaña',
         (tester) async {
       await tester.pumpWidget(const MaterialApp(
+        locale: Locale('es'),
         localizationsDelegates: [
           AppLocalizations.delegate,
           GlobalMaterialLocalizations.delegate,
@@ -28,6 +29,7 @@ void main() {
         home: HomeScreen(),
       ));
       await tester.pump();
+      await tester.pump(const Duration(milliseconds: 400));
 
       expect(find.text('MAPSUTB'), findsOneWidget);
       expect(find.byType(BarraNavegacion), findsOneWidget);

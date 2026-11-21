@@ -7,7 +7,6 @@ import 'package:mapsutb/core/bg_widget.dart';
 import 'package:mapsutb/core/barra_navegacion.dart';
 
 import '../../../adapters/analytics_adapter.dart';
-import '../../../adapters/geocoding_adapter.dart';
 import '../../../adapters/static_map_adapter.dart';
 import '../../../core/config_apis.dart';
 import '../../../repositories/zona_repository.dart';
@@ -35,7 +34,6 @@ class _HomeScreenState extends State<HomeScreen> {
   late final AnalyticsAdapter _analytics;
   String? _destino;
   StaticMapAdapter? _staticMap;
-  GeocodingAdapter? _geocoding;
 
   @override
   void initState() {
@@ -53,7 +51,6 @@ class _HomeScreenState extends State<HomeScreen> {
     // Sin credenciales (--dart-define, ver ConfigApis) la app arranca igual
     // y solo se ocultan las funciones que dependen de cada API.
     if (ConfigApis.tieneGoogleMaps) {
-      _geocoding = GeocodingAdapterHttp(apiKey: ConfigApis.googleMapsApiKey);
       _staticMap = StaticMapAdapterHttp(apiKey: ConfigApis.googleMapsApiKey);
     }
     _analytics = ConfigApis.tieneAnalytics

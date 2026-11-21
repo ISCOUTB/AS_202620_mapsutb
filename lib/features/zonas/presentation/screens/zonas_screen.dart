@@ -757,12 +757,11 @@ class _Entrada extends StatelessWidget {
   const _Entrada({
     required this.animacion,
     required this.child,
-    this.desplazamiento = 20,
   });
 
   final Animation<double> animacion;
   final Widget child;
-  final double desplazamiento;
+  static const double _desplazamiento = 20;
 
   @override
   Widget build(BuildContext context) {
@@ -774,7 +773,7 @@ class _Entrada extends StatelessWidget {
         return Opacity(
           opacity: t.clamp(0.0, 1.0),
           child: Transform.translate(
-            offset: Offset(0, (1 - t) * desplazamiento),
+            offset: Offset(0, (1 - t) * _desplazamiento),
             child: hijo,
           ),
         );

@@ -15,9 +15,6 @@ Future<void> main() async {
   runApp(const MapsUtbApp());
 }
 
-const _ubicacionSimulada =
-    bool.fromEnvironment('UBICACION_SIMULADA');
-
 class MapsUtbApp extends StatelessWidget {
   const MapsUtbApp({super.key});
 

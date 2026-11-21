@@ -699,14 +699,14 @@ class _OrbesPainter extends CustomPainter {
 
   final double t; // 0..1
 
-  static final _orbes = <_Orbe>[
+  static const _orbes = <_Orbe>[
     _Orbe(
       cx: 0.2, cy: 0.18, ax: 0.15, ay: 0.08, fx: 1, fy: 2, fase: 0.0,
       radio: 0.75, color: AppColors.azulPrincipal, alfa: 150,
     ),
     _Orbe(
       cx: 0.85, cy: 0.35, ax: 0.12, ay: 0.12, fx: 2, fy: 1, fase: 0.3,
-      radio: 0.6, color: const Color(0xFF8E7CFF), alfa: 110,
+      radio: 0.6, color: Color(0xFF8E7CFF), alfa: 110,
     ),
     _Orbe(
       cx: 0.3, cy: 0.7, ax: 0.18, ay: 0.1, fx: 1, fy: 1, fase: 0.6,
@@ -714,7 +714,7 @@ class _OrbesPainter extends CustomPainter {
     ),
     _Orbe(
       cx: 0.8, cy: 0.9, ax: 0.1, ay: 0.08, fx: 2, fy: 3, fase: 0.85,
-      radio: 0.55, color: const Color(0xFFEDE3FF), alfa: 60,
+      radio: 0.55, color: Color(0xFFEDE3FF), alfa: 60,
     ),
   ];
 

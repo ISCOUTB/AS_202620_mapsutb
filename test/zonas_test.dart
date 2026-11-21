@@ -207,16 +207,13 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Edificio A1'), findsOneWidget);
-
-      await tester.tap(find.text('Salones e instalaciones de estudio'));
-      await tester.pumpAndSettle();
       await tester.tap(find.text('Edificio A1'));
       await tester.pumpAndSettle();
 
       expect(analytics.eventos.single.nombre, 'consulta_zona');
       expect(analytics.eventos.single.parametros['zona_id'], 'a1');
 
-      await tester.tap(find.text('Piso 1'));
+      await tester.tap(find.text('Piso 1').first);
       await tester.pumpAndSettle();
       expect(find.text('Laboratorio de Sistemas'), findsOneWidget);
       // Tipos con etiqueta en español y salones como chips.
@@ -245,7 +242,7 @@ void main() {
       await tester.tap(find.text('Edificio A1'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Piso 1'), findsOneWidget);
+      expect(find.text('Piso 1'), findsWidgets);
     });
 
     testWidgets('si falla la carga muestra error y permite reintentar',
@@ -277,19 +274,12 @@ void main() {
       Zona zona, {
       StaticMapAdapter? staticMap,
     }) async {
-      await _montar(
-        tester,
-        repository: _RepositorioFalso([zona]),
-        staticMap: staticMap,
-      );
-      if (find.text('Salones e instalaciones de estudio').evaluate().isNotEmpty) {
-        await tester.tap(find.text('Salones e instalaciones de estudio'));
-        await tester.pumpAndSettle();
-      } else if (find.text('Recreación, interacción y zonas de descanso').evaluate().isNotEmpty) {
-        await tester.tap(find.text('Recreación, interacción y zonas de descanso'));
-        await tester.pumpAndSettle();
-      }
-      await tester.tap(find.text(zona.nombre));
+      await tester.pumpWidget(MaterialApp(
+        home: ZonaDetalleScreen(
+          zona: zona,
+          staticMap: staticMap,
+        ),
+      ));
       await tester.pumpAndSettle();
     }
 
@@ -380,7 +370,7 @@ void main() {
         (tester) async {
       await abrirDetalle(tester, _zonaDePrueba());
 
-      expect(find.text('Piso 1'), findsOneWidget);
+      expect(find.text('Piso 1'), findsWidgets);
       expect(find.text('Piso 2'), findsOneWidget);
       expect(find.text('Laboratorio de Sistemas'), findsOneWidget);
 

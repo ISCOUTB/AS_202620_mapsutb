@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:mapsutb/core/app_colors.dart';
+import 'package:mapsutb/l10n/app_localizations.dart';
 
 class BarraNavegacion extends StatelessWidget {
   final int indice;
@@ -11,17 +12,17 @@ class BarraNavegacion extends StatelessWidget {
     required this.onSeleccion,
   });
 
-  static const _items = <_ItemBarra>[
-    _ItemBarra(Icons.apartment_rounded, 'Zonas'),
-    _ItemBarra(Icons.map_rounded, 'Mapa'),
-    _ItemBarra(Icons.settings_rounded, 'Configuración'),
-  ];
-
   static const _duracion = Duration(milliseconds: 320);
   static const _curva = Curves.easeOutCubic;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final items = <_ItemBarra>[
+      _ItemBarra(Icons.apartment_rounded, l10n?.navZonas ?? 'Zonas'),
+      _ItemBarra(Icons.map_rounded, l10n?.navMapa ?? 'Mapa'),
+      _ItemBarra(Icons.settings_rounded, l10n?.navConfiguracion ?? 'Configuración'),
+    ];
     return SafeArea(
       minimum: const EdgeInsets.fromLTRB(20, 0, 20, 12),
       child: Container(
@@ -44,7 +45,7 @@ class BarraNavegacion extends StatelessWidget {
         ),
         child: LayoutBuilder(
           builder: (context, c) {
-            final ancho = c.maxWidth / _items.length;
+            final ancho = c.maxWidth / items.length;
 
             return Stack(
               children: [
@@ -66,10 +67,10 @@ class BarraNavegacion extends StatelessWidget {
                 ),
                 Row(
                   children: [
-                    for (var i = 0; i < _items.length; i++)
+                    for (var i = 0; i < items.length; i++)
                       Expanded(
                         child: _BotonBarra(
-                          item: _items[i],
+                          item: items[i],
                           activo: i == indice,
                           onTap: () {
                             if (i != indice) onSeleccion(i);

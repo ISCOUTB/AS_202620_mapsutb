@@ -1,2 +1,11 @@
 {
+  "navZonas": "Zones",
+  "navMapa": "Carte",
+  "navConfiguracion": "Paramètres",
+  "configTitulo": "Paramètres",
+  "configNotificaciones": "Notifications",
+  "configNotificacionesWeb": "Les notifications sont désactivées sur la version web.",
+  "configIdioma": "Langue",
+  "configAcercaDe": "À propos",
+  "acercaDeDescripcion": "Carte interactive et système de guidage piétonnier pour le campus de l'UTB."
 }

@@ -99,6 +99,60 @@ abstract class AppLocalizations {
     Locale('es'),
     Locale('fr')
   ];
+
+  /// No description provided for @navZonas.
+  ///
+  /// In es, this message translates to:
+  /// **'Zonas'**
+  String get navZonas;
+
+  /// No description provided for @navMapa.
+  ///
+  /// In es, this message translates to:
+  /// **'Mapa'**
+  String get navMapa;
+
+  /// No description provided for @navConfiguracion.
+  ///
+  /// In es, this message translates to:
+  /// **'Configuración'**
+  String get navConfiguracion;
+
+  /// No description provided for @configTitulo.
+  ///
+  /// In es, this message translates to:
+  /// **'Configuración'**
+  String get configTitulo;
+
+  /// No description provided for @configNotificaciones.
+  ///
+  /// In es, this message translates to:
+  /// **'Notificaciones'**
+  String get configNotificaciones;
+
+  /// No description provided for @configNotificacionesWeb.
+  ///
+  /// In es, this message translates to:
+  /// **'Las notificaciones están desactivadas en la versión web.'**
+  String get configNotificacionesWeb;
+
+  /// No description provided for @configIdioma.
+  ///
+  /// In es, this message translates to:
+  /// **'Idioma'**
+  String get configIdioma;
+
+  /// No description provided for @configAcercaDe.
+  ///
+  /// In es, this message translates to:
+  /// **'Acerca de'**
+  String get configAcercaDe;
+
+  /// No description provided for @acercaDeDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Mapa interactivo y sistema de ruteo peatonal para el campus de la UTB.'**
+  String get acercaDeDescripcion;
 }
 
 class _AppLocalizationsDelegate

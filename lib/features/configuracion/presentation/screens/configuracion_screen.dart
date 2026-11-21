@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:mapsutb/core/app_colors.dart';
 import 'package:mapsutb/features/idioma/presentation/seleccion_idioma_screen.dart';
+import 'package:mapsutb/l10n/app_localizations.dart';
 
 /// Pantalla de configuración del sistema.
 class ConfiguracionScreen extends StatelessWidget {
@@ -8,12 +9,14 @@ class ConfiguracionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return ListView(
       padding: const EdgeInsets.fromLTRB(16, 80, 16, 24),
       children: [
-        const Text(
-          'Configuración',
-          style: TextStyle(
+        Text(
+          l10n?.configTitulo ?? 'Configuración',
+          style: const TextStyle(
             fontFamily: 'Montserrat',
             fontWeight: FontWeight.w900,
             fontSize: 24,
@@ -23,19 +26,22 @@ class ConfiguracionScreen extends StatelessWidget {
         const SizedBox(height: 16),
         _OpcionConfiguracion(
           icono: Icons.notifications_outlined,
-          titulo: 'Notificaciones',
+          titulo: l10n?.configNotificaciones ?? 'Notificaciones',
           onTap: () {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Las notificaciones están desactivadas en la versión web.'),
-                duration: Duration(seconds: 2),
+              SnackBar(
+                content: Text(
+                  l10n?.configNotificacionesWeb ??
+                      'Las notificaciones están desactivadas en la versión web.',
+                ),
+                duration: const Duration(seconds: 2),
               ),
             );
           },
         ),
         _OpcionConfiguracion(
           icono: Icons.language,
-          titulo: 'Idioma',
+          titulo: l10n?.configIdioma ?? 'Idioma',
           onTap: () {
             Navigator.of(context).push(
               MaterialPageRoute<void>(
@@ -55,17 +61,19 @@ class ConfiguracionScreen extends StatelessWidget {
         ),
         _OpcionConfiguracion(
           icono: Icons.info_outline,
-          titulo: 'Acerca de',
+          titulo: l10n?.configAcercaDe ?? 'Acerca de',
           onTap: () {
             showAboutDialog(
               context: context,
               applicationName: 'MAPSUTB',
               applicationVersion: '1.0.0',
-              applicationLegalese: '© 2026 Universidad Tecnológica de Bolívar\nArquitectura de Software',
-              children: const [
-                SizedBox(height: 12),
+              applicationLegalese:
+                  '© 2026 Universidad Tecnológica de Bolívar\nArquitectura de Software',
+              children: [
+                const SizedBox(height: 12),
                 Text(
-                  'Mapa interactivo y sistema de ruteo peatonal para el campus de la UTB.',
+                  l10n?.acercaDeDescripcion ??
+                      'Mapa interactivo y sistema de ruteo peatonal para el campus de la UTB.',
                 ),
               ],
             );

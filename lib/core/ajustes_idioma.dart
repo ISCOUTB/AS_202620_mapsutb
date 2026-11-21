@@ -13,7 +13,7 @@ class AjustesIdioma {
   static const _clave = 'idioma';
 
   /// Idiomas disponibles en la interfaz.
-  static const soportados = <Locale>[Locale('es'), Locale('en')];
+  static const soportados = <Locale>[Locale('es'), Locale('en'), Locale('fr')];
 
   /// Idioma actual; la app escucha este valor para reconstruirse.
   final ValueNotifier<Locale?> locale = ValueNotifier<Locale?>(null);

@@ -1,2 +1,11 @@
 {
+  "navZonas": "Zones",
+  "navMapa": "Map",
+  "navConfiguracion": "Settings",
+  "configTitulo": "Settings",
+  "configNotificaciones": "Notifications",
+  "configNotificacionesWeb": "Notifications are disabled on the web version.",
+  "configIdioma": "Language",
+  "configAcercaDe": "About",
+  "acercaDeDescripcion": "Interactive map and pedestrian routing system for the UTB campus."
 }

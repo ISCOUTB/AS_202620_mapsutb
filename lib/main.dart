@@ -7,6 +7,7 @@ import 'features/home/presentation/home_screen.dart';
 import 'features/idioma/presentation/seleccion_idioma_screen.dart';
 import 'features/splash/presentation/splash_screen.dart';
 import 'features/zonas/presentation/tema_maps_utb.dart';
+import 'l10n/app_localizations.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,6 +31,7 @@ class MapsUtbApp extends StatelessWidget {
           locale: locale, // null solo antes de elegir (usa el del dispositivo)
           supportedLocales: AjustesIdioma.soportados,
           localizationsDelegates: const [
+            AppLocalizations.delegate,
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,

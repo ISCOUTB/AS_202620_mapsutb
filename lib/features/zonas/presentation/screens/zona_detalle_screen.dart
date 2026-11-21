@@ -562,7 +562,7 @@ class _EspaciosPorPisoState extends State<_EspaciosPorPiso> {
                         icono: Icons.meeting_room_outlined,
                         texto: _seleccion == _sinPiso
                             ? 'No hay otros espacios registrados.'
-                            : 'Este piso no tiene espacios registrados.',
+                            : 'Sin espacios registrados en este piso.',
                       )
                     else
                       for (var i = 0; i < espaciosSeleccionados.length; i++)
@@ -589,7 +589,7 @@ class _EspaciosPorPisoState extends State<_EspaciosPorPiso> {
           if (!hayContenido)
             const _MensajeVacio(
               icono: Icons.layers_clear_outlined,
-              texto: 'Esta zona no tiene pisos ni espacios registrados.',
+              texto: 'Esta zona no tiene espacios registrados.',
             ),
         ],
       ),

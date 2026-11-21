@@ -7,14 +7,18 @@ import 'package:mapsutb/core/bg_widget.dart';
 import 'package:mapsutb/core/barra_navegacion.dart';
 
 import '../../../adapters/analytics_adapter.dart';
+import '../../../adapters/geocoding_adapter.dart';
 import '../../../adapters/static_map_adapter.dart';
 import '../../../core/config_apis.dart';
 import '../../../repositories/zona_repository.dart';
 import '../../../routing/mapa_repository.dart';
 import '../../../services/ubicacion_service.dart';
+import '../../../services/ubicacion_service_gps.dart';
 import '../../configuracion/presentation/screens/configuracion_screen.dart';
 import '../../mapas_ruteo/presentation/screens/mapa_screen.dart';
 import '../../zonas/presentation/screens/zonas_screen.dart';
+
+const _ubicacionSimulada = bool.fromEnvironment('UBICACION_SIMULADA');
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -31,17 +35,25 @@ class _HomeScreenState extends State<HomeScreen> {
   late final AnalyticsAdapter _analytics;
   String? _destino;
   StaticMapAdapter? _staticMap;
+  GeocodingAdapter? _geocoding;
 
   @override
   void initState() {
     super.initState();
-    _ubicacionService = UbicacionServiceSimulado();
+    _ubicacionService = _ubicacionSimulada
+        ? UbicacionServiceSimulado()
+        : UbicacionServiceGps();
     _zonaRepository = ZonaRepositoryLocal();
     _mapaRepository = MapaRepositoryLocal();
+    // El grafo se lee al arrancar, junto con las zonas que pide la primera
+    // pantalla: así una pestaña no combina zonas de una versión con el grafo
+    // de un despliegue posterior (arc42 §8, consistencia entre archivos).
+    _mapaRepository.obtenerGrafo().ignore();
 
     // Sin credenciales (--dart-define, ver ConfigApis) la app arranca igual
     // y solo se ocultan las funciones que dependen de cada API.
     if (ConfigApis.tieneGoogleMaps) {
+      _geocoding = GeocodingAdapterHttp(apiKey: ConfigApis.googleMapsApiKey);
       _staticMap = StaticMapAdapterHttp(apiKey: ConfigApis.googleMapsApiKey);
     }
     _analytics = ConfigApis.tieneAnalytics

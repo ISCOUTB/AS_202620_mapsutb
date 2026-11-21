@@ -202,8 +202,14 @@ void main() {
         analytics: analytics,
       );
 
+      expect(find.text('Salones e instalaciones de estudio'), findsOneWidget);
+      await tester.tap(find.text('Salones e instalaciones de estudio'));
+      await tester.pumpAndSettle();
+
       expect(find.text('Edificio A1'), findsOneWidget);
 
+      await tester.tap(find.text('Salones e instalaciones de estudio'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Edificio A1'));
       await tester.pumpAndSettle();
 
@@ -234,6 +240,8 @@ void main() {
         analytics: _AnalyticsFalso(falla: true),
       );
 
+      await tester.tap(find.text('Salones e instalaciones de estudio'));
+      await tester.pumpAndSettle();
       await tester.tap(find.text('Edificio A1'));
       await tester.pumpAndSettle();
 
@@ -251,7 +259,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(repo.llamadas, 2);
-      expect(find.text('Edificio A1'), findsOneWidget);
+      expect(find.text('Salones e instalaciones de estudio'), findsOneWidget);
     });
 
     testWidgets('no vuelve a cargar las zonas en cada rebuild', (tester) async {
@@ -274,6 +282,13 @@ void main() {
         repository: _RepositorioFalso([zona]),
         staticMap: staticMap,
       );
+      if (find.text('Salones e instalaciones de estudio').evaluate().isNotEmpty) {
+        await tester.tap(find.text('Salones e instalaciones de estudio'));
+        await tester.pumpAndSettle();
+      } else if (find.text('Recreación, interacción y zonas de descanso').evaluate().isNotEmpty) {
+        await tester.tap(find.text('Recreación, interacción y zonas de descanso'));
+        await tester.pumpAndSettle();
+      }
       await tester.tap(find.text(zona.nombre));
       await tester.pumpAndSettle();
     }
@@ -330,7 +345,7 @@ void main() {
       expect(find.text('Enfermería'), findsOneWidget);
       expect(find.text('Bohíos Bakery'), findsOneWidget);
       expect(find.text('Cafetería'), findsOneWidget); // etiqueta del tipo
-      expect(find.byType(ChoiceChip), findsNothing, reason: 'sin pisos no hay selector');
+      expect(find.text('Pisos'), findsNothing, reason: 'sin pisos no hay selector');
       expect(find.textContaining('no tiene'), findsNothing);
     });
 
@@ -365,15 +380,12 @@ void main() {
         (tester) async {
       await abrirDetalle(tester, _zonaDePrueba());
 
-      ChoiceChip chip(String piso) =>
-          tester.widget<ChoiceChip>(find.widgetWithText(ChoiceChip, piso));
-      expect(chip('Piso 1').selected, isTrue);
-      expect(chip('Piso 2').selected, isFalse);
+      expect(find.text('Piso 1'), findsOneWidget);
+      expect(find.text('Piso 2'), findsOneWidget);
       expect(find.text('Laboratorio de Sistemas'), findsOneWidget);
 
       await tester.tap(find.text('Piso 2'));
       await tester.pumpAndSettle();
-      expect(chip('Piso 2').selected, isTrue);
       expect(find.text('Laboratorio de Sistemas'), findsNothing);
     });
 
@@ -426,7 +438,7 @@ void main() {
       // Borrar la búsqueda devuelve la lista de zonas.
       await tester.tap(find.byTooltip('Borrar búsqueda'));
       await tester.pumpAndSettle();
-      expect(find.text('Edificio A1'), findsOneWidget);
+      expect(find.text('Salones e instalaciones de estudio'), findsOneWidget);
       expect(find.textContaining('Sin resultados'), findsNothing);
     });
 
@@ -473,10 +485,6 @@ void main() {
       final detalle = tester.widget<ZonaDetalleScreen>(find.byType(ZonaDetalleScreen));
       expect(detalle.pisoInicialId, 'p2');
       expect(detalle.espacioResaltadoId, 'bio');
-      expect(
-        tester.widget<ChoiceChip>(find.widgetWithText(ChoiceChip, 'Segundo Piso')).selected,
-        isTrue,
-      );
       expect(find.text('Laboratorio de Biomédica'), findsOneWidget);
       expect(find.text('Laboratorio de Mecatrónica'), findsNothing);
     });

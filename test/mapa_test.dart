@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
+import 'package:mapsutb/l10n/app_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mapsutb/adapters/analytics_adapter.dart';
 import 'package:mapsutb/adapters/mapa_widget.dart';
@@ -20,6 +21,14 @@ import 'package:mapsutb/services/ubicacion_service.dart';
 ///
 /// Grafo: P ──100── Q ──20 (escalera)── R, y Q ──60── S ──60── R.
 /// La zona "a1" entra por R y la zona "a2" por P.
+/// 
+Widget appDePrueba(Widget home) => MaterialApp(
+      locale: const Locale('es'),
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      home: home,
+    );
+
 GrafoPeatonal _grafo() {
   const p = NodoGrafo(id: 'P', lat: 10.3690, lng: -75.4660);
   const q = NodoGrafo(id: 'Q', lat: 10.3699, lng: -75.4660);
@@ -170,12 +179,17 @@ void main() {
   testWidgets('"Cómo llegar" en el detalle de zona cierra el detalle y pide la ruta', (tester) async {
     String? pedido;
     final zona = Zona(id: 'a1', nombre: 'A1', tipo: 'edificio', lat: 10.3701, lng: -75.4660);
-    await tester.pumpWidget(MaterialApp(
-      home: Builder(
+    await tester.pumpWidget(appDePrueba(
+      Builder(
         builder: (context) => TextButton(
-          onPressed: () => Navigator.of(context).push(MaterialPageRoute(
-            builder: (_) => ZonaDetalleScreen(zona: zona, onComoLlegar: (id) => pedido = id),
-          )),
+          onPressed: () => Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => ZonaDetalleScreen(
+                zona: zona,
+                onComoLlegar: (id) => pedido = id,
+              ),
+            ),
+          ),
           child: const Text('abrir'),
         ),
       ),
@@ -191,7 +205,12 @@ void main() {
 
   testWidgets('sin coordenadas el detalle no ofrece "Cómo llegar"', (tester) async {
     final zona = Zona(id: 'contenedores', nombre: 'Contenedores', tipo: 'servicio', lat: 0, lng: 0);
-    await tester.pumpWidget(MaterialApp(home: ZonaDetalleScreen(zona: zona, onComoLlegar: (_) {})));
+    await tester.pumpWidget(appDePrueba(
+      ZonaDetalleScreen(
+        zona: zona,
+        onComoLlegar: (_) {},
+      ),
+    ));
     expect(find.text('Cómo llegar'), findsNothing);
   });
 

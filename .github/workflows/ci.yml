@@ -27,7 +27,7 @@ jobs:
           channel: stable
           flutter-version: 3.47.4
           cache: true
-      - run: flutter pub get --enforce-lockfile
+      - run: flutter pub get 
       - run: flutter analyze
 
       # Análisis de dependencias (S13, amenaza T-03; ADR 0020): OSV-Scanner

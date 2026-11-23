@@ -4,13 +4,12 @@ import 'package:flutter/material.dart';
 
 import 'package:mapsutb/adapters/static_map_adapter.dart';
 import 'package:mapsutb/core/app_colors.dart';
-import 'package:mapsutb/l10n/app_localizations.dart';
 import 'package:mapsutb/models/espacio.dart';
 import 'package:mapsutb/models/imagen_mapa.dart';
 import 'package:mapsutb/models/salon.dart';
 import 'package:mapsutb/models/zona.dart';
 
-import '../textos_lugar.dart';
+import '../tipos_lugar.dart';
 
 /// Colores que se alternan entre los pisos.
 const _acentos = <Color>[
@@ -86,7 +85,6 @@ class ZonaDetalleScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
     final conMapa = staticMap != null && zona.tieneCoordenadas;
     final conRuta = onComoLlegar != null && zona.tieneCoordenadas;
 
@@ -125,7 +123,7 @@ class ZonaDetalleScreen extends StatelessWidget {
                       ),
                     ),
                     icon: const Icon(Icons.directions_walk_rounded),
-                    label: Text(l10n.detalleComoLlegar),
+                    label: const Text('Cómo llegar'),
                     onPressed: () {
                       Navigator.of(context).pop();
                       onComoLlegar!(zona.id);
@@ -301,7 +299,7 @@ class _InfoCabecera extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: Text(
-                resumenZonaL10n(AppLocalizations.of(context), zona),
+                resumenZona(zona),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
@@ -422,7 +420,6 @@ class _EspaciosPorPisoState extends State<_EspaciosPorPiso> {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
     final pisos = _zona.pisos;
     final espaciosSinPiso = _zona.espaciosSinPiso;
 
@@ -442,7 +439,7 @@ class _EspaciosPorPisoState extends State<_EspaciosPorPiso> {
 
     final tituloLista = indicePiso >= 0
         ? pisos[indicePiso].nombre
-        : (hayPisos ? l10n.detalleOtrosEspacios : l10n.detalleTodosEspacios);
+        : (hayPisos ? 'Otros espacios' : 'Todos los espacios');
 
     final n = espaciosSeleccionados.length;
 
@@ -461,9 +458,7 @@ class _EspaciosPorPisoState extends State<_EspaciosPorPiso> {
             indice: 2,
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: _TituloSeccion(
-                hayPisos ? l10n.detallePisos : l10n.detalleEspacios,
-              ),
+              child: _TituloSeccion(hayPisos ? 'Pisos' : 'Espacios'),
             ),
           ),
 
@@ -493,7 +488,7 @@ class _EspaciosPorPisoState extends State<_EspaciosPorPiso> {
                       ),
                     if (hayOtrosEspacios)
                       _PildoraPiso(
-                        nombre: l10n.detalleOtrosEspacios,
+                        nombre: 'Otros espacios',
                         seleccionada: _seleccion == _sinPiso,
                         color: AppColors.verdeEsmeralda,
                         onTap: () => _seleccionarPiso(_sinPiso),
@@ -549,7 +544,7 @@ class _EspaciosPorPisoState extends State<_EspaciosPorPiso> {
                                 vertical: 4,
                               ),
                               child: Text(
-                                l10n.cantidadEspacios(n),
+                                '$n ${n == 1 ? 'espacio' : 'espacios'}',
                                 style: const TextStyle(
                                   fontFamily: _fuente,
                                   fontSize: 12,
@@ -566,8 +561,8 @@ class _EspaciosPorPisoState extends State<_EspaciosPorPiso> {
                       _MensajeVacio(
                         icono: Icons.meeting_room_outlined,
                         texto: _seleccion == _sinPiso
-                            ? l10n.detalleSinOtrosEspacios
-                            : l10n.detalleSinEspaciosPiso,
+                            ? 'No hay otros espacios registrados.'
+                            : 'Sin espacios registrados en este piso.',
                       )
                     else
                       for (var i = 0; i < espaciosSeleccionados.length; i++)
@@ -592,9 +587,9 @@ class _EspaciosPorPisoState extends State<_EspaciosPorPiso> {
 
           // Si no existen pisos ni espacios, se muestra un mensaje.
           if (!hayContenido)
-            _MensajeVacio(
+            const _MensajeVacio(
               icono: Icons.layers_clear_outlined,
-              texto: l10n.detalleZonaSinEspacios,
+              texto: 'Esta zona no tiene espacios registrados.',
             ),
         ],
       ),
@@ -726,7 +721,6 @@ class _TarjetaEspacio extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final radio = BorderRadius.circular(20);
-    final l10n = AppLocalizations.of(context);
     final colorTexto = _acentoOscuro(color);
     final n = espacio.salones.length;
 
@@ -794,7 +788,7 @@ class _TarjetaEspacio extends StatelessWidget {
                             if (n > 0) ...[
                               const SizedBox(height: 3),
                               Text(
-                                l10n.cantidadSalones(n),
+                                '$n ${n == 1 ? 'salón' : 'salones'}',
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,
@@ -806,7 +800,7 @@ class _TarjetaEspacio extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 8),
-                      _Etiqueta(etiquetaTipoL10n(l10n, espacio.tipo), color: color),
+                      _Etiqueta(etiquetaTipo(espacio.tipo), color: color),
                     ],
                   ),
                   if (espacio.salones.isNotEmpty) ...[
@@ -837,7 +831,7 @@ class _TarjetaEspacio extends StatelessWidget {
                         Icon(Icons.location_on, color: colorTexto, size: 16),
                         const SizedBox(width: 4),
                         Text(
-                          l10n.detalleEspacioSeleccionado,
+                          'Espacio seleccionado',
                           style: TextStyle(
                             color: colorTexto,
                             fontSize: 12,
@@ -983,7 +977,6 @@ class _HojaSalon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
     final descripcion = salon.descripcion?.trim();
     final tieneDescripcion = descripcion != null && descripcion.isNotEmpty;
     final icono = _iconoEspacio(espacio.tipo);
@@ -1074,7 +1067,7 @@ class _HojaSalon extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        _TituloSeccion(l10n.detalleDescripcion, tamano: 17),
+                        const _TituloSeccion('Descripción', tamano: 17),
                         const SizedBox(height: 10),
                         if (tieneDescripcion)
                           Text(
@@ -1101,7 +1094,7 @@ class _HojaSalon extends StatelessWidget {
                                 const SizedBox(width: 10),
                                 Expanded(
                                   child: Text(
-                                    l10n.detalleSinDescripcion,
+                                    'Aún no hay descripción para este salón.',
                                     style: TextStyle(
                                       color: Colors.grey.shade700,
                                       fontWeight: FontWeight.w500,
@@ -1413,7 +1406,7 @@ class _MiniaturaMapaState extends State<_MiniaturaMapa> {
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      AppLocalizations.of(context).detalleMapaNoDisponible,
+                      'Mapa no disponible.',
                       style: TextStyle(
                         fontWeight: FontWeight.w600,
                         color: Colors.grey.shade700,

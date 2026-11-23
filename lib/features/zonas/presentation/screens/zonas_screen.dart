@@ -3,12 +3,13 @@ import 'package:mapsutb/adapters/analytics_adapter.dart';
 import 'package:mapsutb/adapters/static_map_adapter.dart';
 import 'package:mapsutb/core/app_colors.dart';
 import 'package:mapsutb/features/busqueda/indice_busqueda.dart';
+import 'package:mapsutb/l10n/app_localizations.dart';
 import 'package:mapsutb/models/evento_analitica.dart';
 import 'package:mapsutb/models/zona.dart';
 import 'package:mapsutb/repositories/zona_repository.dart';
 import 'dart:ui';
 
-import '../tipos_lugar.dart';
+import '../textos_lugar.dart';
 import '../widgets/resultados_busqueda.dart';
 import 'zona_detalle_screen.dart';
 
@@ -16,13 +17,11 @@ import 'zona_detalle_screen.dart';
 enum _Categoria { estudio, recreacion }
 
 class _InfoCategoria {
-  final String titulo;
   final IconData icono;
   final String imagen;
   final Color color;
 
   const _InfoCategoria({
-    required this.titulo,
     required this.icono,
     required this.imagen,
     required this.color,
@@ -31,18 +30,22 @@ class _InfoCategoria {
 
 const _infoCategorias = <_Categoria, _InfoCategoria>{
   _Categoria.estudio: _InfoCategoria(
-    titulo: 'Salones e instalaciones de estudio',
     icono: Icons.school_rounded,
     imagen: 'assets/categorias/estudio.jpg',
     color: AppColors.azulPrincipal,
   ),
   _Categoria.recreacion: _InfoCategoria(
-    titulo: 'Recreación, interacción y zonas de descanso',
     icono: Icons.weekend_rounded,
     imagen: 'assets/categorias/recreacion.jpg',
     color: AppColors.morado,
   ),
 };
+
+/// Título traducido de cada categoría.
+String _tituloCategoria(AppLocalizations l10n, _Categoria c) => switch (c) {
+      _Categoria.estudio => l10n.zonasCategoriaEstudio,
+      _Categoria.recreacion => l10n.zonasCategoriaRecreacion,
+    };
 
 class ZonasScreen extends StatefulWidget {
   final ZonaRepository repository;
@@ -239,6 +242,7 @@ class _ZonasScreenState extends State<ZonasScreen>
       );
     }
 
+    final l10n = AppLocalizations.of(context);
     final puntos = snapshot.data!;
     final consulta = _consulta.text;
     // La barra inferior es flotante: deja espacio para que no tape nada.
@@ -270,8 +274,8 @@ class _ZonasScreenState extends State<ZonasScreen>
                 imagen: _infoCategorias[c]!.imagen,
                 color: _infoCategorias[c]!.color,
                 icono: _infoCategorias[c]!.icono,
-                titulo: _infoCategorias[c]!.titulo,
-                subtitulo: _textoCantidad(_deCategoria(puntos, c).length),
+                titulo: _tituloCategoria(l10n, c),
+                subtitulo: l10n.cantidadLugares(_deCategoria(puntos, c).length),
                 alto: 180,
                 tamanoTitulo: 21,
                 onTap: () => setState(() => _categoria = c),
@@ -291,7 +295,7 @@ class _ZonasScreenState extends State<ZonasScreen>
       itemBuilder: (context, i) {
         if (i == 0) {
           return _BarraCategoria(
-            titulo: info.titulo,
+            titulo: _tituloCategoria(l10n, categoria),
             color: info.color,
             onVolver: () => setState(() => _categoria = null),
           );
@@ -305,7 +309,7 @@ class _ZonasScreenState extends State<ZonasScreen>
             color: _colores[(i - 1) % _colores.length],
             icono: _icono(zona.tipo),
             titulo: zona.nombre,
-            subtitulo: resumenZona(zona),
+            subtitulo: resumenZonaL10n(l10n, zona),
             alto: 190,
             tamanoTitulo: 20,
             onTap: () => _abrirDetalle(zona),
@@ -314,8 +318,6 @@ class _ZonasScreenState extends State<ZonasScreen>
       },
     );
   }
-
-  static String _textoCantidad(int n) => '$n ${n == 1 ? 'lugar' : 'lugares'}';
 }
 
 // ---------------------------------------------------------------------------
@@ -329,14 +331,17 @@ class _Encabezado extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final cantidad = total;
+
     return Padding(
       padding: const EdgeInsets.fromLTRB(24, 16, 24, 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            'Explora el campus',
-            style: TextStyle(
+          Text(
+            l10n.zonasExplora,
+            style: const TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.w900,
               fontFamily: 'Montserrat',
@@ -356,9 +361,9 @@ class _Encabezado extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               Text(
-                total == null
-                    ? 'Cargando instalaciones…'
-                    : '$total instalaciones disponibles',
+                cantidad == null
+                    ? l10n.zonasCargando
+                    : l10n.cantidadInstalaciones(cantidad),
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w700,
@@ -386,6 +391,7 @@ class _CampoBusqueda extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final radio = BorderRadius.circular(30);
+    final l10n = AppLocalizations.of(context);
 
     return Container(
       // La sombra va afuera: el ClipRRect de abajo la recortaría.
@@ -422,7 +428,7 @@ class _CampoBusqueda extends StatelessWidget {
                 fontSize: 14,
               ),
               decoration: InputDecoration(
-                hintText: 'Buscar lugar',
+                hintText: l10n.zonasBuscarLugar,
                 hintStyle: TextStyle(
                   fontFamily: 'Montserrat',
                   fontWeight: FontWeight.w600,
@@ -435,7 +441,7 @@ class _CampoBusqueda extends StatelessWidget {
                     ? null
                     : IconButton(
                         icon: const Icon(Icons.close),
-                        tooltip: 'Borrar búsqueda',
+                        tooltip: l10n.zonasBorrarBusqueda,
                         onPressed: () {
                           controller.clear();
                           onChanged('');
@@ -475,7 +481,7 @@ class _BarraCategoria extends StatelessWidget {
         children: [
           IconButton(
             onPressed: onVolver,
-            tooltip: 'Volver a categorías',
+            tooltip: AppLocalizations.of(context).zonasVolverCategorias,
             icon: Icon(Icons.arrow_back_rounded, color: color),
           ),
           Expanded(
@@ -683,6 +689,8 @@ class _ErrorCarga extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(24),
@@ -695,9 +703,9 @@ class _ErrorCarga extends StatelessWidget {
               color: AppColors.azulPrincipal.withAlpha(150),
             ),
             const SizedBox(height: 12),
-            const Text(
-              'No se pudieron cargar las zonas.',
-              style: TextStyle(
+            Text(
+              l10n.zonasErrorCarga,
+              style: const TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w600,
                 color: AppColors.azulPrincipal,
@@ -713,7 +721,7 @@ class _ErrorCarga extends StatelessWidget {
               ),
               onPressed: onReintentar,
               icon: const Icon(Icons.refresh),
-              label: const Text('Reintentar'),
+              label: Text(l10n.accionReintentar),
             ),
           ],
         ),

@@ -8,7 +8,7 @@ ifndef::imagesdir[:imagesdir: ../images]
 |Término |Definición
 
 |MAPSUTB
-|Nombre del sistema: app Flutter, publicada como sitio web en Firebase Hosting, que permite ubicarse en el campus de la Universidad Tecnológica de Bolívar (UTB) mediante un plano propio superpuesto sobre teselas de OpenStreetMap, con ruteo peatonal interno. El tour panorámico 360° está diferido (no implementado).
+|Nombre del sistema: app Flutter, publicada como sitio web en Firebase Hosting, que permite ubicarse en el campus de la Universidad Tecnológica de Bolívar (UTB) mediante un plano propio superpuesto sobre teselas de OpenStreetMap, con ruteo peatonal interno.
 
 |Google Maps SDK (histórico)
 |Mapa base de la propuesta inicial. Reemplazado por `flutter_map` con teselas de OpenStreetMap (ADR 0012), porque exigía tarjeta y exponía la key en web. Ya no se usa en el código.
@@ -64,12 +64,6 @@ ifndef::imagesdir[:imagesdir: ../images]
 |Ruteo
 |Cálculo de la ruta más corta entre dos puntos dentro del campus, resuelto internamente sobre el grafo peatonal propio mediante el algoritmo de Dijkstra, sin depender de ninguna API externa.
 
-|Tour panorámico
-|Módulo previsto para mostrar imágenes equirectangulares (panorámicas 360°) capturadas vía smartphone, que permitirían al usuario explorar visualmente espacios del campus. Diferido (no implementado).
-
-|Panorámica 360° / captura esférica
-|Imagen equirectangular que cubre una vista completa de 360° alrededor de un punto, capturada con la cámara de un smartphone (sin necesidad de una cámara 360° dedicada).
-
 |Zona
 |Nivel superior de la jerarquía del campus: edificio, cafetería, parqueadero o zona común (`lib/models/zona.dart`), cargada por el equipo en un archivo JSON local. Puede contener `Piso` y/o `Espacio`. Redefinida por el link:../adr/0006-reajuste-limites-contexto.md[ADR 0006] para coincidir con el código; antes se confundía con lo que hoy se llama "Espacio".
 
@@ -92,7 +86,7 @@ ifndef::imagesdir[:imagesdir: ../images]
 |Actor humano del sistema: visitante que usa la app para ubicarse y desplazarse dentro del campus.
 
 |Repository (patrón)
-|Patrón de diseño que expone los datos de un almacén (plano, zonas, panorámicas) a través de una interfaz simple, sin exponer su formato interno de almacenamiento. Usado en `MapaRepository` y `ZonaRepository` (sirve `Zona` y `Espacio`, ver ADR 0006); `TourRepository` está diferido con el tour.
+|Patrón de diseño que expone los datos de un almacén (plano, zonas) a través de una interfaz simple, sin exponer su formato interno de almacenamiento. Usado en `MapaRepository` y `ZonaRepository` (sirve `Zona` y `Espacio`, ver ADR 0006).
 
 |Adapter (patrón)
 |Patrón de diseño que aísla al resto de la app de un servicio o SDK externo, traduciendo entre la interfaz que la app espera y la del servicio real. Usado en `MapaWidget` (`flutter_map` y teselas de OpenStreetMap), `GeocodingAdapter` (Geocoding API), `StaticMapAdapter` (Static Maps API) y `AnalyticsAdapter` (Measurement Protocol).

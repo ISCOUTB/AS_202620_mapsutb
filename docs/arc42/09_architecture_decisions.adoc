@@ -13,10 +13,7 @@ Las decisiones de diseño del proyecto se documentan como Registros de Decisione
 | ADR-0001
 | link:../adr/0001-patrones-de-diseno.md[Patrones de diseño para el monolito MAPSUTB]
 | Reemplazado por ADR-0002 (2026-08-30)
-| Define los patrones de diseño (GoF e idiomáticos de Dart) para las dos dependencias externas que quedan
-  (Google Maps SDK y Google Geocoding API, ambas aisladas con **Adapter**), el plano propio del campus, las
-  zonas/puntos de interés y el tour panorámico (todos con **Repository**), el ruteo interno dentro del campus
-  (servicio único con Dijkstra, sin Strategy) y la ubicación en tiempo real (**Observer** vía `Stream` de Dart).
+| Primera definición de patrones de diseño del monolito (Adapter, Repository, Observer). Superado por ADR-0002, que los ajusta al abandonar la realidad aumentada.
 
 | ADR-0002
 | link:../adr/0002-patrones-de-diseno-sin-realidad-aumentada.md[Patrones de diseño para navegación sin realidad aumentada]

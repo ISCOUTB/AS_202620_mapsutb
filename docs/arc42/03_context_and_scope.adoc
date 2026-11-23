@@ -8,10 +8,10 @@ ifndef::imagesdir[:imagesdir: ../images]
 [options="header",cols="2,2,3"]
 |===
 |Socio de comunicación|Entradas al sistema|Salidas del sistema
-|Aspirante / futuro estudiante|Interacción táctil (navegación en el mapa, selección de puntos de interés)|Ubicación en el mapa, ruta más corta hacia el destino (el recorrido panorámico 360° está diferido)
+|Aspirante / futuro estudiante|Interacción táctil (navegación en el mapa, selección de puntos de interés)|Ubicación en el mapa, ruta más corta hacia el destino
 |Estudiante actual|Interacción táctil|Ubicación en tiempo real, ruta más corta hacia un punto de interés del campus
 |Estudiante de intercambio extranjero|Interacción táctil (la selección de idioma está pendiente: solo español hoy)|Ubicación y ruta, con la interfaz en español
-|Invitado |Interacción táctil|Ubicación en el mapa y zonas del campus (recorrido panorámico: diferido)
+|Invitado |Interacción táctil|Ubicación en el mapa y zonas del campus
 |Teselas de OpenStreetMap|Solicitud de teselas del mapa base|Mapa base sobre el cual la app dibuja zonas, posición y rutas (ADR 0012, reemplaza a Google Maps SDK)
 |Google Geocoding API (opcional; apagada en producción por falta de key, ADR 0009)|Coordenadas GPS o direcciones a convertir|Dirección legible o coordenadas correspondientes
 |Google Static Maps API (opcional; apagada en producción, ADR 0009)|Coordenadas de una zona|Miniatura estática para el detalle de la zona

@@ -2,16 +2,14 @@
 
 # Vista de Ejecución
 
-Se documentan cuatro escenarios de ejecución, elegidos por su relevancia
+Se documentan tres escenarios de ejecución, elegidos por su relevancia
 arquitectónica: el flujo principal de ruteo (que atraviesa la mayoría de
 los componentes de la sección 5 y usa `MapaWidget` sobre las teselas de
 OpenStreetMap), el uso de un adaptador hacia un servicio externo de
 Google (`GeocodingAdapter` para Geocoding API, opcional y apagado en
-producción), el escenario de error más crítico del sistema (pérdida del
+producción), y el escenario de error más crítico del sistema (pérdida del
 mapa base o de Geocoding, ver [Pérdida de disponibilidad](#esc-disponibilidad),
-RT-01/RT-06 y los modos de fallo MF-01 a MF-15 en `11_technical_risks.adoc`),
-y el flujo del tour panorámico, que está diferido (no implementado) y se
-conserva solo como diseño.
+RT-01/RT-06 y los modos de fallo MF-01 a MF-15 en `11_technical_risks.adoc`).
 
 ## Trazar una ruta hacia un punto de interés
 
@@ -136,26 +134,3 @@ sequenceDiagram
 4. La pantalla muestra una vez el aviso «Sin conexión al mapa base: la ruta sigue siendo válida…» y registra `mapa_base_sin_teselas` (MF-01, `test/mapa_test.dart`).
 5. Si el despliegue tiene key de Google y el usuario toca «¿Dónde estoy?», `GeocodingAdapter` corta a los 5 s o ante el fallo de red y lanza `GeocodingException`; la pantalla muestra «No se pudo obtener la dirección» (MF-07, MF-08, `test/modos_de_fallo_test.dart`). En el despliegue público, sin key, el botón no aparece.
 6. A pesar de ambos fallos, el ruteo interno (Dijkstra sobre el grafo propio) y la consulta de zonas/puntos de interés siguen funcionando, porque se resuelven contra activos locales.
-
-## Ver una panorámica del tour (diferido)
-
-**Diferido (no implementado):** no existen `TourRepository`, `lib/features/tour/`
-ni panorámicas en `assets/`. Se conserva el flujo como diseño de referencia
-por si se retoma el tour: el contenido panorámico sería un activo local
-servido por `TourRepository`, sin red.
-
-```mermaid
-sequenceDiagram
-    actor Usuario
-    participant UI as Pantallas de features
-    participant TourRepo as TourRepository
-
-    Usuario->>UI: Selecciona un punto del recorrido panorámico
-    UI->>TourRepo: Solicita la panorámica correspondiente al punto
-    TourRepo-->>UI: Imagen equirectangular (activo local)
-    UI-->>Usuario: Renderiza la escena 360° navegable
-```
-1. El usuario abre el módulo de tour y selecciona un punto del recorrido panorámico.
-2. La UI solicita a `TourRepository` la imagen equirectangular correspondiente a ese punto.
-3. `TourRepository` la sirve directamente desde los activos panorámicos empaquetados localmente, sin ninguna llamada de red.
-4. La UI renderiza la escena 360° para que el usuario la navegue (el motor/librería de renderizado no está elegido — ver RT-02 en `11_technical_risks.adoc`).

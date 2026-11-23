@@ -16,22 +16,6 @@ depende de la disponibilidad, las cuotas y las condiciones de uso de terceros.
 `AnalyticsAdapter`). Desde 2026-10-13 cada modo de fallo tiene su mitigación asignada: ver
 <<modos-de-fallo>> y link:../adr/0016-no-extraer-modulos-por-ahora.md[ADR 0016].
 
-| RT-02
-| Motor/librería para renderizar panorámicas 360° en Flutter aún no definido. El tour panorámico está diferido (no
-implementado), así que hoy el riesgo no afecta a la app publicada.
-| Baja
-| Si se retoma el tour, hacer primero un spike técnico corto para evaluar y decidir la librería, ya que esta
-decisión condiciona el formato de captura y el `TourRepository`.
-
-| RT-03
-| El equipo no cuenta con cámaras 360° dedicadas; el contenido panorámico se captura vía smartphone (captura
-esférica manual, tipo Google Street View App). Esto puede afectar la fidelidad y consistencia del contenido frente
-a la meta de calidad de "Fidelidad de contenido" (ver <<esc-fidelidad>>). Aplica solo si se retoma el tour, hoy
-diferido.
-| Media
-| Definir un protocolo de captura (altura, condiciones de luz, puntos fijos) para minimizar inconsistencias entre
-capturas hechas por distintos integrantes del equipo.
-
 | RT-04
 | La clasificación de zonas y puntos de interés es 100% manual, cargada por el equipo y no actualizable
 dinámicamente por la universidad. Ante cambios físicos del campus, la información puede desactualizarse.

@@ -15,15 +15,12 @@ la organización de GitHub ISCOUTB, como parte del curso académico de
 El sistema utiliza un mapa de la universidad (teselas de OpenStreetMap
 con el plano propio del campus superpuesto) para mostrar la ubicación de
 sus zonas y puntos de interés, permitiéndole al usuario no perderse a la
-hora de llegar a la universidad y poder encontrar el lugar que busca. El
-recorrido panorámico 360° de la propuesta inicial está diferido (no
-implementado).
+hora de llegar a la universidad y poder encontrar el lugar que busca.
 
 Objetivos específicos del sistema:
 
 * Ubicar al usuario en tiempo real dentro del campus.
 * Mostrar rutas hacia un destino específico.
-* Ofrecer un recorrido panorámico 360° navegable de los puntos de interés — diferido (no implementado).
 * Registrar puntos de interés del campus.
 
 === Metas de Calidad
@@ -31,11 +28,11 @@ Objetivos específicos del sistema:
 [options="header",cols="2,4"]
 |===
 |Atributo de calidad|Motivación / prioridad
-|Rendimiento|La ruta debe aparecer pocos segundos después de elegir el destino, también en celulares de gama media (Escenario 2). La carga rápida del tour panorámico (Escenario 1) queda diferida con el tour.
+|Rendimiento|La ruta debe aparecer pocos segundos después de elegir el destino, también en celulares de gama media (Escenario 2).
 |Precisión de geolocalización y ruteo|Es el diferenciador central del producto (posición del usuario en tiempo real vía GPS); errores de precisión degradan directamente el valor de la app.
 |Disponibilidad / confiabilidad|El ruteo interno y la clasificación de zonas funcionan sin conexión una vez cargada la app (activos locales); el mapa base depende de las teselas de OpenStreetMap (ADR 0012) y la geocodificación de Google Geocoding API, que en producción está apagada por falta de key (ADR 0009). Con GPS, o con el punto de partida marcado a mano (ADR 0017), la app sigue siendo utilizable aunque estas dos funciones fallen.
 |Usabilidad|El público incluye aspirantes que usan la app por primera vez e invitados a la universidad, sin guía previa.
-|Fidelidad de contenido|Las zonas y el grafo peatonal deben representar fielmente los espacios reales, dado su uso institucional potencial (10 de las 11 zonas tienen coordenadas medidas en campo). La fidelidad del tour 360° queda diferida con el tour.
+|Fidelidad de contenido|Las zonas y el grafo peatonal deben representar fielmente los espacios reales, dado su uso institucional potencial (10 de las 11 zonas tienen coordenadas medidas en campo).
 |Mantenibilidad|La clasificación de zonas es manual; debe ser sencilla de actualizar por el equipo.
 |Portabilidad|Debe funcionar en navegadores de computador y de celular, con distintos tamaños de pantalla. Hoy se publica solo como web en Firebase Hosting; la compilación móvil (Android/iOS) no está configurada.
 |===

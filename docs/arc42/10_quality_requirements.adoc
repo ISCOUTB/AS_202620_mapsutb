@@ -26,7 +26,6 @@ link:../escenarios_calidad.md[escenarios_calidad.md]; las filas que tienen escen
 [cols="1,1,4" options="header"]
 |===
 | ID | Tipo | Escenario
-| RE-01 | Uso | *Diferido con el tour (no implementado).* Al abrir un punto del tour panorámico con conexión 4G, la escena panorámica carga y se renderiza completa en menos de 3 segundos (Escenario 1).
 | RE-02 | Uso | Al solicitar una ruta dentro del campus, el `Servicio de ruteo` calcula el camino más corto sobre el grafo peatonal propio (Dijkstra) y la pantalla lo muestra en 5 segundos o menos desde la selección del destino (Escenario 2). Medido en CI: cálculo p95 0,68 ms y pantalla 19 ms.
 |===
 
@@ -72,8 +71,8 @@ Geocoding y Static Maps. La disponibilidad del sitio publicado se mide aparte (D
 [cols="1,1,4" options="header"]
 |===
 | ID | Tipo | Escenario
-| FI-01 | Uso | *Diferido con el tour (no implementado).* La panorámica mostrada en el tour para un punto del mapa corresponde al espacio físico real de esa ubicación; mínimo 90 % de los puntos aprobados sin recaptura (Escenario 5).
-| FI-02 | Cambio | *Diferido con el tour (no implementado).* Cuando un espacio físico del campus se remodela, el equipo reemplaza la captura panorámica correspondiente en el `TourRepository` sin afectar el resto del contenido.
+| FI-01 | Uso | La ruta calculada conduce a la entrada real de la zona elegida: las coordenadas de las zonas y el grafo peatonal provienen de OpenStreetMap más el levantamiento de campo (10 de las 11 zonas con coordenadas medidas en campo).
+| FI-02 | Cambio | Cuando un espacio físico del campus se remodela o cambia, el equipo corrige la zona o el grafo editando `zonas.json` o `grafo.json`, sin modificar el resto de la app.
 |===
 
 [[esc-mantenibilidad]]

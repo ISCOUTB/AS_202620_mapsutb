@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:mapsutb/l10n/app_localizations.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mapsutb/adapters/analytics_adapter.dart';
@@ -17,6 +18,14 @@ import 'package:mapsutb/repositories/zona_repository.dart';
 /// (lista + detalle), con dobles de prueba para las APIs externas.
 
 // PNG válido de 1x1, para que Image.memory no falle al decodificar.
+Widget appDePrueba(Widget home) => MaterialApp(
+      locale: const Locale('es'),
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      home: home,
+    );
+
+
 final _png1x1 = base64Decode(
   'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
 );
@@ -123,8 +132,8 @@ Future<void> _montar(
   AnalyticsAdapter analytics = const AnalyticsAdapterNulo(),
   StaticMapAdapter? staticMap,
 }) async {
-  await tester.pumpWidget(MaterialApp(
-    home: Scaffold(
+  await tester.pumpWidget(appDePrueba(
+    Scaffold(
       body: ZonasScreen(
         repository: repository,
         analytics: analytics,
@@ -274,8 +283,8 @@ void main() {
       Zona zona, {
       StaticMapAdapter? staticMap,
     }) async {
-      await tester.pumpWidget(MaterialApp(
-        home: ZonaDetalleScreen(
+      await tester.pumpWidget(appDePrueba(
+        ZonaDetalleScreen(
           zona: zona,
           staticMap: staticMap,
         ),
@@ -482,8 +491,8 @@ void main() {
     testWidgets('"Cómo llegar" en un resultado pide la ruta a su zona',
         (tester) async {
       String? pedido;
-      await tester.pumpWidget(MaterialApp(
-        home: Scaffold(
+      await tester.pumpWidget(appDePrueba(
+        Scaffold(
           body: ZonasScreen(
             repository: _RepositorioFalso([
               _zonaDePrueba(lat: 10.3697, lng: -75.4653),

@@ -30,7 +30,7 @@ jobs:
           channel: stable
           flutter-version: 3.47.4
           cache: true
-      - run: flutter pub get --enforce-lockfile
+      - run: flutter pub get
       - run: flutter test
 
       # Secretos (ADR 0009): se toman del almacén de secrets del repositorio

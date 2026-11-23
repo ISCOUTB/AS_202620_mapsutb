@@ -153,6 +153,216 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Mapa interactivo y sistema de ruteo peatonal para el campus de la UTB.'**
   String get acercaDeDescripcion;
+
+  /// No description provided for @accionReintentar.
+  ///
+  /// In es, this message translates to:
+  /// **'Reintentar'**
+  String get accionReintentar;
+
+  /// No description provided for @zonasCategoriaEstudio.
+  ///
+  /// In es, this message translates to:
+  /// **'Salones e instalaciones de estudio'**
+  String get zonasCategoriaEstudio;
+
+  /// No description provided for @zonasCategoriaRecreacion.
+  ///
+  /// In es, this message translates to:
+  /// **'Recreación, interacción y zonas de descanso'**
+  String get zonasCategoriaRecreacion;
+
+  /// No description provided for @zonasExplora.
+  ///
+  /// In es, this message translates to:
+  /// **'Explora el campus'**
+  String get zonasExplora;
+
+  /// No description provided for @zonasCargando.
+  ///
+  /// In es, this message translates to:
+  /// **'Cargando instalaciones…'**
+  String get zonasCargando;
+
+  /// No description provided for @zonasBuscarLugar.
+  ///
+  /// In es, this message translates to:
+  /// **'Buscar lugar'**
+  String get zonasBuscarLugar;
+
+  /// No description provided for @zonasBorrarBusqueda.
+  ///
+  /// In es, this message translates to:
+  /// **'Borrar búsqueda'**
+  String get zonasBorrarBusqueda;
+
+  /// No description provided for @zonasVolverCategorias.
+  ///
+  /// In es, this message translates to:
+  /// **'Volver a categorías'**
+  String get zonasVolverCategorias;
+
+  /// No description provided for @zonasErrorCarga.
+  ///
+  /// In es, this message translates to:
+  /// **'No se pudieron cargar las zonas.'**
+  String get zonasErrorCarga;
+
+  /// No description provided for @detalleComoLlegar.
+  ///
+  /// In es, this message translates to:
+  /// **'Cómo llegar'**
+  String get detalleComoLlegar;
+
+  /// No description provided for @detallePisos.
+  ///
+  /// In es, this message translates to:
+  /// **'Pisos'**
+  String get detallePisos;
+
+  /// No description provided for @detalleEspacios.
+  ///
+  /// In es, this message translates to:
+  /// **'Espacios'**
+  String get detalleEspacios;
+
+  /// No description provided for @detalleOtrosEspacios.
+  ///
+  /// In es, this message translates to:
+  /// **'Otros espacios'**
+  String get detalleOtrosEspacios;
+
+  /// No description provided for @detalleTodosEspacios.
+  ///
+  /// In es, this message translates to:
+  /// **'Todos los espacios'**
+  String get detalleTodosEspacios;
+
+  /// No description provided for @detalleSinOtrosEspacios.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay otros espacios registrados.'**
+  String get detalleSinOtrosEspacios;
+
+  /// No description provided for @detalleSinEspaciosPiso.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin espacios registrados en este piso.'**
+  String get detalleSinEspaciosPiso;
+
+  /// No description provided for @detalleZonaSinEspacios.
+  ///
+  /// In es, this message translates to:
+  /// **'Esta zona no tiene espacios registrados.'**
+  String get detalleZonaSinEspacios;
+
+  /// No description provided for @detalleEspacioSeleccionado.
+  ///
+  /// In es, this message translates to:
+  /// **'Espacio seleccionado'**
+  String get detalleEspacioSeleccionado;
+
+  /// No description provided for @detalleDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Descripción'**
+  String get detalleDescripcion;
+
+  /// No description provided for @detalleSinDescripcion.
+  ///
+  /// In es, this message translates to:
+  /// **'Aún no hay descripción para este salón.'**
+  String get detalleSinDescripcion;
+
+  /// No description provided for @detalleMapaNoDisponible.
+  ///
+  /// In es, this message translates to:
+  /// **'Mapa no disponible.'**
+  String get detalleMapaNoDisponible;
+
+  /// No description provided for @cantidadLugares.
+  ///
+  /// In es, this message translates to:
+  /// **'{n, plural, =1{1 lugar} other{{n} lugares}}'**
+  String cantidadLugares(int n);
+
+  /// No description provided for @cantidadInstalaciones.
+  ///
+  /// In es, this message translates to:
+  /// **'{n, plural, =1{1 instalación disponible} other{{n} instalaciones disponibles}}'**
+  String cantidadInstalaciones(int n);
+
+  /// No description provided for @cantidadPisos.
+  ///
+  /// In es, this message translates to:
+  /// **'{n, plural, =1{1 piso} other{{n} pisos}}'**
+  String cantidadPisos(int n);
+
+  /// No description provided for @cantidadEspacios.
+  ///
+  /// In es, this message translates to:
+  /// **'{n, plural, =1{1 espacio} other{{n} espacios}}'**
+  String cantidadEspacios(int n);
+
+  /// No description provided for @cantidadSalones.
+  ///
+  /// In es, this message translates to:
+  /// **'{n, plural, =1{1 salón} other{{n} salones}}'**
+  String cantidadSalones(int n);
+
+  /// No description provided for @tipoEdificio.
+  ///
+  /// In es, this message translates to:
+  /// **'Edificio'**
+  String get tipoEdificio;
+
+  /// No description provided for @tipoZonaComun.
+  ///
+  /// In es, this message translates to:
+  /// **'Zona común'**
+  String get tipoZonaComun;
+
+  /// No description provided for @tipoServicio.
+  ///
+  /// In es, this message translates to:
+  /// **'Servicio'**
+  String get tipoServicio;
+
+  /// No description provided for @tipoBiblioteca.
+  ///
+  /// In es, this message translates to:
+  /// **'Biblioteca'**
+  String get tipoBiblioteca;
+
+  /// No description provided for @tipoSalon.
+  ///
+  /// In es, this message translates to:
+  /// **'Salón'**
+  String get tipoSalon;
+
+  /// No description provided for @tipoLaboratorio.
+  ///
+  /// In es, this message translates to:
+  /// **'Laboratorio'**
+  String get tipoLaboratorio;
+
+  /// No description provided for @tipoOficina.
+  ///
+  /// In es, this message translates to:
+  /// **'Oficina'**
+  String get tipoOficina;
+
+  /// No description provided for @tipoCafeteria.
+  ///
+  /// In es, this message translates to:
+  /// **'Cafetería'**
+  String get tipoCafeteria;
+
+  /// No description provided for @tipoAuditorio.
+  ///
+  /// In es, this message translates to:
+  /// **'Auditorio'**
+  String get tipoAuditorio;
 }
 
 class _AppLocalizationsDelegate

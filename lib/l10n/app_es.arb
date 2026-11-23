@@ -7,5 +7,75 @@
   "configNotificacionesWeb": "Las notificaciones están desactivadas en la versión web.",
   "configIdioma": "Idioma",
   "configAcercaDe": "Acerca de",
-  "acercaDeDescripcion": "Mapa interactivo y sistema de ruteo peatonal para el campus de la UTB."
+  "acercaDeDescripcion": "Mapa interactivo y sistema de ruteo peatonal para el campus de la UTB.",
+  "accionReintentar": "Reintentar",
+  "zonasCategoriaEstudio": "Salones e instalaciones de estudio",
+  "zonasCategoriaRecreacion": "Recreación, interacción y zonas de descanso",
+  "zonasExplora": "Explora el campus",
+  "zonasCargando": "Cargando instalaciones…",
+  "zonasBuscarLugar": "Buscar lugar",
+  "zonasBorrarBusqueda": "Borrar búsqueda",
+  "zonasVolverCategorias": "Volver a categorías",
+  "zonasErrorCarga": "No se pudieron cargar las zonas.",
+  "detalleComoLlegar": "Cómo llegar",
+  "detallePisos": "Pisos",
+  "detalleEspacios": "Espacios",
+  "detalleOtrosEspacios": "Otros espacios",
+  "detalleTodosEspacios": "Todos los espacios",
+  "detalleSinOtrosEspacios": "No hay otros espacios registrados.",
+  "detalleSinEspaciosPiso": "Sin espacios registrados en este piso.",
+  "detalleZonaSinEspacios": "Esta zona no tiene espacios registrados.",
+  "detalleEspacioSeleccionado": "Espacio seleccionado",
+  "detalleDescripcion": "Descripción",
+  "detalleSinDescripcion": "Aún no hay descripción para este salón.",
+  "detalleMapaNoDisponible": "Mapa no disponible.",
+  "cantidadLugares": "{n, plural, =1{1 lugar} other{{n} lugares}}",
+  "@cantidadLugares": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "cantidadInstalaciones": "{n, plural, =1{1 instalación disponible} other{{n} instalaciones disponibles}}",
+  "@cantidadInstalaciones": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "cantidadPisos": "{n, plural, =1{1 piso} other{{n} pisos}}",
+  "@cantidadPisos": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "cantidadEspacios": "{n, plural, =1{1 espacio} other{{n} espacios}}",
+  "@cantidadEspacios": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "cantidadSalones": "{n, plural, =1{1 salón} other{{n} salones}}",
+  "@cantidadSalones": {
+    "placeholders": {
+      "n": {
+        "type": "int"
+      }
+    }
+  },
+  "tipoEdificio": "Edificio",
+  "tipoZonaComun": "Zona común",
+  "tipoServicio": "Servicio",
+  "tipoBiblioteca": "Biblioteca",
+  "tipoSalon": "Salón",
+  "tipoLaboratorio": "Laboratorio",
+  "tipoOficina": "Oficina",
+  "tipoCafeteria": "Cafetería",
+  "tipoAuditorio": "Auditorio"
 }

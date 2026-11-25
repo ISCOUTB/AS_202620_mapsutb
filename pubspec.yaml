@@ -19,7 +19,7 @@ dependencies:
   latlong2: ^0.10.1
   flutter_svg: ^2.0.10
   circular_bottom_navigation: ^2.4.0
-  google_fonts: ^6.2.0 
+  google_fonts: ^9.0.0 
   geolocator: ^14.0.2
   shared_preferences: ^2.2.0
   intl: any
